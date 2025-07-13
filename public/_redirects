@@ -1,0 +1,12 @@
+# Netlify redirects for client-side routing
+/*    /index.html   200
+
+# Handle specific routes
+/about    /index.html   200
+/apply    /index.html   200
+/coworking    /index.html   200
+/thank-you    /index.html   200
+/login    /index.html   200
+/room/*    /index.html   200
+/admin    /index.html   200
+/admin/*    /index.html   200

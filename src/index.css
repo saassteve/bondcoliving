@@ -1,0 +1,186 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+  
+  body {
+    @apply text-stone-200 bg-[#1E1F1E];
+    font-feature-settings: "kern";
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-sans font-bold tracking-tight text-stone-100;
+  }
+
+  h1 {
+    @apply text-4xl md:text-6xl;
+  }
+  
+  h2 {
+    @apply text-3xl md:text-5xl;
+  }
+  
+  h3 {
+    @apply text-2xl md:text-4xl;
+  }
+
+  p {
+    @apply text-lg md:text-xl;
+  }
+}
+
+@layer components {
+  .container {
+    @apply px-6 mx-auto max-w-7xl;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Ensure consistent card heights */
+  .apartment-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  
+  .apartment-card .card-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+  .page-transition {
+    @apply animate-fade-in;
+  }
+
+  /* Custom animation durations for Tailwind */
+  .duration-800 {
+    transition-duration: 800ms;
+  }
+  
+  .duration-1000 {
+    transition-duration: 1000ms;
+  }
+  
+  .duration-1200 {
+    transition-duration: 1200ms;
+  }
+
+  /* Smooth scroll behavior */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Enhanced animations */
+  @keyframes slideInFromBottom {
+    0% {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideInFromLeft {
+    0% {
+      opacity: 0;
+      transform: translateX(-30px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes slideInFromRight {
+    0% {
+      opacity: 0;
+      transform: translateX(30px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes scaleInFade {
+    0% {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .animate-slide-in-bottom {
+    animation: slideInFromBottom 0.8s ease-out forwards;
+  }
+
+  .animate-slide-in-left {
+    animation: slideInFromLeft 0.8s ease-out forwards;
+  }
+
+  .animate-slide-in-right {
+    animation: slideInFromRight 0.8s ease-out forwards;
+  }
+
+  .animate-scale-in-fade {
+    animation: scaleInFade 0.8s ease-out forwards;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center px-6 py-3 text-sm uppercase tracking-wide transition-all rounded-full;
+  }
+
+  .btn-primary {
+    @apply btn text-[#C5C5B5] bg-[#1E1F1E] hover:bg-[#C5C5B5] hover:text-[#1E1F1E];
+  }
+
+  .btn-secondary {
+    @apply btn text-[#1E1F1E] bg-[#C5C5B5] hover:bg-[#1E1F1E] hover:text-[#C5C5B5];
+  }
+
+  .input {
+    @apply w-full px-4 py-3 text-stone-200 bg-stone-800 border border-stone-700 rounded-full focus:outline-none focus:ring-2 focus:ring-stone-500 focus:border-stone-500;
+  }
+
+  .card {
+    @apply rounded-2xl overflow-hidden;
+  }
+
+  .feature-card {
+    @apply rounded-xl p-8 bg-[#1E1F1E] text-[#C5C5B5];
+  }
+
+  .review-card {
+    @apply rounded-xl border border-[#C5C5B5]/20 p-8;
+  }
+
+  .benefit-item {
+    @apply flex items-start p-4 bg-[#C5C5B5]/5 backdrop-blur-sm rounded-lg;
+  }
+}
