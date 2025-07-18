@@ -321,7 +321,7 @@ export class ApplicationService {
         hint: error.hint,
         fullError: error
       });
-      throw error;
+      throw new Error(`Supabase error: ${error.message} (Code: ${error.code})`);
     }
     
     console.log('Application created successfully:', data);

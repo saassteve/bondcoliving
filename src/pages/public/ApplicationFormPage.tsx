@@ -150,13 +150,15 @@ const ApplicationFormPage: React.FC = () => {
       });
       // More detailed error handling
       if (error instanceof Error) {
-        if (error.message.includes('row-level security')) {
-          alert('There was a permission error submitting your application. Please check the browser console for details and try refreshing the page.');
+        if (error.message.includes('row-level security') || error.message.includes('42501')) {
+          alert('Permission error: Anonymous users cannot submit applications. This needs to be fixed in Supabase dashboard - check RLS policies for the applications table.');
+        } else if (error.message.includes('Supabase error:')) {
+          alert(`Database error: ${error.message}`);
         } else {
           alert(`There was an error submitting your application: ${error.message}. Please try again.`);
         }
       } else {
-        alert('There was an error submitting your application. Please try again.');
+        alert('Unknown error submitting your application. Check browser console for details.');
       }
     } finally {
       setIsSubmitting(false);
