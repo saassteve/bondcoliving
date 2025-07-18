@@ -3,6 +3,12 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
+// Debug logging for environment variables
+console.log('Supabase initialization:', {
+  url: supabaseUrl ? `${supabaseUrl.substring(0, 20)}...` : 'MISSING',
+  anonKey: supabaseAnonKey ? `${supabaseAnonKey.substring(0, 20)}...` : 'MISSING'
+});
+
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables')
 }
@@ -294,6 +300,13 @@ export class ApplicationService {
   static async create(application: Omit<Application, 'id' | 'created_at' | 'updated_at' | 'status'>): Promise<Application> {
     console.log('Creating application with data:', application);
     
+    // Log current session info
+    const { data: session } = await supabase.auth.getSession();
+    console.log('Current session when creating application:', {
+      user: session.session?.user?.id || 'anonymous',
+      role: session.session?.user?.role || 'anon'
+    });
+    
     const { data, error } = await supabase
       .from('applications')
       .insert(application)
@@ -301,7 +314,13 @@ export class ApplicationService {
       .single()
     
     if (error) {
-      console.error('Supabase error creating application:', error);
+      console.error('Detailed Supabase error creating application:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+        fullError: error
+      });
       throw error;
     }
     

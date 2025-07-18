@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, Mail, Phone, User, Home, MessageSquare, Search, ArrowRight, CheckCircle } from 'lucide-react';
-import { applicationService, apartmentService, type Apartment } from '../../lib/supabase';
+import { applicationService, apartmentService, supabase, type Apartment } from '../../lib/supabase';
 
 const ApplicationFormPage: React.FC = () => {
   const navigate = useNavigate();
@@ -23,6 +23,25 @@ const ApplicationFormPage: React.FC = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   
   const totalSteps = 3;
+  
+  // Debug session status on component mount
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const { data: session, error } = await supabase.auth.getSession();
+        console.log('Application form session check:', {
+          hasSession: !!session.session,
+          user: session.session?.user?.id || 'anonymous',
+          role: session.session?.user?.role || 'anon',
+          error: error
+        });
+      } catch (err) {
+        console.error('Error checking session:', err);
+      }
+    };
+    
+    checkSession();
+  }, []);
   
   useEffect(() => {
     const fetchApartments = async () => {
@@ -120,14 +139,19 @@ const ApplicationFormPage: React.FC = () => {
         heard_from: formData.heard_from?.trim() || null
       };
       
+      console.log('Submitting application data:', applicationData);
+      
       await applicationService.create(applicationData);
       navigate('/thank-you');
     } catch (error) {
-      console.error('Error submitting application:', error);
+      console.error('Detailed error submitting application:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        fullError: error
+      });
       // More detailed error handling
       if (error instanceof Error) {
         if (error.message.includes('row-level security')) {
-          alert('There was a permission error submitting your application. Please try refreshing the page and submitting again.');
+          alert('There was a permission error submitting your application. Please check the browser console for details and try refreshing the page.');
         } else {
           alert(`There was an error submitting your application: ${error.message}. Please try again.`);
         }
