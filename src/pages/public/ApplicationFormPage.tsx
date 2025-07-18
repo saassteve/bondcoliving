@@ -108,11 +108,32 @@ const ApplicationFormPage: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      await applicationService.create(formData);
+      // Ensure we're using the correct data format for the database
+      const applicationData = {
+        name: formData.name.trim(),
+        email: formData.email.trim().toLowerCase(),
+        phone: formData.phone?.trim() || null,
+        arrival_date: formData.arrival_date,
+        departure_date: formData.departure_date,
+        apartment_preference: formData.apartment_preference?.trim() || null,
+        about: formData.about.trim(),
+        heard_from: formData.heard_from?.trim() || null
+      };
+      
+      await applicationService.create(applicationData);
       navigate('/thank-you');
     } catch (error) {
       console.error('Error submitting application:', error);
-      alert('There was an error submitting your application. Please try again.');
+      // More detailed error handling
+      if (error instanceof Error) {
+        if (error.message.includes('row-level security')) {
+          alert('There was a permission error submitting your application. Please try refreshing the page and submitting again.');
+        } else {
+          alert(`There was an error submitting your application: ${error.message}. Please try again.`);
+        }
+      } else {
+        alert('There was an error submitting your application. Please try again.');
+      }
     } finally {
       setIsSubmitting(false);
     }

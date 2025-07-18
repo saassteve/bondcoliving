@@ -292,13 +292,20 @@ export class ApartmentService {
 
 export class ApplicationService {
   static async create(application: Omit<Application, 'id' | 'created_at' | 'updated_at' | 'status'>): Promise<Application> {
+    console.log('Creating application with data:', application);
+    
     const { data, error } = await supabase
       .from('applications')
       .insert(application)
       .select()
       .single()
     
-    if (error) throw error
+    if (error) {
+      console.error('Supabase error creating application:', error);
+      throw error;
+    }
+    
+    console.log('Application created successfully:', data);
     return data
   }
 
