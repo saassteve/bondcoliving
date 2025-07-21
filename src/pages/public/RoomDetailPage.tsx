@@ -63,55 +63,6 @@ const RoomDetailPage: React.FC = () => {
       }
     };
     
-    const fetchApartment = async () => {
-      if (!roomSlug) {
-        setError('Room slug not provided');
-        setLoading(false);
-        return;
-      }
-
-      try {
-        // First try to find by slug
-        let apartmentData = await apartmentService.getBySlug(roomSlug);
-        
-        // If not found by slug, try by ID (for backward compatibility)
-        if (!apartmentData) {
-          apartmentData = await apartmentService.getById(roomSlug);
-        }
-        
-        if (apartmentData) {
-          // Fetch features and images
-          const [features, images] = await Promise.all([
-            apartmentService.getFeatures(apartmentData.id),
-            apartmentService.getImages(apartmentData.id)
-          ]);
-          
-          // Sort images with featured image first
-          const sortedImages = images.sort((a, b) => {
-            if (a.is_featured && !b.is_featured) return -1;
-            if (!a.is_featured && b.is_featured) return 1;
-            return (a.sort_order || 0) - (b.sort_order || 0);
-          });
-          
-          setApartment({
-            ...apartmentData,
-            slug: apartmentService.generateSlug(apartmentData.title),
-            features,
-            images: sortedImages,
-            image_url: sortedImages[0]?.image_url || apartmentData.image_url
-          });
-          setLastFetch(Date.now());
-        } else {
-          setError('Apartment not found');
-        }
-      } catch (err) {
-        console.error('Error fetching apartment:', err);
-        setError('Failed to load apartment details');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchApartment();
   }, [roomSlug]);
   
