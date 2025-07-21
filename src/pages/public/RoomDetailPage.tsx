@@ -115,16 +115,6 @@ const RoomDetailPage: React.FC = () => {
     fetchApartment();
   }, [roomSlug]);
   
-  // Refresh data every 30 seconds to catch updates
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (Date.now() - lastFetch > 30000) { // 30 seconds
-        fetchApartment();
-      }
-    }, 30000);
-    return () => clearInterval(interval);
-  }, [lastFetch, roomSlug]);
-
   const nextImage = () => {
     if (apartment?.images && apartment.images.length > 1) {
       setCurrentImageIndex((prev) => 
