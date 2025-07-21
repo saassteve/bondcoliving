@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Users, MapPin } from 'lucide-react';
+import { ArrowLeft, Users, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 import { apartmentService, type Apartment } from '../../lib/supabase';
 import { getIconComponent } from '../../lib/iconUtils';
 
 const RoomDetailPage: React.FC = () => {
   const { roomId } = useParams<{ roomId: string }>();
   const [apartment, setApartment] = useState<Apartment | null>(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastFetch, setLastFetch] = useState<number>(0);
@@ -29,14 +30,18 @@ const RoomDetailPage: React.FC = () => {
             apartmentService.getImages(roomId)
           ]);
           
-          // Use featured image if available
-          const featuredImage = images.find(img => img.is_featured);
+          // Sort images with featured image first
+          const sortedImages = images.sort((a, b) => {
+            if (a.is_featured && !b.is_featured) return -1;
+            if (!a.is_featured && b.is_featured) return 1;
+            return (a.sort_order || 0) - (b.sort_order || 0);
+          });
           
           setApartment({
             ...apartmentData,
             features,
-            images,
-            image_url: featuredImage?.image_url || apartmentData.image_url
+            images: sortedImages,
+            image_url: sortedImages[0]?.image_url || apartmentData.image_url
           });
           setLastFetch(Date.now());
         } else {
@@ -62,6 +67,26 @@ const RoomDetailPage: React.FC = () => {
     }, 30000);
     return () => clearInterval(interval);
   }, [lastFetch, roomId]);
+
+  const nextImage = () => {
+    if (apartment?.images && apartment.images.length > 1) {
+      setCurrentImageIndex((prev) => 
+        prev === apartment.images.length - 1 ? 0 : prev + 1
+      );
+    }
+  };
+
+  const previousImage = () => {
+    if (apartment?.images && apartment.images.length > 1) {
+      setCurrentImageIndex((prev) => 
+        prev === 0 ? apartment.images.length - 1 : prev - 1
+      );
+    }
+  };
+
+  const goToImage = (index: number) => {
+    setCurrentImageIndex(index);
+  };
 
   if (loading) {
     return (
@@ -93,6 +118,11 @@ const RoomDetailPage: React.FC = () => {
       </>
     );
   }
+
+  const currentImage = apartment.images && apartment.images.length > 0 
+    ? apartment.images[currentImageIndex] 
+    : null;
+  const displayImageUrl = currentImage?.image_url || apartment.image_url;
   
   return (
     <>
@@ -106,12 +136,12 @@ const RoomDetailPage: React.FC = () => {
         <meta property="og:title" content={`${apartment.title} - Private Apartment | Bond Coliving Funchal, Madeira`} />
         <meta property="og:description" content={`${apartment.description} €${apartment.price}/month in Funchal, Madeira.`} />
         <meta property="og:url" content={`https://stayatbond.com/room/${apartment.id}`} />
-        <meta property="og:image" content={apartment.image_url} />
+        <meta property="og:image" content={displayImageUrl} />
         
         {/* Twitter */}
         <meta name="twitter:title" content={`${apartment.title} - Private Apartment | Bond Coliving Funchal, Madeira`} />
         <meta name="twitter:description" content={`${apartment.description} €${apartment.price}/month in Funchal, Madeira.`} />
-        <meta name="twitter:image" content={apartment.image_url} />
+        <meta name="twitter:image" content={displayImageUrl} />
       </Helmet>
       
       {/* Hero Section */}
@@ -138,7 +168,7 @@ const RoomDetailPage: React.FC = () => {
         )}
         <div 
           className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${apartment.image_url})` }}
+          style={{ backgroundImage: `url(${displayImageUrl})` }}
         ></div>
         <div className="container relative z-20">
           <Link to="/" className="inline-flex items-center text-[#C5C5B5]/60 hover:text-[#C5C5B5] mb-8">
@@ -154,12 +184,66 @@ const RoomDetailPage: React.FC = () => {
       <section className="py-24 bg-[#1E1F1E]">
         <div className="container">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-            <div className="aspect-square bg-[#C5C5B5]/5 rounded-2xl overflow-hidden">
-              <img 
-                src={apartment.image_url} 
-                alt={apartment.title}
-                className="w-full h-full object-cover" 
-              />
+            <div className="space-y-6">
+              {/* Main Image */}
+              <div className="relative aspect-square bg-[#C5C5B5]/5 rounded-2xl overflow-hidden group">
+                <img 
+                  src={displayImageUrl} 
+                  alt={apartment.title}
+                  className="w-full h-full object-cover transition-transform duration-300" 
+                />
+                
+                {/* Navigation arrows - only show if multiple images */}
+                {apartment.images && apartment.images.length > 1 && (
+                  <>
+                    <button
+                      onClick={previousImage}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-sm"
+                      aria-label="Previous image"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={nextImage}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-sm"
+                      aria-label="Next image"
+                    >
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
+                    
+                    {/* Image counter */}
+                    <div className="absolute bottom-4 right-4 bg-black/50 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      {currentImageIndex + 1} / {apartment.images.length}
+                    </div>
+                  </>
+                )}
+              </div>
+              
+              {/* Thumbnail Gallery - only show if multiple images */}
+              {apartment.images && apartment.images.length > 1 && (
+                <div className="grid grid-cols-4 gap-3">
+                  {apartment.images.map((image, index) => (
+                    <button
+                      key={image.id}
+                      onClick={() => goToImage(index)}
+                      className={`aspect-square rounded-lg overflow-hidden border-2 transition-all duration-300 ${
+                        index === currentImageIndex 
+                          ? 'border-[#C5C5B5] ring-2 ring-[#C5C5B5]/30' 
+                          : 'border-[#C5C5B5]/20 hover:border-[#C5C5B5]/50'
+                      }`}
+                    >
+                      <img
+                        src={image.image_url}
+                        alt={`${apartment.title} - Image ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                      {image.is_featured && (
+                        <div className="absolute top-1 right-1 w-2 h-2 bg-[#C5C5B5] rounded-full"></div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             
             <div>
