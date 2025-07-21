@@ -52,7 +52,7 @@ const App = () => {
             <Route path="apply" element={<ApplicationFormPage />} />
             <Route path="thank-you" element={<ThankYouPage />} />
             <Route path="coworking" element={<CoworkingPage />} />
-            <Route path="room/:roomId" element={<RoomDetailPage />} />
+            <Route path="room/:roomSlug" element={<RoomDetailPage />} />
             <Route path="login" element={<LoginPage />} />
             {/* Catch-all route for 404s */}
             <Route path="*" element={<Navigate to="/" replace />} />

@@ -6,7 +6,7 @@ import { apartmentService, type Apartment } from '../../lib/supabase';
 import { getIconComponent } from '../../lib/iconUtils';
 
 const RoomDetailPage: React.FC = () => {
-  const { roomId } = useParams<{ roomId: string }>();
+  const { roomSlug } = useParams<{ roomSlug: string }>();
   const [apartment, setApartment] = useState<Apartment | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -15,19 +15,26 @@ const RoomDetailPage: React.FC = () => {
 
   useEffect(() => {
     const fetchApartment = async () => {
-      if (!roomId) {
-        setError('Room ID not provided');
+      if (!roomSlug) {
+        setError('Room slug not provided');
         setLoading(false);
         return;
       }
 
       try {
-        const apartmentData = await apartmentService.getById(roomId);
+        // First try to find by slug
+        let apartmentData = await apartmentService.getBySlug(roomSlug);
+        
+        // If not found by slug, try by ID (for backward compatibility)
+        if (!apartmentData) {
+          apartmentData = await apartmentService.getById(roomSlug);
+        }
+        
         if (apartmentData) {
           // Fetch features and images
           const [features, images] = await Promise.all([
-            apartmentService.getFeatures(roomId),
-            apartmentService.getImages(roomId)
+            apartmentService.getFeatures(apartmentData.id),
+            apartmentService.getImages(apartmentData.id)
           ]);
           
           // Sort images with featured image first
@@ -39,6 +46,56 @@ const RoomDetailPage: React.FC = () => {
           
           setApartment({
             ...apartmentData,
+            slug: apartmentService.generateSlug(apartmentData.title),
+            features,
+            images: sortedImages,
+            image_url: sortedImages[0]?.image_url || apartmentData.image_url
+          });
+          setLastFetch(Date.now());
+        } else {
+          setError('Apartment not found');
+        }
+      } catch (err) {
+        console.error('Error fetching apartment:', err);
+        setError('Failed to load apartment details');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    const fetchApartment = async () => {
+      if (!roomSlug) {
+        setError('Room slug not provided');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        // First try to find by slug
+        let apartmentData = await apartmentService.getBySlug(roomSlug);
+        
+        // If not found by slug, try by ID (for backward compatibility)
+        if (!apartmentData) {
+          apartmentData = await apartmentService.getById(roomSlug);
+        }
+        
+        if (apartmentData) {
+          // Fetch features and images
+          const [features, images] = await Promise.all([
+            apartmentService.getFeatures(apartmentData.id),
+            apartmentService.getImages(apartmentData.id)
+          ]);
+          
+          // Sort images with featured image first
+          const sortedImages = images.sort((a, b) => {
+            if (a.is_featured && !b.is_featured) return -1;
+            if (!a.is_featured && b.is_featured) return 1;
+            return (a.sort_order || 0) - (b.sort_order || 0);
+          });
+          
+          setApartment({
+            ...apartmentData,
+            slug: apartmentService.generateSlug(apartmentData.title),
             features,
             images: sortedImages,
             image_url: sortedImages[0]?.image_url || apartmentData.image_url
@@ -56,7 +113,7 @@ const RoomDetailPage: React.FC = () => {
     };
 
     fetchApartment();
-  }, [roomId]);
+  }, [roomSlug]);
   
   // Refresh data every 30 seconds to catch updates
   useEffect(() => {
@@ -66,7 +123,7 @@ const RoomDetailPage: React.FC = () => {
       }
     }, 30000);
     return () => clearInterval(interval);
-  }, [lastFetch, roomId]);
+  }, [lastFetch, roomSlug]);
 
   const nextImage = () => {
     if (apartment?.images && apartment.images.length > 1) {
@@ -136,11 +193,13 @@ const RoomDetailPage: React.FC = () => {
         <meta property="og:title" content={`${apartment.title} - Private Apartment | Bond Coliving Funchal, Madeira`} />
         <meta property="og:description" content={`${apartment.description} €${apartment.price}/month in Funchal, Madeira.`} />
         <meta property="og:url" content={`https://stayatbond.com/room/${apartment.id}`} />
+        <meta property="og:url" content={`https://stayatbond.com/room/${apartment.slug}`} />
         <meta property="og:image" content={displayImageUrl} />
         
         {/* Twitter */}
         <meta name="twitter:title" content={`${apartment.title} - Private Apartment | Bond Coliving Funchal, Madeira`} />
         <meta name="twitter:description" content={`${apartment.description} €${apartment.price}/month in Funchal, Madeira.`} />
+        <meta name="twitter:url" content={`https://stayatbond.com/room/${apartment.slug}`} />
         <meta name="twitter:image" content={displayImageUrl} />
       </Helmet>
       
@@ -253,9 +312,6 @@ const RoomDetailPage: React.FC = () => {
                     <span className="block text-4xl font-bold">€{apartment.price.toLocaleString()}</span>
                     <span className="text-[#C5C5B5]/60">per month</span>
                   </div>
-                  <Link to="/apply" className="btn-primary">
-                    Apply to Stay
-                  </Link>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-6">
@@ -275,6 +331,21 @@ const RoomDetailPage: React.FC = () => {
                     }`}>
                       {apartment.status.charAt(0).toUpperCase() + apartment.status.slice(1)}
                     </span>
+                  </div>
+                </div>
+                
+                {/* Clear Call-to-Action */}
+                <div className="mt-8 p-6 bg-[#C5C5B5]/10 rounded-xl border border-[#C5C5B5]/20">
+                  <div className="text-center">
+                    <h3 className="text-xl font-bold text-[#C5C5B5] mb-3">Ready to call this home?</h3>
+                    <p className="text-[#C5C5B5]/80 mb-6">Join our community and start your journey in Funchal</p>
+                    <Link 
+                      to="/apply" 
+                      className="inline-flex items-center px-8 py-4 bg-[#C5C5B5] text-[#1E1F1E] rounded-full hover:bg-white transition-all font-semibold text-lg uppercase tracking-wide shadow-lg hover:shadow-xl hover:scale-105"
+                    >
+                      Apply for This Apartment
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </Link>
                   </div>
                 </div>
               </div>

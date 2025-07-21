@@ -18,6 +18,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 // Database Types
 export interface Apartment {
   id: string
+  slug?: string
   title: string
   description: string
   price: number
@@ -103,6 +104,28 @@ export interface AdminUser {
 
 // Service Classes
 export class ApartmentService {
+  // Generate URL-friendly slug from apartment title
+  static generateSlug(title: string): string {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/-+/g, '-') // Replace multiple hyphens with single
+      .trim();
+  }
+
+  // Find apartment by slug
+  static async getBySlug(slug: string): Promise<Apartment | null> {
+    const { data, error } = await supabase
+      .from('apartments')
+      .select('*')
+      .ilike('title', `%${slug.replace(/-/g, ' ')}%`)
+      .maybeSingle()
+    
+    if (error) throw error
+    return data
+  }
+
   static async getAll(): Promise<Apartment[]> {
     const { data, error } = await supabase
       .from('apartments')
@@ -110,7 +133,14 @@ export class ApartmentService {
       .order('sort_order', { ascending: true })
     
     if (error) throw error
-    return data || []
+    
+    // Add slugs to apartments
+    const apartmentsWithSlugs = (data || []).map(apartment => ({
+      ...apartment,
+      slug: this.generateSlug(apartment.title)
+    }))
+    
+    return apartmentsWithSlugs
   }
 
   static async getById(id: string): Promise<Apartment | null> {

@@ -231,7 +231,7 @@ const ApartmentPreview: React.FC = () => {
               {apartments.map((apartment) => (
                 <Link 
                   key={apartment.id}
-                  to={`/room/${apartment.id}`}
+                  to={`/room/${apartmentService.generateSlug(apartment.title)}`}
                   className="flex-none w-72 md:w-80 bg-[#1E1F1E] group card hover:ring-2 hover:ring-[#C5C5B5]/20 transition-all hover:transform hover:-translate-y-1 shadow-lg apartment-card"
                 >
                   <div className="aspect-video overflow-hidden">
