@@ -431,7 +431,7 @@ const ApplicationFormPage: React.FC = () => {
               min={new Date().toISOString().split('T')[0]}
               value={formData.arrival_date}
               onChange={handleChange}
-              className={`w-full pl-12 pr-4 py-4 bg-[#1E1F1E]/50 border-2 rounded-2xl text-[#C5C5B5] focus:outline-none focus:border-[#C5C5B5] transition-all ${
+              className={`w-full pl-12 pr-4 py-4 bg-[#1E1F1E]/50 border-2 rounded-2xl text-[#C5C5B5] focus:outline-none focus:border-[#C5C5B5] transition-all cursor-pointer ${
                 errors.arrival_date ? 'border-red-500' : 'border-[#C5C5B5]/20'
               }`}
             />
@@ -453,7 +453,7 @@ const ApplicationFormPage: React.FC = () => {
               min={getMinDepartureDate()}
               value={formData.departure_date}
               onChange={handleChange}
-              className={`w-full pl-12 pr-4 py-4 bg-[#1E1F1E]/50 border-2 rounded-2xl text-[#C5C5B5] focus:outline-none focus:border-[#C5C5B5] transition-all ${
+              className={`w-full pl-12 pr-4 py-4 bg-[#1E1F1E]/50 border-2 rounded-2xl text-[#C5C5B5] focus:outline-none focus:border-[#C5C5B5] transition-all cursor-pointer ${
                 errors.departure_date || dateError ? 'border-red-500' : 'border-[#C5C5B5]/20'
               }`}
             />
@@ -463,29 +463,6 @@ const ApplicationFormPage: React.FC = () => {
           )}
         </div>
         
-        <div className="md:col-span-2 relative group">
-          <label htmlFor="apartment_preference" className="block text-sm uppercase tracking-wide mb-3 text-[#C5C5B5]/80">
-            Apartment Preference (Optional - you can change this from step 1)
-          </label>
-          <div className="relative">
-            <Home className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#C5C5B5]/40 group-focus-within:text-[#C5C5B5] transition-colors" />
-            <select
-              id="apartment_preference"
-              name="apartment_preference"
-              value={formData.apartment_preference}
-              onChange={handleChange}
-              className="w-full pl-12 pr-4 py-4 bg-[#1E1F1E]/50 border-2 border-[#C5C5B5]/20 rounded-2xl text-[#C5C5B5] focus:outline-none focus:border-[#C5C5B5] transition-all appearance-none"
-            >
-              <option value="">No preference</option>
-              {apartments.map((apartment) => (
-                <option key={apartment.id} value={apartment.title}>
-                  {apartment.title} - €{apartment.price.toLocaleString()}/month
-                  {apartment.available_from && ` (Available from ${new Date(apartment.available_from).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})`}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
       </div>
     </div>
   );
