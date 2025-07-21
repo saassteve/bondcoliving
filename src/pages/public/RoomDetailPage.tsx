@@ -255,6 +255,45 @@ const RoomDetailPage: React.FC = () => {
                   </div>
                 </div>
                 
+                {/* What's Included Section */}
+                <div className="mb-8 p-6 bg-[#1E1F1E]/30 rounded-xl border border-[#C5C5B5]/10">
+                  <h3 className="text-lg font-bold text-[#C5C5B5] mb-4">What's Included</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="flex items-center text-[#C5C5B5]/80">
+                      <div className="w-2 h-2 bg-[#C5C5B5] rounded-full mr-3"></div>
+                      <span className="text-sm">All utilities (water, electricity)</span>
+                    </div>
+                    <div className="flex items-center text-[#C5C5B5]/80">
+                      <div className="w-2 h-2 bg-[#C5C5B5] rounded-full mr-3"></div>
+                      <span className="text-sm">Enterprise-grade WiFi</span>
+                    </div>
+                    <div className="flex items-center text-[#C5C5B5]/80">
+                      <div className="w-2 h-2 bg-[#C5C5B5] rounded-full mr-3"></div>
+                      <span className="text-sm">Bi-weekly cleaning service</span>
+                    </div>
+                    <div className="flex items-center text-[#C5C5B5]/80">
+                      <div className="w-2 h-2 bg-[#C5C5B5] rounded-full mr-3"></div>
+                      <span className="text-sm">Weekly laundry service</span>
+                    </div>
+                    <div className="flex items-center text-[#C5C5B5]/80">
+                      <div className="w-2 h-2 bg-[#C5C5B5] rounded-full mr-3"></div>
+                      <span className="text-sm">Coworking space access</span>
+                    </div>
+                    <div className="flex items-center text-[#C5C5B5]/80">
+                      <div className="w-2 h-2 bg-[#C5C5B5] rounded-full mr-3"></div>
+                      <span className="text-sm">Community events</span>
+                    </div>
+                    <div className="flex items-center text-[#C5C5B5]/80">
+                      <div className="w-2 h-2 bg-[#C5C5B5] rounded-full mr-3"></div>
+                      <span className="text-sm">Fresh linens & towels</span>
+                    </div>
+                    <div className="flex items-center text-[#C5C5B5]/80">
+                      <div className="w-2 h-2 bg-[#C5C5B5] rounded-full mr-3"></div>
+                      <span className="text-sm">No hidden fees</span>
+                    </div>
+                  </div>
+                </div>
+                
                 <div className="grid grid-cols-2 gap-6">
                   <div className="flex items-center">
                     <Users className="w-5 h-5 text-[#C5C5B5] mr-3" />
