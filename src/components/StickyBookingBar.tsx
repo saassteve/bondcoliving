@@ -36,7 +36,7 @@ const StickyBookingBar: React.FC = () => {
   const closeModal = () => setIsModalOpen(false);
 
   // Don't show booking bar on application page
-  if (location.pathname === '/apply') {
+  if (location.pathname === '/apply' || location.pathname.startsWith('/room/')) {
     return null;
   }
 

@@ -7,6 +7,7 @@ import { applicationService, apartmentService, supabase, type Apartment } from '
 const ApplicationFormPage: React.FC = () => {
   const navigate = useNavigate();
   const [apartments, setApartments] = useState<Apartment[]>([]);
+  const [availableApartments, setAvailableApartments] = useState<Apartment[]>([]);
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     name: '',
@@ -15,14 +16,13 @@ const ApplicationFormPage: React.FC = () => {
     arrival_date: '',
     departure_date: '',
     apartment_preference: '',
-    about: '',
     heard_from: '',
   });
   const [dateError, setDateError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   
-  const totalSteps = 3;
+  const totalSteps = 2;
   
   // Debug session status on component mount
   useEffect(() => {
@@ -67,9 +67,43 @@ const ApplicationFormPage: React.FC = () => {
         setDateError('Minimum stay is 1 month');
       } else {
         setDateError('');
+        // Filter apartments based on availability dates
+        filterAvailableApartments();
       }
+    } else {
+      setAvailableApartments(apartments);
     }
-  }, [formData.arrival_date, formData.departure_date]);
+  }, [formData.arrival_date, formData.departure_date, apartments]);
+  
+  const filterAvailableApartments = () => {
+    if (!formData.arrival_date || !formData.departure_date) {
+      setAvailableApartments(apartments);
+      return;
+    }
+    
+    const searchCheckIn = new Date(formData.arrival_date);
+    const searchCheckOut = new Date(formData.departure_date);
+    
+    const filtered = apartments.filter(apt => {
+      if (!apt.available_from) return true; // If no availability date set, assume available
+      
+      const aptAvailableFrom = new Date(apt.available_from);
+      const aptAvailableUntil = apt.available_until ? new Date(apt.available_until) : null;
+      
+      // Check if apartment is available during the requested period
+      const isAvailableFrom = searchCheckIn >= aptAvailableFrom;
+      const isAvailableUntil = !aptAvailableUntil || searchCheckOut <= aptAvailableUntil;
+      
+      return isAvailableFrom && isAvailableUntil && apt.status === 'available';
+    });
+    
+    setAvailableApartments(filtered);
+    
+    // Clear apartment preference if currently selected apartment is no longer available
+    if (formData.apartment_preference && !filtered.find(apt => apt.title === formData.apartment_preference)) {
+      setFormData(prev => ({ ...prev, apartment_preference: '' }));
+    }
+  };
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
