@@ -35,8 +35,8 @@ const HomePage: React.FC = () => {
       </Helmet>
 
       <Hero />
-      <Intro />
       <ApartmentPreview />
+      <Intro />
       <ValueComparison />
       <FeatureHighlights />
       <Reviews />
