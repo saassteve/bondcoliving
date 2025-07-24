@@ -2,10 +2,11 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import AnimatedSection from '../AnimatedSection';
+import BookingBar from '../BookingBar';
 
 const Hero: React.FC = () => {
   return (
-    <section className="relative h-screen flex items-center">
+    <section className="relative h-screen flex items-center pb-20">
       <div className="absolute inset-0 bg-black/60 z-10"></div>
       <div className="absolute inset-0 bg-[url('https://iili.io/FcOqdX9.png')] bg-cover bg-[center_bottom_20%]"></div>
       <div className="container relative z-20">
@@ -40,6 +41,15 @@ const Hero: React.FC = () => {
                 Explore Coworking
               </Link>
             </div>
+          </AnimatedSection>
+        </div>
+      </div>
+      
+      {/* Booking Bar */}
+      <div className="absolute bottom-8 left-0 right-0 z-30 px-4">
+        <div className="container">
+          <AnimatedSection animation="fadeInUp" delay={1200}>
+            <BookingBar />
           </AnimatedSection>
         </div>
       </div>
