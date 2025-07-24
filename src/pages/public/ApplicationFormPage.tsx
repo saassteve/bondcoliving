@@ -588,7 +588,6 @@ const ApplicationFormPage: React.FC = () => {
               <div className="bg-[#1E1F1E]/80 backdrop-blur-sm rounded-3xl p-8 md:p-12 border border-[#C5C5B5]/10">
                 {currentStep === 1 && renderStep1()}
                 {currentStep === 2 && renderStep2()}
-                {currentStep === 3 && renderStep3()}
               </div>
               
               <div className="flex justify-between items-center pt-8">
