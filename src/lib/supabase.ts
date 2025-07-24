@@ -155,8 +155,32 @@ export class ApartmentService {
     
     if (error) throw error
     
-    // Add slugs to apartments
-    const apartmentsWithSlugs = (data || []).map(apartment => ({
+    // Add slugs to apartments and check availability
+    const apartmentsWithSlugs = await Promise.all((data || []).map(async (apartment) => {
+      // Check if apartment is actually available based on calendar
+      let actualStatus = apartment.status;
+      
+      try {
+        const today = new Date().toISOString().split('T')[0];
+        const isAvailable = await availabilityService.checkAvailability(apartment.id, today, today);
+        
+        // If calendar shows it's not available, override status
+        if (!isAvailable && apartment.status === 'available') {
+          actualStatus = 'occupied';
+        }
+      } catch (error) {
+        console.warn('Could not check availability for apartment:', apartment.id);
+      }
+      
+      return {
+        ...apartment,
+        status: actualStatus,
+        slug: this.generateSlug(apartment.title)
+      };
+    }));
+    
+    return apartmentsWithSlugs;
+  }
       ...apartment,
       slug: this.generateSlug(apartment.title)
     }))
@@ -564,273 +588,9 @@ export class SiteSettingService {
   }
 }
 
-export class AvailabilityService {
-  static async getCalendar(apartmentId: string, startDate?: string, endDate?: string): Promise<ApartmentAvailability[]> {
-    const { data, error } = await supabase
-      .rpc('get_apartment_calendar', {
-        apartment_uuid: apartmentId,
-        start_date: startDate || new Date().toISOString().split('T')[0],
-        end_date: endDate || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-      })
-    
-    if (error) throw error
-    return data || []
-  }
-
-  static async checkAvailability(apartmentId: string, startDate: string, endDate: string): Promise<boolean> {
-    const { data, error } = await supabase
-      .rpc('check_apartment_availability', {
-        apartment_uuid: apartmentId,
-        start_date: startDate,
-        end_date: endDate
-      })
-    
-    if (error) throw error
-    return data
-  }
-
-  static async setAvailability(
-    apartmentId: string, 
-    date: string, 
-    status: 'available' | 'booked' | 'blocked',
-    bookingReference?: string,
-    notes?: string
-  ): Promise<ApartmentAvailability> {
-    const { data, error } = await supabase
-      .from('apartment_availability')
-      .upsert({
-        apartment_id: apartmentId,
-        date,
-        status,
-        booking_reference: bookingReference,
-        notes
-      })
-      .select()
-      .single()
-    
-    if (error) throw error
-    return data
-  }
-
-  static async setBulkAvailability(
-    apartmentId: string,
-    dates: string[],
-    status: 'available' | 'booked' | 'blocked',
-    bookingReference?: string,
-    notes?: string
-  ): Promise<ApartmentAvailability[]> {
-    const records = dates.map(date => ({
-      apartment_id: apartmentId,
-      date,
-      status,
-      booking_reference: bookingReference,
-      notes
-    }))
-
-    const { data, error } = await supabase
-      .from('apartment_availability')
-      .upsert(records)
-      .select()
-    
-    if (error) throw error
-    return data || []
-  }
-
-  static async deleteAvailability(apartmentId: string, date: string): Promise<void> {
-    const { error } = await supabase
-      .from('apartment_availability')
-      .delete()
-      .eq('apartment_id', apartmentId)
-      .eq('date', date)
-    
-    if (error) throw error
-  }
-}
-
-export class ICalService {
-  static async getFeeds(apartmentId: string): Promise<ApartmentICalFeed[]> {
-    const { data, error } = await supabase
-      .from('apartment_ical_feeds')
-      .select('*')
-      .eq('apartment_id', apartmentId)
-      .order('created_at', { ascending: false })
-    
-    if (error) throw error
-    return data || []
-  }
-
-  static async addFeed(feed: Omit<ApartmentICalFeed, 'id' | 'created_at' | 'last_sync'>): Promise<ApartmentICalFeed> {
-    const { data, error } = await supabase
-      .from('apartment_ical_feeds')
-      .insert(feed)
-      .select()
-      .single()
-    
-    if (error) throw error
-    return data
-  }
-
-  static async updateFeed(id: string, updates: Partial<ApartmentICalFeed>): Promise<ApartmentICalFeed> {
-    const { data, error } = await supabase
-      .from('apartment_ical_feeds')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single()
-    
-    if (error) throw error
-    return data
-  }
-
-  static async deleteFeed(id: string): Promise<void> {
-    const { error } = await supabase
-      .from('apartment_ical_feeds')
-      .delete()
-      .eq('id', id)
-    
-    if (error) throw error
-  }
-
-  static async syncFeed(feedId: string): Promise<{ success: boolean; message: string; eventsProcessed?: number }> {
-    try {
-      // Get the feed details
-      const { data: feed, error: feedError } = await supabase
-        .from('apartment_ical_feeds')
-        .select('*')
-        .eq('id', feedId)
-        .single()
-      
-      if (feedError) throw feedError
-      if (!feed) throw new Error('Feed not found')
-
-      // Fetch the iCal data
-      const response = await fetch(feed.ical_url)
-      if (!response.ok) {
-        throw new Error(`Failed to fetch iCal: ${response.statusText}`)
-      }
-      
-      const icalData = await response.text()
-      
-      // Parse iCal data (basic parsing - you might want to use a proper iCal library)
-      const events = this.parseICalEvents(icalData)
-      
-      // Convert events to availability records
-      const availabilityRecords: any[] = []
-      
-      for (const event of events) {
-        const startDate = new Date(event.dtstart)
-        const endDate = new Date(event.dtend)
-        
-        // Generate date range
-        const currentDate = new Date(startDate)
-        while (currentDate <= endDate) {
-          availabilityRecords.push({
-            apartment_id: feed.apartment_id,
-            date: currentDate.toISOString().split('T')[0],
-            status: 'booked',
-            booking_reference: event.summary || 'External booking',
-            notes: `Synced from ${feed.feed_name}`
-          })
-          currentDate.setDate(currentDate.getDate() + 1)
-        }
-      }
-
-      // Bulk upsert availability records
-      if (availabilityRecords.length > 0) {
-        const { error: upsertError } = await supabase
-          .from('apartment_availability')
-          .upsert(availabilityRecords)
-        
-        if (upsertError) throw upsertError
-      }
-
-      // Update last sync time
-      await supabase
-        .from('apartment_ical_feeds')
-        .update({ last_sync: new Date().toISOString() })
-        .eq('id', feedId)
-
-      return {
-        success: true,
-        message: `Successfully synced ${events.length} events`,
-        eventsProcessed: events.length
-      }
-    } catch (error) {
-      console.error('iCal sync error:', error)
-      return {
-        success: false,
-        message: error instanceof Error ? error.message : 'Unknown error occurred'
-      }
-    }
-  }
-
-  private static parseICalEvents(icalData: string): Array<{
-    dtstart: string
-    dtend: string
-    summary?: string
-    uid?: string
-  }> {
-    const events: Array<{
-      dtstart: string
-      dtend: string
-      summary?: string
-      uid?: string
-    }> = []
-    
-    const lines = icalData.split('\n').map(line => line.trim())
-    let currentEvent: any = null
-    
-    for (const line of lines) {
-      if (line === 'BEGIN:VEVENT') {
-        currentEvent = {}
-      } else if (line === 'END:VEVENT' && currentEvent) {
-        if (currentEvent.dtstart && currentEvent.dtend) {
-          events.push(currentEvent)
-        }
-        currentEvent = null
-      } else if (currentEvent && line.includes(':')) {
-        const [key, ...valueParts] = line.split(':')
-        const value = valueParts.join(':')
-        
-        if (key.startsWith('DTSTART')) {
-          currentEvent.dtstart = this.parseICalDate(value)
-        } else if (key.startsWith('DTEND')) {
-          currentEvent.dtend = this.parseICalDate(value)
-        } else if (key === 'SUMMARY') {
-          currentEvent.summary = value
-        } else if (key === 'UID') {
-          currentEvent.uid = value
-        }
-      }
-    }
-    
-    return events
-  }
-
-  private static parseICalDate(dateString: string): string {
-    // Handle different iCal date formats
-    if (dateString.includes('T')) {
-      // DateTime format: 20231225T120000Z
-      const cleanDate = dateString.replace(/[TZ]/g, ' ').trim()
-      const year = cleanDate.substring(0, 4)
-      const month = cleanDate.substring(4, 6)
-      const day = cleanDate.substring(6, 8)
-      return `${year}-${month}-${day}`
-    } else {
-      // Date only format: 20231225
-      const year = dateString.substring(0, 4)
-      const month = dateString.substring(4, 6)
-      const day = dateString.substring(6, 8)
-      return `${year}-${month}-${day}`
-    }
-  }
-}
-
 // Convenience exports
 export const apartmentService = ApartmentService
 export const applicationService = ApplicationService
 export const reviewService = ReviewService
 export const featureHighlightService = FeatureHighlightService
 export const siteSettingService = SiteSettingService
-export const availabilityService = AvailabilityService
-export const icalService = ICalService
