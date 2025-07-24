@@ -184,11 +184,14 @@ const BookingBar: React.FC<BookingBarProps> = ({ onSearch, isSticky = false }) =
             <label className="block text-xs uppercase tracking-wide font-medium text-[#C5C5B5]/80 mb-1">
               Check Out
             </label>
+            {!searchParams.checkIn && (
+              <div className="text-xs text-[#C5C5B5]/50 mb-1">30 day minimum</div>
+            )}
             <DatePicker
               selected={searchParams.checkOut ? new Date(searchParams.checkOut) : null}
               onChange={handleCheckOutChange}
               minDate={getMinCheckOutDate()}
-              placeholderText="Select date"
+              placeholderText={searchParams.checkIn ? "Select date" : "30 day minimum"}
               className="w-full text-[#C5C5B5] bg-transparent border-none outline-none text-sm cursor-pointer"
               calendarClassName="custom-datepicker"
               popperClassName="custom-datepicker-popper"
