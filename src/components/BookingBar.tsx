@@ -71,13 +71,13 @@ const BookingBar: React.FC<BookingBarProps> = ({ onSearch, isSticky = false }) =
   };
 
   return (
-    <div className={`bg-[#1E1F1E]/95 backdrop-blur-sm shadow-2xl p-2 sm:p-3 flex flex-col lg:flex-row items-stretch gap-1 sm:gap-2 w-full border border-[#C5C5B5]/20 ${
+    <div className={`bg-[#1E1F1E]/95 backdrop-blur-sm shadow-2xl p-2 sm:p-3 flex flex-col md:grid md:grid-cols-2 lg:flex lg:flex-row items-stretch gap-1 sm:gap-2 w-full border border-[#C5C5B5]/20 ${
       isSticky 
         ? 'rounded-none border-l-0 border-r-0 border-t-0' 
         : 'rounded-2xl sm:rounded-3xl max-w-5xl mx-auto'
     }`}>
       {/* Location */}
-      <div className="flex-1 px-3 sm:px-6 py-3 sm:py-4 border-b lg:border-b-0 lg:border-r border-[#C5C5B5]/20">
+      <div className="flex-1 px-3 sm:px-6 py-3 sm:py-4 border-b md:border-b-0 md:border-r lg:border-r border-[#C5C5B5]/20">
         <div className="flex items-center">
           <MapPin className="w-5 h-5 text-[#C5C5B5]/60 mr-3 flex-shrink-0" />
           <div className="flex-1">
@@ -103,7 +103,7 @@ const BookingBar: React.FC<BookingBarProps> = ({ onSearch, isSticky = false }) =
       </div>
 
       {/* People */}
-      <div className="flex-1 px-3 sm:px-6 py-3 sm:py-4 border-b lg:border-b-0 lg:border-r border-[#C5C5B5]/20">
+      <div className="flex-1 px-3 sm:px-6 py-3 sm:py-4 border-b md:border-b lg:border-b-0 lg:border-r border-[#C5C5B5]/20">
         <div className="flex items-center">
           <Users className="w-5 h-5 text-[#C5C5B5]/60 mr-3 flex-shrink-0" />
           <div className="flex-1">
@@ -128,7 +128,7 @@ const BookingBar: React.FC<BookingBarProps> = ({ onSearch, isSticky = false }) =
       </div>
 
       {/* Check In */}
-      <div className="flex-1 px-3 sm:px-6 py-3 sm:py-4 border-b lg:border-b-0 lg:border-r border-[#C5C5B5]/20">
+      <div className="flex-1 px-3 sm:px-6 py-3 sm:py-4 border-b md:border-b-0 md:border-r lg:border-r border-[#C5C5B5]/20">
         <div className="flex items-center">
           <Calendar className="w-5 h-5 text-[#C5C5B5]/60 mr-3 flex-shrink-0" />
           <div className="flex-1">
@@ -147,7 +147,7 @@ const BookingBar: React.FC<BookingBarProps> = ({ onSearch, isSticky = false }) =
       </div>
 
       {/* Check Out */}
-      <div className="flex-1 px-3 sm:px-6 py-3 sm:py-4 border-b lg:border-b-0 lg:border-r border-[#C5C5B5]/20">
+      <div className="flex-1 px-3 sm:px-6 py-3 sm:py-4 border-b md:border-b lg:border-b-0 lg:border-r border-[#C5C5B5]/20">
         <div className="flex items-center">
           <Calendar className="w-5 h-5 text-[#C5C5B5]/60 mr-3 flex-shrink-0" />
           <div className="flex-1">
@@ -168,7 +168,7 @@ const BookingBar: React.FC<BookingBarProps> = ({ onSearch, isSticky = false }) =
       {/* Search Button */}
       <button
         onClick={handleSearch}
-        className={`bg-[#C5C5B5] hover:bg-white text-[#1E1F1E] px-4 sm:px-8 py-3 sm:py-4 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl flex-shrink-0 font-semibold text-sm uppercase tracking-wide flex items-center justify-center gap-2 ${
+        className={`bg-[#C5C5B5] hover:bg-white text-[#1E1F1E] px-4 sm:px-8 py-3 sm:py-4 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl flex-shrink-0 font-semibold text-sm uppercase tracking-wide flex items-center justify-center gap-2 md:col-span-2 lg:col-span-1 ${
           isSticky ? 'rounded-xl' : 'rounded-2xl'
         }`}
         aria-label="Search available apartments"

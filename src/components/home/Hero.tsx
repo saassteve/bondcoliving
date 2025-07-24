@@ -46,7 +46,7 @@ const Hero: React.FC = () => {
       </div>
       
       {/* Booking Bar */}
-      <div className="absolute bottom-4 md:bottom-6 lg:bottom-8 left-0 right-0 z-30 px-4">
+      <div className="absolute bottom-4 md:bottom-2 lg:bottom-8 left-0 right-0 z-30 px-4">
         <div className="container">
           <AnimatedSection animation="fadeInUp" delay={1200}>
             <BookingBar />
