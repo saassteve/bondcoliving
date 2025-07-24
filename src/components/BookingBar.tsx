@@ -68,7 +68,7 @@ const BookingBar: React.FC<BookingBarProps> = ({ onSearch, isSticky = false }) =
     if (!searchParams.checkIn) return new Date();
     const checkInDate = new Date(searchParams.checkIn);
     const minCheckOutDate = new Date(checkInDate);
-    minCheckOutDate.setMonth(checkInDate.getMonth() + 1); // Minimum 1 month stay
+    minCheckOutDate.setDate(checkInDate.getDate() + 30); // Minimum 30 days stay
     return minCheckOutDate;
   };
 
@@ -83,8 +83,7 @@ const BookingBar: React.FC<BookingBarProps> = ({ onSearch, isSticky = false }) =
       // Clear checkout if it's before the new minimum date
       if (searchParams.checkOut) {
         const checkOutDate = new Date(searchParams.checkOut);
-        const minCheckOut = new Date(date);
-        minCheckOut.setMonth(date.getMonth() + 1);
+        const minCheckOut = new Date(date.getTime() + (30 * 24 * 60 * 60 * 1000)); // 30 days in milliseconds
         if (checkOutDate < minCheckOut) {
           handleInputChange('checkOut', '');
         }
