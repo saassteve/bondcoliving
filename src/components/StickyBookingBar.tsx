@@ -16,10 +16,18 @@ const StickyBookingBar: React.FC = () => {
       setIsVisible(scrollPosition > heroHeight - 100);
     };
 
+    const handleOpenBookingModal = () => {
+      setIsModalOpen(true);
+    };
+
     window.addEventListener('scroll', handleScroll);
+    window.addEventListener('openBookingModal', handleOpenBookingModal);
     handleScroll(); // Check initial position
 
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('openBookingModal', handleOpenBookingModal);
+    };
   }, []);
 
   const openModal = () => setIsModalOpen(true);
