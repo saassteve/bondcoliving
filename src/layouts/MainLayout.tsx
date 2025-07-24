@@ -2,6 +2,7 @@ import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Menu, X, Book, Home, MapPin, Coffee, LogIn } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
+import StickyBookingBar from '../components/StickyBookingBar';
 
 const MainLayout: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
@@ -111,6 +112,9 @@ const MainLayout: React.FC = () => {
             </nav>
           )}
         </header>
+        
+        {/* Sticky Booking Bar */}
+        <StickyBookingBar />
         
         {/* Main Content */}
         <main className="flex-grow page-transition">
