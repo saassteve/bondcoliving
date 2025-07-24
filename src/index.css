@@ -218,7 +218,12 @@
   }
 
   .react-datepicker__day--outside-month {
-    color: rgba(197, 197, 181, 0.3) !important;
+    color: rgba(197, 197, 181, 0.6) !important;
+  }
+
+  .react-datepicker__day--outside-month:hover {
+    color: #C5C5B5 !important;
+    background-color: rgba(197, 197, 181, 0.1) !important;
   }
 
   .react-datepicker__day--today {
