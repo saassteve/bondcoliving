@@ -10,7 +10,7 @@ const Hero: React.FC = () => {
       <div className="absolute inset-0 bg-black/60 z-10"></div>
       <div className="absolute inset-0 bg-[url('https://iili.io/FcOqdX9.png')] bg-cover bg-[center_bottom_20%]"></div>
       <div className="container relative z-20">
-        <div className="max-w-3xl mb-2 md:mb-4 lg:mb-4">
+        <div className="max-w-3xl mb-2 md:mb-4 lg:mb-4 text-center lg:text-left">
           <AnimatedSection animation="fadeInUp" delay={300}>
             <h1 className="font-bold text-5xl md:text-7xl tracking-tight mb-8">
               <span className="bg-gradient-to-r from-[#C5C5B5] via-white to-[#C5C5B5] bg-clip-text text-transparent">
@@ -41,9 +41,17 @@ const Hero: React.FC = () => {
             <div className="lg:hidden">
               <button
                 onClick={() => {
-                  // Trigger the sticky booking bar modal
-                  const event = new CustomEvent('openBookingModal');
-                  window.dispatchEvent(event);
+                  // Scroll down a bit and then open the modal
+                  window.scrollTo({
+                    top: window.innerHeight * 0.3,
+                    behavior: 'smooth'
+                  });
+                  
+                  // Open modal after scroll animation
+                  setTimeout(() => {
+                    const event = new CustomEvent('openBookingModal');
+                    window.dispatchEvent(event);
+                  }, 500);
                 }}
                 className="w-full bg-[#C5C5B5]/10 hover:bg-[#C5C5B5]/20 text-[#C5C5B5] px-6 py-4 rounded-2xl transition-all duration-300 border border-[#C5C5B5]/20 hover:border-[#C5C5B5]/40 text-left backdrop-blur-sm"
               >
