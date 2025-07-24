@@ -162,7 +162,7 @@
   }
 
   .react-datepicker__day {
-    color: rgba(197, 197, 181, 0.8) !important;
+    color: white !important;
     width: 2.5rem !important;
     height: 2.5rem !important;
     line-height: 2.5rem !important;
@@ -208,7 +208,7 @@
   }
 
   .react-datepicker__day--disabled {
-    color: rgba(197, 197, 181, 0.3) !important;
+    color: black !important;
     cursor: not-allowed !important;
   }
 
