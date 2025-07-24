@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Plus, Edit, Trash2, Images, Settings } from 'lucide-react';
+import { Plus, Edit, Trash2, Images, Settings, Calendar } from 'lucide-react';
 import { supabase, ApartmentService, apartmentService } from '../../lib/supabase';
 import ApartmentForm from '../../components/admin/ApartmentForm';
 import ImageManager from '../../components/admin/ImageManager';
 import FeatureManager from '../../components/admin/FeatureManager';
+import CalendarManager from '../../components/admin/CalendarManager';
 
 interface Apartment {
   id: string;
@@ -38,7 +39,9 @@ const AdminRoomsPage: React.FC = () => {
   const [editingApartment, setEditingApartment] = useState<Apartment | null>(null);
   const [showImageManager, setShowImageManager] = useState<string | null>(null);
   const [showFeatureManager, setShowFeatureManager] = useState<string | null>(null);
+  const [showCalendarManager, setShowCalendarManager] = useState<{ id: string; title: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -47,7 +50,11 @@ const AdminRoomsPage: React.FC = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
+      setError(null);
       await Promise.all([fetchApartments(), fetchFeatures()]);
+    } catch (err) {
+      console.error('Error fetching data:', err);
+      setError('Failed to load apartments data');
     } finally {
       setLoading(false);
     }
@@ -55,21 +62,17 @@ const AdminRoomsPage: React.FC = () => {
 
   const fetchApartments = async () => {
     try {
-      const { data, error } = await supabase
-        .from('apartments')
-        .select('*')
-        .order('sort_order', { ascending: true });
-
-      if (error) throw error;
-      setApartments(data || []);
+      const data = await apartmentService.getAll();
+      setApartments(data);
       
       // If we're editing an apartment that no longer exists, reset the form
-      if (editingApartment && data && !data.find(apt => apt.id === editingApartment.id)) {
+      if (editingApartment && !data.find(apt => apt.id === editingApartment.id)) {
         console.warn('Editing apartment no longer exists, resetting form');
         resetForm();
       }
     } catch (error) {
       console.error('Error fetching apartments:', error);
+      throw error;
     }
   };
 
@@ -84,6 +87,7 @@ const AdminRoomsPage: React.FC = () => {
       setFeatures(data || []);
     } catch (error) {
       console.error('Error fetching features:', error);
+      throw error;
     }
   };
 
@@ -97,7 +101,7 @@ const AdminRoomsPage: React.FC = () => {
 
       if (editingApartment) {
         // Update existing apartment
-        const updatedApartment = await ApartmentService.update(editingApartment.id, apartmentData);
+        const updatedApartment = await apartmentService.update(editingApartment.id, apartmentData);
         
         // Update local state immediately
         setApartments(prev => prev.map(apt => 
@@ -105,7 +109,7 @@ const AdminRoomsPage: React.FC = () => {
         ));
       } else {
         // Create new apartment
-        const newApartment = await ApartmentService.create(apartmentData);
+        const newApartment = await apartmentService.create(apartmentData);
 
         // Add the main image to apartment_images table
         if (formData.image_url) {
@@ -154,7 +158,7 @@ const AdminRoomsPage: React.FC = () => {
     if (!window.confirm('Are you sure you want to delete this apartment? This will also delete all associated images and features.')) return;
 
     try {
-      await ApartmentService.delete(id);
+      await apartmentService.delete(id);
       await fetchApartments();
     } catch (error) {
       console.error('Error deleting apartment:', error);
@@ -190,8 +194,52 @@ const AdminRoomsPage: React.FC = () => {
         <Helmet>
           <title>Manage Apartments - Bond Admin</title>
         </Helmet>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading apartments...</p>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  if (error) {
+    return (
+      <>
+        <Helmet>
+          <title>Manage Apartments - Bond Admin</title>
+        </Helmet>
+        <div className="space-y-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Manage Apartments</h1>
+              <p className="text-gray-600">Add, edit, and organize your apartment listings</p>
+            </div>
+            <button
+              onClick={() => setShowForm(true)}
+              className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Add Apartment
+            </button>
+          </div>
+          
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+            <div className="flex items-center">
+              <div className="text-red-600 mr-3">⚠️</div>
+              <div>
+                <h3 className="text-red-800 font-medium">Error Loading Data</h3>
+                <p className="text-red-700 mt-1">{error}</p>
+                <button
+                  onClick={fetchData}
+                  className="mt-3 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors"
+                >
+                  Try Again
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </>
     );
@@ -339,6 +387,13 @@ const AdminRoomsPage: React.FC = () => {
                               title="Manage features"
                             >
                               <Settings className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => setShowCalendarManager({ id: apartment.id, title: apartment.title })}
+                              className="text-green-600 hover:text-green-900 p-1 font-medium"
+                              title="Manage calendar"
+                            >
+                              <Calendar className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleEdit(apartment)}
