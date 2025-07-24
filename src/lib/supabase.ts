@@ -588,8 +588,7 @@ export const applicationService = ApplicationService
 export const reviewService = ReviewService
 export const featureHighlightService = FeatureHighlightService
 export const siteSettingService = SiteSettingService
-export const availabilityService = AvailabilityService
-export const icalService = ICalService
+
 export class AvailabilityService {
   static async getCalendar(apartmentId: string, startDate: string, endDate: string): Promise<ApartmentAvailability[]> {
     const { data, error } = await supabase
@@ -674,3 +673,7 @@ export class ICalService {
     }
   }
 }
+
+// Export availability and ical services after class definitions
+export const availabilityService = AvailabilityService
+export const icalService = ICalService
