@@ -46,6 +46,11 @@ const BookingBar: React.FC<BookingBarProps> = ({ onSearch, isSticky = false }) =
       return;
     }
     
+    // Call onSearch callback if provided (for modal close)
+    if (onSearch) {
+      onSearch(searchParams);
+    }
+    
     // Navigate to search results page with parameters
     const searchQuery = new URLSearchParams({
       location: searchParams.location,
