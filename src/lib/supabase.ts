@@ -588,3 +588,89 @@ export const applicationService = ApplicationService
 export const reviewService = ReviewService
 export const featureHighlightService = FeatureHighlightService
 export const siteSettingService = SiteSettingService
+export const availabilityService = AvailabilityService
+export const icalService = ICalService
+export class AvailabilityService {
+  static async getCalendar(apartmentId: string, startDate: string, endDate: string): Promise<ApartmentAvailability[]> {
+    const { data, error } = await supabase
+      .from('apartment_availability')
+      .select('*')
+      .eq('apartment_id', apartmentId)
+      .gte('date', startDate)
+      .lte('date', endDate)
+      .order('date', { ascending: true })
+    
+    if (error) throw error
+    return data || []
+  }
+
+  static async setBulkAvailability(apartmentId: string, dates: string[], status: 'available' | 'booked' | 'blocked'): Promise<void> {
+    const records = dates.map(date => ({
+      apartment_id: apartmentId,
+      date,
+      status
+    }))
+
+    const { error } = await supabase
+      .from('apartment_availability')
+      .upsert(records, { onConflict: 'apartment_id,date' })
+    
+    if (error) throw error
+  }
+
+  static async checkAvailability(apartmentId: string, startDate: string, endDate: string): Promise<boolean> {
+    const { data, error } = await supabase
+      .from('apartment_availability')
+      .select('status')
+      .eq('apartment_id', apartmentId)
+      .gte('date', startDate)
+      .lte('date', endDate)
+      .neq('status', 'available')
+    
+    if (error) throw error
+    return (data || []).length === 0
+  }
+}
+
+export class ICalService {
+  static async getFeeds(apartmentId: string): Promise<ApartmentICalFeed[]> {
+    const { data, error } = await supabase
+      .from('apartment_ical_feeds')
+      .select('*')
+      .eq('apartment_id', apartmentId)
+      .eq('is_active', true)
+      .order('created_at', { ascending: true })
+    
+    if (error) throw error
+    return data || []
+  }
+
+  static async addFeed(feed: Omit<ApartmentICalFeed, 'id' | 'created_at'>): Promise<ApartmentICalFeed> {
+    const { data, error } = await supabase
+      .from('apartment_ical_feeds')
+      .insert(feed)
+      .select()
+      .single()
+    
+    if (error) throw error
+    return data
+  }
+
+  static async deleteFeed(feedId: string): Promise<void> {
+    const { error } = await supabase
+      .from('apartment_ical_feeds')
+      .delete()
+      .eq('id', feedId)
+    
+    if (error) throw error
+  }
+
+  static async syncFeed(feedId: string): Promise<{ success: boolean; message: string }> {
+    // This would typically call an edge function to handle iCal parsing
+    // For now, return a mock response
+    return {
+      success: true,
+      message: 'iCal sync functionality requires server-side implementation'
+    }
+  }
+}
