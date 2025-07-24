@@ -212,12 +212,6 @@
     cursor: not-allowed !important;
   }
 
-    color: white !important;
-    background-color: transparent !important;
-    transform: none !important;
-    color: rgba(0, 0, 0, 0.8) !important;
-  }
-
   .react-datepicker__day--outside-month {
     color: rgba(197, 197, 181, 0.6) !important;
   }
