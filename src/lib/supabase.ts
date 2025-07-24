@@ -181,12 +181,6 @@ export class ApartmentService {
     
     return apartmentsWithSlugs;
   }
-      ...apartment,
-      slug: this.generateSlug(apartment.title)
-    }))
-    
-    return apartmentsWithSlugs
-  }
 
   static async getById(id: string): Promise<Apartment | null> {
     const { data, error } = await supabase
