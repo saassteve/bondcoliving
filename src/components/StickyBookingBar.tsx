@@ -1,10 +1,17 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { X } from 'lucide-react';
 import BookingBar from './BookingBar';
 
 const StickyBookingBar: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const location = useLocation();
+
+  // Don't show booking bar on application page
+  if (location.pathname === '/apply') {
+    return null;
+  }
 
   useEffect(() => {
     const handleScroll = () => {
