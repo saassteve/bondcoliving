@@ -38,6 +38,7 @@ const AdminRoomsPage: React.FC = () => {
   const [editingApartment, setEditingApartment] = useState<Apartment | null>(null);
   const [showImageManager, setShowImageManager] = useState<string | null>(null);
   const [showFeatureManager, setShowFeatureManager] = useState<string | null>(null);
+  const [showCalendarManager, setShowCalendarManager] = useState<{ id: string; title: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
