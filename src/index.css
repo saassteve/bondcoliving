@@ -227,9 +227,16 @@
   }
 
   .react-datepicker__day--today {
-    background-color: rgba(197, 197, 181, 0.1) !important;
+    background-color: rgba(197, 197, 181, 0.2) !important;
     color: #C5C5B5 !important;
     font-weight: 600 !important;
+    border: 2px solid rgba(197, 197, 181, 0.4) !important;
+  }
+
+  .react-datepicker__day--today:hover {
+    background-color: rgba(197, 197, 181, 0.3) !important;
+    color: #C5C5B5 !important;
+    transform: scale(1.05) !important;
   }
 
   .react-datepicker__triangle {
