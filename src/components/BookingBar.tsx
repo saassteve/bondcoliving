@@ -16,13 +16,6 @@ interface BookingBarProps {
 
 const locationOptions = [
   { value: 'Funchal, Madeira', label: 'Funchal, Madeira' },
-  { value: 'Lisbon, Portugal', label: 'Lisbon, Portugal' },
-  { value: 'Porto, Portugal', label: 'Porto, Portugal' },
-  { value: 'Barcelona, Spain', label: 'Barcelona, Spain' },
-  { value: 'Madrid, Spain', label: 'Madrid, Spain' },
-  { value: 'Berlin, Germany', label: 'Berlin, Germany' },
-  { value: 'Amsterdam, Netherlands', label: 'Amsterdam, Netherlands' },
-  { value: 'Paris, France', label: 'Paris, France' },
 ];
 
 const BookingBar: React.FC<BookingBarProps> = ({ onSearch, isSticky = false }) => {
