@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, MapPin, Users, Calendar, ChevronDown } from 'lucide-react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 interface BookingBarProps {
   onSearch?: (searchParams: {
@@ -63,11 +65,37 @@ const BookingBar: React.FC<BookingBarProps> = ({ onSearch, isSticky = false }) =
   };
 
   const getMinCheckOutDate = () => {
-    if (!searchParams.checkIn) return '';
+    if (!searchParams.checkIn) return new Date();
     const checkInDate = new Date(searchParams.checkIn);
     const minCheckOutDate = new Date(checkInDate);
     minCheckOutDate.setMonth(checkInDate.getMonth() + 1); // Minimum 1 month stay
-    return minCheckOutDate.toISOString().split('T')[0];
+    return minCheckOutDate;
+  };
+
+  const formatDateForInput = (date: Date | null) => {
+    if (!date) return '';
+    return date.toISOString().split('T')[0];
+  };
+
+  const handleCheckInChange = (date: Date | null) => {
+    if (date) {
+      handleInputChange('checkIn', formatDateForInput(date));
+      // Clear checkout if it's before the new minimum date
+      if (searchParams.checkOut) {
+        const checkOutDate = new Date(searchParams.checkOut);
+        const minCheckOut = new Date(date);
+        minCheckOut.setMonth(date.getMonth() + 1);
+        if (checkOutDate < minCheckOut) {
+          handleInputChange('checkOut', '');
+        }
+      }
+    }
+  };
+
+  const handleCheckOutChange = (date: Date | null) => {
+    if (date) {
+      handleInputChange('checkOut', formatDateForInput(date));
+    }
   };
 
   return (
@@ -129,18 +157,21 @@ const BookingBar: React.FC<BookingBarProps> = ({ onSearch, isSticky = false }) =
 
       {/* Check In */}
       <div className="flex-1 px-3 sm:px-6 py-3 sm:py-4 border-b md:border-b-0 md:border-r lg:border-r border-[#C5C5B5]/20">
-        <div className="flex items-center">
+        <div className="flex items-center cursor-pointer">
           <Calendar className="w-5 h-5 text-[#C5C5B5]/60 mr-3 flex-shrink-0" />
           <div className="flex-1">
             <label className="block text-xs uppercase tracking-wide font-medium text-[#C5C5B5]/80 mb-1">
               Check In
             </label>
-            <input
-              type="date"
-              value={searchParams.checkIn}
-              min={new Date().toISOString().split('T')[0]}
-              onChange={(e) => handleInputChange('checkIn', e.target.value)}
+            <DatePicker
+              selected={searchParams.checkIn ? new Date(searchParams.checkIn) : null}
+              onChange={handleCheckInChange}
+              minDate={new Date()}
+              placeholderText="Select date"
               className="w-full text-[#C5C5B5] bg-transparent border-none outline-none text-sm cursor-pointer"
+              calendarClassName="custom-datepicker"
+              popperClassName="custom-datepicker-popper"
+              dateFormat="MMM dd, yyyy"
             />
           </div>
         </div>
@@ -148,18 +179,22 @@ const BookingBar: React.FC<BookingBarProps> = ({ onSearch, isSticky = false }) =
 
       {/* Check Out */}
       <div className="flex-1 px-3 sm:px-6 py-3 sm:py-4 border-b md:border-b lg:border-b-0 lg:border-r border-[#C5C5B5]/20">
-        <div className="flex items-center">
+        <div className="flex items-center cursor-pointer">
           <Calendar className="w-5 h-5 text-[#C5C5B5]/60 mr-3 flex-shrink-0" />
           <div className="flex-1">
             <label className="block text-xs uppercase tracking-wide font-medium text-[#C5C5B5]/80 mb-1">
               Check Out
             </label>
-            <input
-              type="date"
-              value={searchParams.checkOut}
-              min={getMinCheckOutDate()}
-              onChange={(e) => handleInputChange('checkOut', e.target.value)}
+            <DatePicker
+              selected={searchParams.checkOut ? new Date(searchParams.checkOut) : null}
+              onChange={handleCheckOutChange}
+              minDate={getMinCheckOutDate()}
+              placeholderText="Select date"
               className="w-full text-[#C5C5B5] bg-transparent border-none outline-none text-sm cursor-pointer"
+              calendarClassName="custom-datepicker"
+              popperClassName="custom-datepicker-popper"
+              dateFormat="MMM dd, yyyy"
+              disabled={!searchParams.checkIn}
             />
           </div>
         </div>
