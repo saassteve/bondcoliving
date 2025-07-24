@@ -22,6 +22,7 @@ import ThankYouPage from './pages/public/ThankYouPage';
 import CoworkingPage from './pages/public/CoworkingPage';
 import RoomDetailPage from './pages/public/RoomDetailPage';
 import LoginPage from './pages/public/LoginPage';
+import SearchResultsPage from './pages/public/SearchResultsPage';
 
 // Admin Pages
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
@@ -54,6 +55,7 @@ const App = () => {
             <Route path="coworking" element={<CoworkingPage />} />
             <Route path="room/:roomSlug" element={<RoomDetailPage />} />
             <Route path="login" element={<LoginPage />} />
+            <Route path="search" element={<SearchResultsPage />} />
             {/* Catch-all route for 404s */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
