@@ -25,23 +25,6 @@ const Hero: React.FC = () => {
             </p>
           </AnimatedSection>
           
-          <AnimatedSection animation="fadeInUp" delay={900}>
-            <div className="flex flex-wrap gap-6">
-              <button 
-                onClick={() => {
-                  const apartmentsSection = document.getElementById('apartments-section');
-                  apartmentsSection?.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className="btn-primary"
-              >
-                Book Your Place
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </button>
-              <Link to="/coworking" className="btn-secondary">
-                Explore Coworking
-              </Link>
-            </div>
-          </AnimatedSection>
         </div>
       </div>
       
