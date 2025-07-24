@@ -175,7 +175,7 @@
 
   .react-datepicker__day:hover {
     background-color: rgba(197, 197, 181, 0.1) !important;
-    color: #C5C5B5 !important;
+    color: white !important;
     transform: scale(1.05) !important;
   }
 
@@ -208,7 +208,7 @@
   }
 
   .react-datepicker__day--disabled {
-    color: rgba(0, 0, 0, 0.8) !important;
+    color: rgba(197, 197, 181, 0.3) !important;
     cursor: not-allowed !important;
   }
 
@@ -230,7 +230,7 @@
 
   .react-datepicker__day--today:hover {
     background-color: rgba(197, 197, 181, 0.3) !important;
-    color: white !important;
+    color: #C5C5B5 !important;
     transform: scale(1.05) !important;
   }
 
