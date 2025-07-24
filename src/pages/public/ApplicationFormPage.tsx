@@ -147,11 +147,21 @@ const ApplicationFormPage: React.FC = () => {
   const handleNext = () => {
     if (validateStep(currentStep)) {
       setCurrentStep(prev => Math.min(prev + 1, totalSteps));
+      // Scroll to top of form
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
     }
   };
 
   const handlePrevious = () => {
     setCurrentStep(prev => Math.max(prev - 1, 1));
+    // Scroll to top of form
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
   };
   
   const handleSubmit = async (e: React.FormEvent) => {
