@@ -8,11 +8,6 @@ const StickyBookingBar: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const location = useLocation();
 
-  // Don't show booking bar on application page
-  if (location.pathname === '/apply') {
-    return null;
-  }
-
   useEffect(() => {
     const handleScroll = () => {
       // Get the hero section height (approximately viewport height)
@@ -39,6 +34,11 @@ const StickyBookingBar: React.FC = () => {
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
+
+  // Don't show booking bar on application page
+  if (location.pathname === '/apply') {
+    return null;
+  }
 
   // Don't show anything if not visible
   if (!isVisible) return null;
