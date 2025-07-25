@@ -4,6 +4,7 @@ import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Users, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 import { apartmentService, type Apartment } from '../../lib/supabase';
 import { getIconComponent } from '../../lib/iconUtils';
+import CalendarAvailability from '../../components/CalendarAvailability';
 
 const RoomDetailPage: React.FC = () => {
   const { roomSlug } = useParams<{ roomSlug: string }>();
@@ -362,6 +363,15 @@ const RoomDetailPage: React.FC = () => {
                       Minimum stay is one month, and we offer discounts for longer commitments.
                     </p>
                   </div>
+                </div>
+                
+                {/* Live Calendar Availability */}
+                <div>
+                  <h2 className="text-2xl font-bold mb-6">Live Availability</h2>
+                  <CalendarAvailability 
+                    apartmentId={apartment.id} 
+                    apartmentTitle={apartment.title} 
+                  />
                 </div>
               </div>
             </div>
