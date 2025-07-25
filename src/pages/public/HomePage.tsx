@@ -40,10 +40,10 @@ const HomePage: React.FC = () => {
       <Intro />
       <ValueComparison />
       <FeatureHighlights />
+      <CommunityEvents />
       <Reviews />
       <WhoItsFor />
       <Location />
-      <CommunityEvents />
       <FinalCTA />
     </>
   );

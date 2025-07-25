@@ -1,49 +1,27 @@
 import React from 'react';
-import { Calendar, Users, Mountain, Coffee, Lightbulb, Camera, Utensils, Music } from 'lucide-react';
+import { Users, Mountain, Coffee, Lightbulb, Camera } from 'lucide-react';
 import AnimatedSection from '../AnimatedSection';
 
 const events = [
   {
     icon: Mountain,
     title: 'Weekend Hikes',
-    description: 'Explore Madeira\'s stunning levadas and mountain trails with fellow nomads.',
-    frequency: 'Every Saturday',
-    time: '9:00 AM'
+    description: 'Explore Madeira\'s stunning levadas and mountain trails with fellow nomads.'
   },
   {
     icon: Lightbulb,
     title: 'Skill Sharing Sessions',
-    description: 'Share your expertise and learn from others in our weekly knowledge exchange.',
-    frequency: 'Every Wednesday',
-    time: '7:00 PM'
+    description: 'Share your expertise and learn from others in our weekly knowledge exchange.'
   },
   {
     icon: Coffee,
     title: 'Coffee & Cowork',
-    description: 'Start your day with great coffee and productive energy alongside the community.',
-    frequency: 'Daily',
-    time: '8:00 AM'
-  },
-  {
-    icon: Utensils,
-    title: 'Community Dinners',
-    description: 'Enjoy home-cooked meals and meaningful conversations with your housemates.',
-    frequency: 'Every Friday',
-    time: '7:30 PM'
+    description: 'Start your day with great coffee and productive energy alongside the community.'
   },
   {
     icon: Camera,
     title: 'Photography Walks',
-    description: 'Capture Funchal\'s beauty while exploring hidden gems with fellow creatives.',
-    frequency: 'Bi-weekly',
-    time: '6:00 PM'
-  },
-  {
-    icon: Music,
-    title: 'Music & Arts Night',
-    description: 'Showcase your talents or enjoy performances in our relaxed evening gatherings.',
-    frequency: 'Monthly',
-    time: '8:00 PM'
+    description: 'Capture Funchal\'s beauty while exploring hidden gems with fellow creatives.'
   }
 ];
 
@@ -129,16 +107,6 @@ const CommunityEvents: React.FC = () => {
                     <div className="flex-1">
                       <h4 className="text-lg font-bold text-[#C5C5B5] mb-2">{event.title}</h4>
                       <p className="text-[#C5C5B5]/80 text-sm mb-3 leading-relaxed">{event.description}</p>
-                      <div className="flex items-center gap-4 text-xs text-[#C5C5B5]/60">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />
-                          <span>{event.frequency}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <span>•</span>
-                          <span>{event.time}</span>
-                        </div>
-                      </div>
                     </div>
                   </div>
                 </AnimatedSection>
