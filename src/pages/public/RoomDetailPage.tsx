@@ -245,6 +245,15 @@ const RoomDetailPage: React.FC = () => {
                   ))}
                 </div>
               )}
+              
+              {/* Live Calendar Availability - Desktop */}
+              <div className="hidden lg:block">
+                <h2 className="text-2xl font-bold mb-6">Live Availability</h2>
+                <CalendarAvailability 
+                  apartmentId={apartment.id} 
+                  apartmentTitle={apartment.title} 
+                />
+              </div>
             </div>
             
             <div>
@@ -363,15 +372,6 @@ const RoomDetailPage: React.FC = () => {
                       Minimum stay is one month, and we offer discounts for longer commitments.
                     </p>
                   </div>
-                </div>
-                
-                {/* Live Calendar Availability - Desktop */}
-                <div>
-                  <h2 className="text-2xl font-bold mb-6">Live Availability</h2>
-                  <CalendarAvailability 
-                    apartmentId={apartment.id} 
-                    apartmentTitle={apartment.title} 
-                  />
                 </div>
               </div>
             </div>
