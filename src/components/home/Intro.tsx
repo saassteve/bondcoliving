@@ -64,7 +64,7 @@ const Intro: React.FC = () => {
             <AnimatedSection animation="fadeInRight" delay={200}>
               <div className="aspect-square bg-[#C5C5B5]/5 rounded-3xl overflow-hidden">
                 <img 
-                  src="https://freeimage.host/i/FkgLRBS"
+                  src="https://iili.io/FkgLRBS.png"
                   alt="Modern apartment interior at Bond coliving space in Funchal, Madeira featuring contemporary design and natural lighting"
                   className="w-full h-full object-cover"
                   loading="lazy"
