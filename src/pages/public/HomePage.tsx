@@ -8,6 +8,7 @@ import FeatureHighlights from '../../components/home/FeatureHighlights';
 import Reviews from '../../components/home/Reviews';
 import WhoItsFor from '../../components/home/WhoItsFor';
 import Location from '../../components/home/Location';
+import CommunityEvents from '../../components/home/CommunityEvents';
 import FinalCTA from '../../components/home/FinalCTA';
 
 const HomePage: React.FC = () => {
@@ -42,6 +43,7 @@ const HomePage: React.FC = () => {
       <Reviews />
       <WhoItsFor />
       <Location />
+      <CommunityEvents />
       <FinalCTA />
     </>
   );

@@ -8,7 +8,14 @@ const Hero: React.FC = () => {
   return (
     <section className="relative h-screen flex items-center pb-20 md:pb-24 lg:pb-24">
       <div className="absolute inset-0 bg-black/60 z-10"></div>
-      <div className="absolute inset-0 bg-[url('https://iili.io/FcOqdX9.png')] bg-cover bg-[center_bottom_20%]"></div>
+      <div className="absolute inset-0 bg-[url('https://iili.io/FcOqdX9.png')] bg-cover bg-[center_bottom_20%]">
+        <img 
+          src="https://iili.io/FcOqdX9.png" 
+          alt="Modern coliving space in central Funchal, Madeira with ocean views and contemporary design"
+          className="w-full h-full object-cover opacity-0"
+          loading="eager"
+        />
+      </div>
       <div className="container relative z-20">
         <div className="max-w-3xl mb-2 md:mb-4 lg:mb-4 text-center lg:text-left">
           <AnimatedSection animation="fadeInUp" delay={300}>
@@ -20,9 +27,50 @@ const Hero: React.FC = () => {
           </AnimatedSection>
           
           <AnimatedSection animation="fadeInUp" delay={600}>
-            <p className="text-lg md:text-xl lg:text-2xl text-[#C5C5B5] mb-6 md:mb-8 lg:mb-12 leading-relaxed">
-              Premium coliving for digital nomads in central Funchal, Madeira. Private apartments with enterprise-grade WiFi, coworking space, and all amenities included. 5 minutes to ocean and city center.
-            </p>
+            <div className="mb-6 md:mb-8 lg:mb-12">
+              <p className="text-lg md:text-xl lg:text-2xl text-[#C5C5B5] mb-6 leading-relaxed">
+                Premium coliving for digital nomads in central Funchal, Madeira.
+              </p>
+              
+              {/* Benefits with checkmarks */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl">
+                <div className="flex items-center text-[#C5C5B5]/90">
+                  <div className="w-5 h-5 bg-[#C5C5B5] rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                    <svg className="w-3 h-3 text-[#1E1F1E]" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <span className="text-sm md:text-base">Private apartments with all amenities</span>
+                </div>
+                
+                <div className="flex items-center text-[#C5C5B5]/90">
+                  <div className="w-5 h-5 bg-[#C5C5B5] rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                    <svg className="w-3 h-3 text-[#1E1F1E]" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <span className="text-sm md:text-base">Enterprise-grade WiFi & coworking</span>
+                </div>
+                
+                <div className="flex items-center text-[#C5C5B5]/90">
+                  <div className="w-5 h-5 bg-[#C5C5B5] rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                    <svg className="w-3 h-3 text-[#1E1F1E]" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <span className="text-sm md:text-base">5 minutes to ocean & city center</span>
+                </div>
+                
+                <div className="flex items-center text-[#C5C5B5]/90">
+                  <div className="w-5 h-5 bg-[#C5C5B5] rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                    <svg className="w-3 h-3 text-[#1E1F1E]" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <span className="text-sm md:text-base">Curated digital nomad community</span>
+                </div>
+              </div>
+            </div>
           </AnimatedSection>
           
         </div>

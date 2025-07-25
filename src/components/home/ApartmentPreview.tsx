@@ -248,8 +248,9 @@ const ApartmentPreview: React.FC = () => {
                     )}
                     <img 
                       src={apartment.image_url} 
-                      alt={apartment.title}
+                      alt={`${apartment.title} - Premium coliving apartment in central Funchal, Madeira with ${apartment.size} and capacity for ${apartment.capacity}`}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      loading="lazy"
                     />
                   </div>
                   <div className="p-4 md:p-6 card-content">
@@ -257,6 +258,9 @@ const ApartmentPreview: React.FC = () => {
                       <h3 className="text-lg md:text-xl font-bold text-[#C5C5B5]">{apartment.title}</h3>
                       <div className="text-right">
                         <div className="text-lg md:text-xl font-bold text-[#C5C5B5]">€{apartment.price.toLocaleString()}</div>
+                        <div className="text-xs text-[#C5C5B5]/50">
+                          ${Math.round(apartment.price * 1.05).toLocaleString()} • £{Math.round(apartment.price * 0.85).toLocaleString()}
+                        </div>
                         <div className="text-sm text-[#C5C5B5]/60">per month</div>
                       </div>
                     </div>

@@ -65,8 +65,9 @@ const Intro: React.FC = () => {
               <div className="aspect-square bg-[#C5C5B5]/5 rounded-3xl overflow-hidden">
                 <img 
                   src="https://images.pexels.com/photos/1571468/pexels-photo-1571468.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
-                  alt="Modern apartment interior at Bond"
+                  alt="Modern apartment interior at Bond coliving space in Funchal, Madeira featuring contemporary design and natural lighting"
                   className="w-full h-full object-cover"
+                  loading="lazy"
                 />
               </div>
             </AnimatedSection>

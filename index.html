@@ -43,15 +43,20 @@
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": ["LodgingBusiness", "CoworkingSpace"],
+      "@type": "LodgingBusiness",
       "name": "Bond",
-      "description": "Premium coliving and coworking space for digital nomads in central Funchal, Madeira. Private apartments with high-speed WiFi, all amenities included.",
+      "description": "Premium coliving for digital nomads in central Funchal, Madeira. Private apartments with enterprise-grade WiFi, coworking space, all amenities included.",
       "url": "https://stayatbond.com",
-      "telephone": "",
+      "telephone": "+351-XXX-XXX-XXX",
       "email": "hello@stayatbond.com",
       "priceRange": "€€€",
+      "starRating": {
+        "@type": "Rating",
+        "ratingValue": "5"
+      },
       "address": {
         "@type": "PostalAddress",
+        "streetAddress": "Central Funchal",
         "addressLocality": "Funchal",
         "addressRegion": "Madeira",
         "addressCountry": "Portugal",
@@ -62,8 +67,19 @@
         "latitude": "32.6500",
         "longitude": "-16.9083"
       },
-      "openingHours": "Mo-Su 00:00-23:59",
+      "openingHours": ["Mo-Su 00:00-23:59"],
       "hasMap": "https://maps.google.com/?q=Funchal,Madeira",
+      "image": [
+        "https://iili.io/FcOqdX9.png",
+        "https://images.pexels.com/photos/1571468/pexels-photo-1571468.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+      ],
+      "offers": {
+        "@type": "Offer",
+        "price": "1600",
+        "priceCurrency": "EUR",
+        "availability": "https://schema.org/InStock",
+        "validFrom": "2025-01-01"
+      },
       "amenityFeature": [
         {
           "@type": "LocationFeatureSpecification",
@@ -94,6 +110,11 @@
           "@type": "LocationFeatureSpecification",
           "name": "Monthly Stays",
           "value": "Minimum 1 month stay for digital nomads"
+        },
+        {
+          "@type": "LocationFeatureSpecification",
+          "name": "Community Events",
+          "value": "Regular community events and networking opportunities"
         }
       ],
       "audience": {
@@ -110,6 +131,25 @@
         },
         "geoRadius": "50000"
       }
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "CoworkingSpace",
+      "name": "Bond Coworking",
+      "description": "Professional coworking space for digital nomads in central Funchal, Madeira.",
+      "url": "https://stayatbond.com/coworking",
+      "parentOrganization": {
+        "@type": "Organization",
+        "name": "Bond"
+      },
+      "amenityFeature": [
+        {
+          "@type": "LocationFeatureSpecification",
+          "name": "High-speed WiFi",
+          "value": "Enterprise-grade internet for remote work"
+        }
+      ],
+      "openingHours": ["Mo-Su 00:00-23:59"]
     }
     </script>
   </head>

@@ -81,8 +81,9 @@ const Location: React.FC = () => {
             <div className="aspect-video bg-[#C5C5B5]/5 rounded-3xl overflow-hidden relative">
               <img 
                 src="https://iili.io/Fceo0du.png"
-                alt="Funchal cityscape with mountains and ocean"
+                alt="Funchal cityscape panorama showing mountains, ocean, and central location of Bond coliving space in Madeira"
                 className="w-full h-full object-cover"
+                loading="lazy"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
               <div className="absolute bottom-8 left-8 right-8">

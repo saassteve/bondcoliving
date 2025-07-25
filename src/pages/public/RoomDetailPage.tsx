@@ -251,7 +251,10 @@ const RoomDetailPage: React.FC = () => {
                 <div className="flex justify-between items-center mb-8">
                   <div>
                     <span className="block text-4xl font-bold">€{apartment.price.toLocaleString()}</span>
-                    <span className="text-[#C5C5B5]/60">per month</span>
+                    <div className="text-sm text-[#C5C5B5]/50 mt-1">
+                      ${Math.round(apartment.price * 1.05).toLocaleString()} USD • £{Math.round(apartment.price * 0.85).toLocaleString()} GBP
+                    </div>
+                    <span className="text-[#C5C5B5]/60 text-sm">per month</span>
                   </div>
                 </div>
                 
