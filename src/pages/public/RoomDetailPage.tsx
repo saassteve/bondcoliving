@@ -319,7 +319,7 @@ const RoomDetailPage: React.FC = () => {
                 </div>
                 
                 {/* Clear Call-to-Action */}
-                <div className="mt-8 p-6 bg-[#C5C5B5]/10 rounded-xl border border-[#C5C5B5]/20">
+                <div className="mt-8 p-6 bg-[#C5C5B5]/10 rounded-xl border border-[#C5C5B5]/20 lg:block hidden">
                   <div className="text-center">
                     <h3 className="text-xl font-bold text-[#C5C5B5] mb-3">Ready to call this home?</h3>
                     <p className="text-[#C5C5B5]/80 mb-6">Join our community and start your journey in Funchal</p>
@@ -334,7 +334,7 @@ const RoomDetailPage: React.FC = () => {
                 </div>
               </div>
               
-              <div className="space-y-12">
+              <div className="space-y-12 lg:block hidden">
                 {apartment.features && apartment.features.length > 0 && (
                   <div>
                     <h2 className="text-2xl font-bold mb-6">Features</h2>
@@ -365,13 +365,70 @@ const RoomDetailPage: React.FC = () => {
                   </div>
                 </div>
                 
-                {/* Live Calendar Availability */}
+                {/* Live Calendar Availability - Desktop */}
                 <div>
                   <h2 className="text-2xl font-bold mb-6">Live Availability</h2>
                   <CalendarAvailability 
                     apartmentId={apartment.id} 
                     apartmentTitle={apartment.title} 
                   />
+                </div>
+              </div>
+            </div>
+            
+            {/* Mobile Layout - Below lg breakpoint */}
+            <div className="lg:hidden space-y-12">
+              {apartment.features && apartment.features.length > 0 && (
+                <div>
+                  <h2 className="text-2xl font-bold mb-6">Features</h2>
+                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {apartment.features.map((feature, index) => {
+                      const Icon = getIconComponent(feature.icon);
+                      return (
+                        <li key={index} className="flex items-center text-[#C5C5B5]/80">
+                          <Icon className="w-4 h-4 mr-3 text-[#C5C5B5]" />
+                          {feature.label}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
+              
+              <div>
+                <h2 className="text-2xl font-bold mb-6">About Your Stay</h2>
+                <div className="space-y-4 text-[#C5C5B5]/80">
+                  <p>
+                    All private apartments at Bond include access to our coworking space and community events. 
+                    Utilities, cleaning service, and high-speed internet are included in the monthly price.
+                  </p>
+                  <p>
+                    Minimum stay is one month, and we offer discounts for longer commitments.
+                  </p>
+                </div>
+              </div>
+              
+              {/* Live Calendar Availability - Mobile */}
+              <div>
+                <h2 className="text-2xl font-bold mb-6">Live Availability</h2>
+                <CalendarAvailability 
+                  apartmentId={apartment.id} 
+                  apartmentTitle={apartment.title} 
+                />
+              </div>
+              
+              {/* Clear Call-to-Action - Mobile */}
+              <div className="p-6 bg-[#C5C5B5]/10 rounded-xl border border-[#C5C5B5]/20">
+                <div className="text-center">
+                  <h3 className="text-xl font-bold text-[#C5C5B5] mb-3">Ready to call this home?</h3>
+                  <p className="text-[#C5C5B5]/80 mb-6">Join our community and start your journey in Funchal</p>
+                  <Link 
+                    to="/apply" 
+                    className="inline-flex items-center px-8 py-4 bg-[#C5C5B5] text-[#1E1F1E] rounded-full hover:bg-white transition-all font-semibold text-lg uppercase tracking-wide shadow-lg hover:shadow-xl hover:scale-105"
+                  >
+                    Apply for This Apartment
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Link>
                 </div>
               </div>
             </div>
