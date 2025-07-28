@@ -28,6 +28,7 @@ import SearchResultsPage from './pages/public/SearchResultsPage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import AdminApplicationsPage from './pages/admin/AdminApplicationsPage';
 import AdminRoomsPage from './pages/admin/AdminRoomsPage';
+import AdminBookingsPage from './pages/admin/AdminBookingsPage';
 import AdminCoworkingPage from './pages/admin/AdminCoworkingPage';
 import AdminAccountPage from './pages/admin/AdminAccountPage';
 
@@ -66,6 +67,7 @@ const App = () => {
             <Route index element={<ProtectedRoute><AdminDashboardPage /></ProtectedRoute>} />
             <Route path="applications" element={<ProtectedRoute><AdminApplicationsPage /></ProtectedRoute>} />
             <Route path="rooms" element={<ProtectedRoute><AdminRoomsPage /></ProtectedRoute>} />
+            <Route path="bookings" element={<ProtectedRoute><AdminBookingsPage /></ProtectedRoute>} />
             <Route path="coworking" element={<ProtectedRoute><AdminCoworkingPage /></ProtectedRoute>} />
             <Route path="account" element={<ProtectedRoute><AdminAccountPage /></ProtectedRoute>} />
             {/* Admin catch-all */}

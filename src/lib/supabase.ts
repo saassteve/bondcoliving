@@ -123,6 +123,25 @@ export interface ApartmentICalFeed {
   created_at?: string
 }
 
+export interface Booking {
+  id: string
+  apartment_id: string
+  guest_name: string
+  guest_email?: string
+  guest_phone?: string
+  check_in_date: string
+  check_out_date: string
+  booking_source: string
+  booking_reference?: string
+  door_code?: string
+  special_instructions?: string
+  guest_count: number
+  total_amount?: number
+  status: 'confirmed' | 'checked_in' | 'checked_out' | 'cancelled'
+  created_at?: string
+  updated_at?: string
+}
+
 // Service Classes
 export class ApartmentService {
   // Generate URL-friendly slug from apartment title
@@ -677,3 +696,121 @@ export class ICalService {
 // Export availability and ical services after class definitions
 export const availabilityService = AvailabilityService
 export const icalService = ICalService
+
+export class BookingService {
+  static async getAll(): Promise<Booking[]> {
+    const { data, error } = await supabase
+      .from('bookings')
+      .select(`
+        *,
+        apartment:apartments(title)
+      `)
+      .order('check_in_date', { ascending: true })
+    
+    if (error) throw error
+    return data || []
+  }
+
+  static async getUpcoming(limit = 10): Promise<Booking[]> {
+    const today = new Date().toISOString().split('T')[0]
+    const { data, error } = await supabase
+      .from('bookings')
+      .select(`
+        *,
+        apartment:apartments(title)
+      `)
+      .gte('check_out_date', today)
+      .order('check_in_date', { ascending: true })
+      .limit(limit)
+    
+    if (error) throw error
+    return data || []
+  }
+
+  static async getByApartment(apartmentId: string, startDate?: string, endDate?: string): Promise<Booking[]> {
+    let query = supabase
+      .from('bookings')
+      .select('*')
+      .eq('apartment_id', apartmentId)
+      .order('check_in_date', { ascending: true })
+    
+    if (startDate) {
+      query = query.gte('check_out_date', startDate)
+    }
+    if (endDate) {
+      query = query.lte('check_in_date', endDate)
+    }
+    
+    const { data, error } = await query
+    if (error) throw error
+    return data || []
+  }
+
+  static async create(booking: Omit<Booking, 'id' | 'created_at' | 'updated_at'>): Promise<Booking> {
+    const { data, error } = await supabase
+      .from('bookings')
+      .insert(booking)
+      .select()
+      .single()
+    
+    if (error) throw error
+    
+    // Automatically update apartment availability
+    await this.syncAvailability(data.apartment_id, data.check_in_date, data.check_out_date, 'booked')
+    
+    return data
+  }
+
+  static async update(id: string, booking: Partial<Booking>): Promise<Booking> {
+    const { data, error } = await supabase
+      .from('bookings')
+      .update(booking)
+      .eq('id', id)
+      .select()
+      .single()
+    
+    if (error) throw error
+    return data
+  }
+
+  static async delete(id: string): Promise<void> {
+    // Get booking details before deletion to clear availability
+    const { data: booking } = await supabase
+      .from('bookings')
+      .select('apartment_id, check_in_date, check_out_date')
+      .eq('id', id)
+      .single()
+    
+    const { error } = await supabase
+      .from('bookings')
+      .delete()
+      .eq('id', id)
+    
+    if (error) throw error
+    
+    // Clear availability when booking is deleted
+    if (booking) {
+      await this.syncAvailability(booking.apartment_id, booking.check_in_date, booking.check_out_date, 'available')
+    }
+  }
+
+  static async syncAvailability(apartmentId: string, checkIn: string, checkOut: string, status: 'available' | 'booked'): Promise<void> {
+    const dates = this.getDateRange(checkIn, checkOut)
+    await availabilityService.setBulkAvailability(apartmentId, dates, status)
+  }
+
+  private static getDateRange(startDate: string, endDate: string): string[] {
+    const dates = []
+    const current = new Date(startDate)
+    const end = new Date(endDate)
+    
+    while (current < end) {
+      dates.push(current.toISOString().split('T')[0])
+      current.setDate(current.getDate() + 1)
+    }
+    
+    return dates
+  }
+}
+
+export const bookingService = BookingService
