@@ -81,60 +81,33 @@ class AuthService {
 
   async signIn(email: string, password: string): Promise<{ success: boolean; error?: string }> {
     try {
-      // Use the database function to verify admin credentials securely
-      const { data: authResult, error: authError } = await supabase
-        .rpc('authenticate_admin', {
-          admin_email: email,
-          admin_password: password
-        });
+      // First try to sign in with Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
       if (authError) {
-        console.error('Authentication error:', authError);
-        return { success: false, error: 'Authentication failed' };
-      }
-
-      if (!authResult?.success) {
+        console.error('Supabase auth error:', authError);
         return { success: false, error: 'Invalid credentials' };
       }
 
-      const adminUser = authResult.admin;
+      if (!authData.user) {
+        return { success: false, error: 'Authentication failed' };
+      }
 
-      // Create a temporary user for Supabase Auth session
-      // This ensures we have a valid session for RLS policies
-      try {
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
+      // Check if this user is an admin in our admin_users table
+      const { data: adminUser, error: adminError } = await supabase
+        .from('admin_users')
+        .select('id, email, role')
+        .eq('email', email)
+        .eq('is_active', true)
+        .single();
 
-        if (signInError && !signInError.message.includes('Invalid login credentials')) {
-          // If sign in fails, try to sign up the admin user (for first time setup)
-          const { error: signUpError } = await supabase.auth.signUp({
-            email,
-            password,
-            options: {
-              data: {
-                role: adminUser.role
-              }
-            }
-          });
-
-          if (signUpError && !signUpError.message.includes('already registered')) {
-            console.warn('Sign up failed, but continuing with database auth:', signUpError);
-          }
-
-          // Try signing in again after signup
-          try {
-            await supabase.auth.signInWithPassword({
-              email,
-              password,
-            });
-          } catch (retryError) {
-            console.warn('Retry sign in failed, but continuing with database auth:', retryError);
-          }
-        }
-      } catch (supabaseAuthError) {
-        console.warn('Supabase auth failed, but continuing with database auth:', supabaseAuthError);
+      if (adminError || !adminUser) {
+        // Sign out the user since they're not an admin
+        await supabase.auth.signOut();
+        return { success: false, error: 'Access denied - admin account required' };
       }
 
       const user = {
