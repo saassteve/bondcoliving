@@ -34,6 +34,20 @@ const AdminBookingsPage: React.FC = () => {
     }
   }, [currentMonth, currentView]);
 
+  // Update stats whenever bookings change
+  useEffect(() => {
+    updateStats();
+  }, [bookings]);
+
+  const updateStats = () => {
+    setStats({
+      total: bookings.length,
+      confirmed: bookings.filter(b => b.status === 'confirmed').length,
+      checkedIn: bookings.filter(b => b.status === 'checked_in').length,
+      checkedOut: bookings.filter(b => b.status === 'checked_out').length,
+      cancelled: bookings.filter(b => b.status === 'cancelled').length,
+    });
+  };
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -44,15 +58,6 @@ const AdminBookingsPage: React.FC = () => {
       
       setBookings(bookingsData);
       setApartments(apartmentsData);
-      
-      // Calculate stats
-      setStats({
-        total: bookingsData.length,
-        confirmed: bookingsData.filter(b => b.status === 'confirmed').length,
-        checkedIn: bookingsData.filter(b => b.status === 'checked_in').length,
-        checkedOut: bookingsData.filter(b => b.status === 'checked_out').length,
-        cancelled: bookingsData.filter(b => b.status === 'cancelled').length,
-      });
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -193,18 +198,22 @@ const AdminBookingsPage: React.FC = () => {
     const month = currentMonth.getMonth();
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const today = new Date();
+    const todayString = today.toISOString().split('T')[0];
     
     const days = [];
     
     // Empty cells for days before month starts
     for (let i = 0; i < firstDay; i++) {
-      days.push(<div key={`empty-${i}`} className="h-24 bg-gray-50 border border-gray-200"></div>);
+      days.push(<div key={`empty-${i}`} className="h-28 bg-gray-50 border border-gray-200"></div>);
     }
     
     // Days of the month
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month, day);
       const dateString = date.toISOString().split('T')[0];
+      const isToday = dateString === todayString;
+      const isPast = date < today && !isToday;
       
       // Find bookings for this day
       const dayBookings = bookings.filter(booking => {
@@ -243,23 +252,32 @@ const AdminBookingsPage: React.FC = () => {
       ];
       
       days.push(
-        <div key={day} className="h-24 bg-white border border-gray-200 p-1 overflow-y-auto">
-          <div className="font-medium text-sm mb-1">{day}</div>
+        <div key={day} className={`h-28 border border-gray-200 p-2 overflow-y-auto relative ${
+          isToday ? 'bg-blue-50 border-blue-300' : 
+          isPast ? 'bg-gray-50' : 'bg-white'
+        }`}>
+          <div className={`font-semibold text-sm mb-2 ${
+            isToday ? 'text-blue-700' : 
+            isPast ? 'text-gray-400' : 'text-gray-900'
+          }`}>
+            {day}
+            {isToday && <div className="absolute top-1 right-1 w-2 h-2 bg-blue-500 rounded-full"></div>}
+          </div>
           {allDayItems.length > 0 ? (
             <div className="space-y-1">
               {allDayItems.map(item => (
                 <div 
                   key={item.id} 
                   onClick={() => item.type === 'booking' ? setSelectedBooking(item as Booking) : null}
-                  className={`text-xs p-1 rounded truncate ${item.type === 'booking' ? 'cursor-pointer hover:opacity-80' : ''} ${
+                  className={`text-xs p-1.5 rounded-md truncate border transition-all ${item.type === 'booking' ? 'cursor-pointer hover:shadow-sm hover:scale-105' : ''} ${
                     item.type === 'booking' ? (
-                      item.status === 'confirmed' ? 'bg-blue-100 text-blue-800' :
-                      item.status === 'checked_in' ? 'bg-green-100 text-green-800' :
-                      item.status === 'checked_out' ? 'bg-gray-100 text-gray-800' :
-                      'bg-red-100 text-red-800'
+                      item.status === 'confirmed' ? 'bg-blue-100 text-blue-900 border-blue-200' :
+                      item.status === 'checked_in' ? 'bg-green-100 text-green-900 border-green-200' :
+                      item.status === 'checked_out' ? 'bg-gray-100 text-gray-900 border-gray-200' :
+                      'bg-red-100 text-red-900 border-red-200'
                     ) : (
-                      item.status === 'booked' ? 'bg-orange-100 text-orange-800' :
-                      'bg-gray-100 text-gray-800'
+                      item.status === 'booked' ? 'bg-orange-100 text-orange-900 border-orange-200' :
+                      'bg-yellow-100 text-yellow-900 border-yellow-200'
                     )
                   }`}
                   title={
@@ -268,7 +286,12 @@ const AdminBookingsPage: React.FC = () => {
                       : `${item.status.toUpperCase()} - ${item.apartment_title}${item.notes ? ` (${item.notes})` : ''}`
                   }
                 >
-                  {item.type === 'booking' ? (item as any).guest_name : `${item.status} (${item.apartment_title})`}
+                  <div className="font-medium">
+                    {item.type === 'booking' ? (item as any).guest_name : item.status.toUpperCase()}
+                  </div>
+                  <div className="text-xs opacity-75 truncate">
+                    {item.apartment_title}
+                  </div>
                 </div>
               ))}
             </div>
@@ -368,28 +391,28 @@ const AdminBookingsPage: React.FC = () => {
         </div>
 
         {/* Calendar Legend */}
-        <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
-          <h3 className="text-sm font-medium text-gray-700 mb-3">Calendar Legend</h3>
-          <div className="flex flex-wrap gap-4 text-xs">
+        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Calendar Legend</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 text-sm">
             <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-blue-100 border border-blue-200 rounded"></div>
-              <span>Confirmed Booking</span>
+              <div className="w-4 h-4 bg-blue-100 border border-blue-200 rounded"></div>
+              <span className="text-gray-900 font-medium">Confirmed Booking</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-green-100 border border-green-200 rounded"></div>
-              <span>Checked In</span>
+              <div className="w-4 h-4 bg-green-100 border border-green-200 rounded"></div>
+              <span className="text-gray-900 font-medium">Checked In</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-gray-100 border border-gray-200 rounded"></div>
-              <span>Checked Out</span>
+              <div className="w-4 h-4 bg-gray-100 border border-gray-200 rounded"></div>
+              <span className="text-gray-900 font-medium">Checked Out</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-red-100 border border-red-200 rounded"></div>
-              <span>Cancelled</span>
+              <div className="w-4 h-4 bg-red-100 border border-red-200 rounded"></div>
+              <span className="text-gray-900 font-medium">Cancelled</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-orange-100 border border-orange-200 rounded"></div>
-              <span>Blocked (Apartment Calendar)</span>
+              <div className="w-4 h-4 bg-orange-100 border border-orange-200 rounded"></div>
+              <span className="text-gray-900 font-medium">Blocked (Apartment Calendar)</span>
             </div>
           </div>
         </div>
@@ -515,7 +538,7 @@ const AdminBookingsPage: React.FC = () => {
                       <tr key={booking.id} className="hover:bg-gray-50">
                         <td className="px-4 py-3 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">{booking.guest_name}</div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-gray-700">
                             {booking.guest_email && (
                               <div className="flex items-center">
                                 <Mail className="w-3 h-3 mr-1" />
@@ -532,16 +555,16 @@ const AdminBookingsPage: React.FC = () => {
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
                           <div className="text-sm text-gray-900">{getApartmentTitle(booking.apartment_id)}</div>
-                          <div className="text-sm text-gray-500">{booking.guest_count} guest{booking.guest_count > 1 ? 's' : ''}</div>
+                          <div className="text-sm text-gray-700">{booking.guest_count} guest{booking.guest_count > 1 ? 's' : ''}</div>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
                           <div className="text-sm text-gray-900">{formatDate(booking.check_in_date)}</div>
-                          <div className="text-sm text-gray-500">to {formatDate(booking.check_out_date)}</div>
+                          <div className="text-sm text-gray-700">to {formatDate(booking.check_out_date)}</div>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
                           <div className="text-sm text-gray-900 capitalize">{booking.booking_source}</div>
                           {booking.booking_reference && (
-                            <div className="text-sm text-gray-500">{booking.booking_reference}</div>
+                            <div className="text-sm text-gray-700">{booking.booking_reference}</div>
                           )}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
