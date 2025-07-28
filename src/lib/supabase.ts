@@ -856,3 +856,181 @@ export class GuestStayService {
 }
 
 export const guestStayService = GuestStayService
+// Guest Stay Types and Service
+export interface GuestStay {
+  id: string
+  apartment_id: string
+  guest_name: string
+  guest_email?: string
+  guest_phone?: string
+  check_in_date: string
+  check_out_date: string
+  booking_platform?: string
+  booking_reference?: string
+  door_code?: string
+  special_instructions?: string
+  guest_count?: number
+  total_amount?: number
+  currency?: string
+  status?: 'confirmed' | 'checked_in' | 'checked_out' | 'cancelled'
+  notes?: string
+  created_at?: string
+  updated_at?: string
+}
+
+export interface CalendarEvent {
+  date: string
+  apartment_id: string
+  apartment_title: string
+  status: string
+  guest_name?: string
+  guest_email?: string
+  booking_platform?: string
+  booking_reference?: string
+  door_code?: string
+  is_checkin: boolean
+  is_checkout: boolean
+  guest_count?: number
+}
+
+export interface UpcomingStay {
+  id: string
+  apartment_id: string
+  apartment_title: string
+  guest_name: string
+  guest_email?: string
+  guest_phone?: string
+  check_in_date: string
+  check_out_date: string
+  booking_platform?: string
+  booking_reference?: string
+  door_code?: string
+  status: string
+  guest_count?: number
+  days_until_checkin: number
+}
+
+export class GuestStayService {
+  static async create(guestStay: {
+    apartment_id: string
+    guest_name: string
+    guest_email?: string
+    guest_phone?: string
+    check_in_date: string
+    check_out_date: string
+    booking_platform?: string
+    booking_reference?: string
+    door_code?: string
+    special_instructions?: string
+    guest_count?: number
+    total_amount?: number
+    currency?: string
+    notes?: string
+  }): Promise<string> {
+    const { data, error } = await supabase.rpc('create_guest_stay', {
+      p_apartment_id: guestStay.apartment_id,
+      p_guest_name: guestStay.guest_name,
+      p_guest_email: guestStay.guest_email || null,
+      p_guest_phone: guestStay.guest_phone || null,
+      p_check_in_date: guestStay.check_in_date,
+      p_check_out_date: guestStay.check_out_date,
+      p_booking_platform: guestStay.booking_platform || 'direct',
+      p_booking_reference: guestStay.booking_reference || null,
+      p_door_code: guestStay.door_code || null,
+      p_special_instructions: guestStay.special_instructions || null,
+      p_guest_count: guestStay.guest_count || 1,
+      p_total_amount: guestStay.total_amount || null,
+      p_currency: guestStay.currency || 'EUR',
+      p_notes: guestStay.notes || null
+    })
+    
+    if (error) throw error
+    return data
+  }
+
+  static async update(id: string, updates: {
+    guest_name?: string
+    guest_email?: string
+    guest_phone?: string
+    door_code?: string
+    special_instructions?: string
+    guest_count?: number
+    total_amount?: number
+    status?: string
+    notes?: string
+  }): Promise<boolean> {
+    const { data, error } = await supabase.rpc('update_guest_stay', {
+      p_guest_stay_id: id,
+      p_guest_name: updates.guest_name || null,
+      p_guest_email: updates.guest_email || null,
+      p_guest_phone: updates.guest_phone || null,
+      p_door_code: updates.door_code || null,
+      p_special_instructions: updates.special_instructions || null,
+      p_guest_count: updates.guest_count || null,
+      p_total_amount: updates.total_amount || null,
+      p_status: updates.status || null,
+      p_notes: updates.notes || null
+    })
+    
+    if (error) throw error
+    return data
+  }
+
+  static async getAll(): Promise<GuestStay[]> {
+    const { data, error } = await supabase
+      .from('guest_stays')
+      .select('*')
+      .order('check_in_date', { ascending: true })
+    
+    if (error) throw error
+    return data || []
+  }
+
+  static async getById(id: string): Promise<GuestStay | null> {
+    const { data, error } = await supabase
+      .from('guest_stays')
+      .select('*')
+      .eq('id', id)
+      .single()
+    
+    if (error) throw error
+    return data
+  }
+
+  static async delete(id: string): Promise<void> {
+    // First, clear the guest_stay_id from apartment_availability
+    await supabase
+      .from('apartment_availability')
+      .update({ guest_stay_id: null })
+      .eq('guest_stay_id', id)
+
+    // Then delete the guest stay
+    const { error } = await supabase
+      .from('guest_stays')
+      .delete()
+      .eq('id', id)
+    
+    if (error) throw error
+  }
+
+  static async getUpcoming(daysAhead: number = 30): Promise<UpcomingStay[]> {
+    const { data, error } = await supabase.rpc('get_upcoming_stays', {
+      days_ahead: daysAhead
+    })
+    
+    if (error) throw error
+    return data || []
+  }
+
+  static async getCalendarWithGuests(startDate: string, endDate: string): Promise<CalendarEvent[]> {
+    const { data, error } = await supabase.rpc('get_calendar_with_guests', {
+      start_date: startDate,
+      end_date: endDate
+    })
+    
+    if (error) throw error
+    return data || []
+  }
+}
+
+export const guestStayService = GuestStayService
