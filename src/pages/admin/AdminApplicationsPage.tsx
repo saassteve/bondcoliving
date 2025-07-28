@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Eye, Check, X, Filter, Download, Mail } from 'lucide-react';
+import { Eye, Check, X, Filter, Download, Mail, Trash2 } from 'lucide-react';
 import { applicationService, type Application } from '../../lib/supabase';
 
 const AdminApplicationsPage: React.FC = () => {
@@ -95,6 +95,34 @@ const AdminApplicationsPage: React.FC = () => {
     } catch (err) {
       console.error('Error declining application:', err);
       alert('Failed to decline application');
+    }
+  };
+  
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Are you sure you want to permanently delete this application? This action cannot be undone.')) {
+      return;
+    }
+    
+    try {
+      await applicationService.delete(id);
+      setApplications(applications.filter(app => app.id !== id));
+      
+      // Close modal if the deleted application was being viewed
+      if (selectedApplication && selectedApplication.id === id) {
+        setSelectedApplication(null);
+      }
+      
+      // Recalculate stats
+      const updatedApplications = applications.filter(app => app.id !== id);
+      setStats({
+        total: updatedApplications.length,
+        pending: updatedApplications.filter(app => app.status === 'pending').length,
+        approved: updatedApplications.filter(app => app.status === 'approved').length,
+        declined: updatedApplications.filter(app => app.status === 'declined').length,
+      });
+    } catch (err) {
+      console.error('Error deleting application:', err);
+      alert('Failed to delete application');
     }
   };
   
@@ -258,6 +286,13 @@ const AdminApplicationsPage: React.FC = () => {
                       >
                         <Mail className="w-4 h-4 inline-block" />
                       </a>
+                      <button
+                        onClick={() => handleDelete(application.id)}
+                        className="text-red-600 hover:text-red-800 mr-2 font-medium"
+                        title="Delete application"
+                      >
+                        <Trash2 className="w-4 h-4 inline-block" />
+                      </button>
                       {application.status === 'pending' && (
                         <>
                           <button
@@ -378,6 +413,17 @@ const AdminApplicationsPage: React.FC = () => {
                   </button>
                 </div>
               )}
+            </div>
+            
+            {/* Delete button - always available */}
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <button
+                onClick={() => handleDelete(selectedApplication.id)}
+                className="btn bg-red-50 border border-red-300 text-red-700 hover:bg-red-100"
+              >
+                <Trash2 className="w-4 h-4 mr-1" />
+                Delete Application
+              </button>
             </div>
           </div>
         </div>

@@ -29,6 +29,7 @@ import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import AdminApplicationsPage from './pages/admin/AdminApplicationsPage';
 import AdminRoomsPage from './pages/admin/AdminRoomsPage';
 import AdminCoworkingPage from './pages/admin/AdminCoworkingPage';
+import AdminAccountPage from './pages/admin/AdminAccountPage';
 
 const App = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -66,6 +67,7 @@ const App = () => {
             <Route path="applications" element={<ProtectedRoute><AdminApplicationsPage /></ProtectedRoute>} />
             <Route path="rooms" element={<ProtectedRoute><AdminRoomsPage /></ProtectedRoute>} />
             <Route path="coworking" element={<ProtectedRoute><AdminCoworkingPage /></ProtectedRoute>} />
+            <Route path="account" element={<ProtectedRoute><AdminAccountPage /></ProtectedRoute>} />
             {/* Admin catch-all */}
             <Route path="*" element={<Navigate to="/admin" replace />} />
           </Route>
