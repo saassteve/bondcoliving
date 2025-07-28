@@ -6,6 +6,7 @@ import BookingForm from '../../components/admin/BookingForm';
 
 const AdminBookingsPage: React.FC = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [availability, setAvailability] = useState<Record<string, any[]>>({});
   const [apartments, setApartments] = useState<Apartment[]>([]);
   const [currentView, setCurrentView] = useState<'list' | 'calendar'>('calendar');
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -61,11 +62,12 @@ const AdminBookingsPage: React.FC = () => {
 
   const fetchBookingsForMonth = async () => {
     try {
-      const monthBookings = await bookingService.getBookingsForMonth(
+      const { bookings: monthBookings, availability: monthAvailability } = await bookingService.getBookingsWithAvailability(
         currentMonth.getFullYear(),
         currentMonth.getMonth()
       );
       setBookings(monthBookings);
+      setAvailability(monthAvailability);
     } catch (error) {
       console.error('Error fetching month bookings:', error);
     }
@@ -211,24 +213,62 @@ const AdminBookingsPage: React.FC = () => {
         return date >= checkIn && date < checkOut;
       });
       
+      // Find availability blocks for this day (from apartment calendars)
+      const dayAvailabilityBlocks = Object.entries(availability).flatMap(([apartmentId, aptAvailability]) => {
+        const apartment = apartments.find(apt => apt.id === apartmentId);
+        const dayAvailability = aptAvailability.find((avail: any) => avail.date === dateString);
+        
+        if (dayAvailability && dayAvailability.status !== 'available') {
+          return [{
+            id: `availability-${dayAvailability.id}`,
+            apartment_id: apartmentId,
+            apartment_title: apartment?.title || 'Unknown',
+            status: dayAvailability.status,
+            notes: dayAvailability.notes,
+            booking_reference: dayAvailability.booking_reference,
+            type: 'availability'
+          }];
+        }
+        return [];
+      });
+      
+      // Combine bookings and availability blocks
+      const allDayItems = [
+        ...dayBookings.map(booking => ({
+          ...booking,
+          type: 'booking',
+          apartment_title: getApartmentTitle(booking.apartment_id)
+        })),
+        ...dayAvailabilityBlocks
+      ];
+      
       days.push(
         <div key={day} className="h-24 bg-white border border-gray-200 p-1 overflow-y-auto">
           <div className="font-medium text-sm mb-1">{day}</div>
-          {dayBookings.length > 0 ? (
+          {allDayItems.length > 0 ? (
             <div className="space-y-1">
-              {dayBookings.map(booking => (
+              {allDayItems.map(item => (
                 <div 
-                  key={booking.id} 
-                  onClick={() => setSelectedBooking(booking)}
-                  className={`text-xs p-1 rounded truncate cursor-pointer hover:opacity-80 ${
-                    booking.status === 'confirmed' ? 'bg-blue-100 text-blue-800' :
-                    booking.status === 'checked_in' ? 'bg-green-100 text-green-800' :
-                    booking.status === 'checked_out' ? 'bg-gray-100 text-gray-800' :
-                    'bg-red-100 text-red-800'
+                  key={item.id} 
+                  onClick={() => item.type === 'booking' ? setSelectedBooking(item as Booking) : null}
+                  className={`text-xs p-1 rounded truncate ${item.type === 'booking' ? 'cursor-pointer hover:opacity-80' : ''} ${
+                    item.type === 'booking' ? (
+                      item.status === 'confirmed' ? 'bg-blue-100 text-blue-800' :
+                      item.status === 'checked_in' ? 'bg-green-100 text-green-800' :
+                      item.status === 'checked_out' ? 'bg-gray-100 text-gray-800' :
+                      'bg-red-100 text-red-800'
+                    ) : (
+                      item.status === 'booked' ? 'bg-orange-100 text-orange-800' :
+                      'bg-gray-100 text-gray-800'
+                    )
                   }`}
-                  title={`${booking.guest_name} - ${getApartmentTitle(booking.apartment_id)}`}
+                  title={
+                    item.type === 'booking' 
+                      ? `${(item as any).guest_name} - ${item.apartment_title}` 
+                      : `${item.status.toUpperCase()} - ${item.apartment_title}${item.notes ? ` (${item.notes})` : ''}`
+                  }
                 >
-                  {booking.guest_name}
+                  {item.type === 'booking' ? (item as any).guest_name : `${item.status} (${item.apartment_title})`}
                 </div>
               ))}
             </div>
@@ -327,6 +367,32 @@ const AdminBookingsPage: React.FC = () => {
           </div>
         </div>
 
+        {/* Calendar Legend */}
+        <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+          <h3 className="text-sm font-medium text-gray-700 mb-3">Calendar Legend</h3>
+          <div className="flex flex-wrap gap-4 text-xs">
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 bg-blue-100 border border-blue-200 rounded"></div>
+              <span>Confirmed Booking</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 bg-green-100 border border-green-200 rounded"></div>
+              <span>Checked In</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 bg-gray-100 border border-gray-200 rounded"></div>
+              <span>Checked Out</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 bg-red-100 border border-red-200 rounded"></div>
+              <span>Cancelled</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 bg-orange-100 border border-orange-200 rounded"></div>
+              <span>Blocked (Apartment Calendar)</span>
+            </div>
+          </div>
+        </div>
         {currentView === 'calendar' ? (
           /* Calendar View */
           <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200">

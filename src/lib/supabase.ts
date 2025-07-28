@@ -872,6 +872,37 @@ export class BookingService {
     if (error) throw error
     return data || []
   }
+
+  static async getBookingsWithAvailability(year: number, month: number): Promise<{
+    bookings: Booking[];
+    availability: Record<string, ApartmentAvailability[]>;
+  }> {
+    const startDate = new Date(year, month, 1).toISOString().split('T')[0]
+    const endDate = new Date(year, month + 1, 0).toISOString().split('T')[0]
+    
+    // Get all bookings for the month
+    const bookings = await this.getBookingsForMonth(year, month)
+    
+    // Get all apartments
+    const apartments = await apartmentService.getAll()
+    
+    // Get availability data for all apartments for this month
+    const availability: Record<string, ApartmentAvailability[]> = {}
+    
+    await Promise.all(
+      apartments.map(async (apartment) => {
+        try {
+          const aptAvailability = await availabilityService.getCalendar(apartment.id, startDate, endDate)
+          availability[apartment.id] = aptAvailability
+        } catch (error) {
+          console.error(`Error fetching availability for apartment ${apartment.id}:`, error)
+          availability[apartment.id] = []
+        }
+      })
+    )
+    
+    return { bookings, availability }
+  }
 }
 
 export const bookingService = BookingService
