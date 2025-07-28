@@ -1,10 +1,51 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Plus, Calendar, Users, MapPin, Phone, Mail, Key, Edit, Trash2, Eye, ChevronLeft, ChevronRight, Filter, Search } from 'lucide-react';
-import { bookingService, apartmentService, type Booking, type Apartment } from '../../lib/supabase';
+import { apartmentService, type Apartment } from '../../lib/supabase';
+
+// Temporary mock data until the bookings table is properly set up
+const mockBookings = [
+  {
+    id: '1',
+    apartment_id: '',
+    guest_name: 'John Doe',
+    guest_email: 'john@example.com',
+    guest_phone: '+1234567890',
+    check_in_date: '2025-02-01',
+    check_out_date: '2025-03-01',
+    booking_source: 'airbnb',
+    booking_reference: 'AIR123456',
+    door_code: '1234',
+    special_instructions: 'Late check-in requested',
+    guest_count: 2,
+    total_amount: 1600,
+    status: 'confirmed' as const,
+    created_at: '2025-01-15T10:00:00Z',
+    updated_at: '2025-01-15T10:00:00Z'
+  }
+];
+
+interface Booking {
+  id: string;
+  apartment_id: string;
+  guest_name: string;
+  guest_email?: string;
+  guest_phone?: string;
+  check_in_date: string;
+  check_out_date: string;
+  booking_source: string;
+  booking_reference?: string;
+  door_code?: string;
+  special_instructions?: string;
+  guest_count: number;
+  total_amount?: number;
+  status: 'confirmed' | 'checked_in' | 'checked_out' | 'cancelled';
+  created_at?: string;
+  updated_at?: string;
+}
 
 const AdminBookingsPage: React.FC = () => {
-  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>(mockBookings);
   const [apartments, setApartments] = useState<Apartment[]>([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<'list' | 'calendar'>('list');
@@ -39,11 +80,11 @@ const AdminBookingsPage: React.FC = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [bookingsData, apartmentsData] = await Promise.all([
-        bookingService.getAll(),
+      const [apartmentsData] = await Promise.all([
         apartmentService.getAll()
       ]);
-      setBookings(bookingsData);
+      // For now, use mock data until bookings table is ready
+      setBookings(mockBookings);
       setApartments(apartmentsData);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -79,17 +120,19 @@ const AdminBookingsPage: React.FC = () => {
     try {
       const bookingData = {
         ...formData,
+        id: Date.now().toString(), // Temporary ID for mock data
         guest_count: parseInt(formData.guest_count.toString()),
         total_amount: formData.total_amount ? parseFloat(formData.total_amount) : null
       };
 
       if (editingBooking) {
-        await bookingService.update(editingBooking.id, bookingData);
+        // Update mock data
+        setBookings(prev => prev.map(b => b.id === editingBooking.id ? { ...b, ...bookingData } : b));
       } else {
-        await bookingService.create(bookingData);
+        // Add to mock data
+        setBookings(prev => [...prev, { ...bookingData, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }]);
       }
 
-      await fetchData();
       resetForm();
     } catch (error) {
       console.error('Error saving booking:', error);
@@ -123,8 +166,8 @@ const AdminBookingsPage: React.FC = () => {
     if (!window.confirm('Are you sure you want to delete this booking? This will also update the apartment availability.')) return;
 
     try {
-      await bookingService.delete(id);
-      await fetchData();
+      // Remove from mock data
+      setBookings(prev => prev.filter(b => b.id !== id));
     } catch (error) {
       console.error('Error deleting booking:', error);
       alert('Failed to delete booking');

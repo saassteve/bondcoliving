@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
-import { Users, Building, Coffee, Calendar, TrendingUp, AlertCircle, MapPin } from 'lucide-react';
-import { apartmentService, applicationService, reviewService, featureHighlightService, bookingService } from '../../lib/supabase';
+import { Users, Building, Coffee, Calendar, TrendingUp, AlertCircle } from 'lucide-react';
+import { apartmentService, applicationService, reviewService, featureHighlightService } from '../../lib/supabase';
 
 const AdminDashboardPage: React.FC = () => {
   const [stats, setStats] = useState({
@@ -14,7 +14,6 @@ const AdminDashboardPage: React.FC = () => {
     activeFeatures: 0,
   });
   const [recentApplications, setRecentApplications] = useState<any[]>([]);
-  const [upcomingBookings, setUpcomingBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,12 +25,11 @@ const AdminDashboardPage: React.FC = () => {
       setLoading(true);
       
       // Fetch all data in parallel
-      const [apartments, applications, reviews, features, bookings] = await Promise.all([
+      const [apartments, applications, reviews, features] = await Promise.all([
         apartmentService.getAll(),
         applicationService.getAll(),
         reviewService.getFeatured(),
         featureHighlightService.getActive(),
-        bookingService.getUpcoming(5),
       ]);
 
       // Calculate stats
@@ -49,9 +47,6 @@ const AdminDashboardPage: React.FC = () => {
 
       // Get recent applications (last 5)
       setRecentApplications(applications.slice(0, 5));
-      
-      // Set upcoming bookings
-      setUpcomingBookings(bookings);
       
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -249,49 +244,6 @@ const AdminDashboardPage: React.FC = () => {
               </Link>
             </div>
           </div>
-        </div>
-        
-        {/* Upcoming Bookings */}
-        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200 mb-8">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Upcoming Check-ins</h2>
-            <Link to="/admin/bookings" className="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
-              View all bookings →
-            </Link>
-          </div>
-          {upcomingBookings.length > 0 ? (
-            <div className="space-y-3">
-              {upcomingBookings.map((booking) => (
-                <div key={booking.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center">
-                    <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center mr-3">
-                      <Users className="w-5 h-5 text-indigo-600" />
-                    </div>
-                    <div>
-                      <div className="font-medium text-gray-900">{booking.guest_name}</div>
-                      <div className="text-sm text-gray-600 flex items-center">
-                        <MapPin className="w-3 h-3 mr-1" />
-                        {booking.apartment?.title || 'Unknown apartment'}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm font-medium text-gray-900">
-                      {formatDate(booking.check_in_date)}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {booking.guest_count} guest{booking.guest_count !== 1 ? 's' : ''}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-gray-500">
-              <Calendar className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-              <p className="text-sm">No upcoming check-ins</p>
-            </div>
-          )}
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
