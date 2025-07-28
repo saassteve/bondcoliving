@@ -677,3 +677,201 @@ export class ICalService {
 // Export availability and ical services after class definitions
 export const availabilityService = AvailabilityService
 export const icalService = ICalService
+
+export interface Booking {
+  id: string
+  apartment_id: string
+  guest_name: string
+  guest_email?: string
+  guest_phone?: string
+  check_in_date: string
+  check_out_date: string
+  booking_source: 'direct' | 'airbnb' | 'booking.com' | 'vrbo' | 'other'
+  booking_reference?: string
+  door_code?: string
+  special_instructions?: string
+  guest_count: number
+  total_amount?: number
+  status: 'confirmed' | 'checked_in' | 'checked_out' | 'cancelled'
+  created_at?: string
+  updated_at?: string
+}
+
+export class BookingService {
+  static async getAll(): Promise<Booking[]> {
+    const { data, error } = await supabase
+      .from('bookings')
+      .select(`
+        *,
+        apartment:apartments(title)
+      `)
+      .order('check_in_date', { ascending: false })
+    
+    if (error) throw error
+    return data || []
+  }
+
+  static async getById(id: string): Promise<Booking | null> {
+    const { data, error } = await supabase
+      .from('bookings')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle()
+    
+    if (error) throw error
+    return data
+  }
+
+  static async getByApartment(apartmentId: string, startDate?: string, endDate?: string): Promise<Booking[]> {
+    let query = supabase
+      .from('bookings')
+      .select('*')
+      .eq('apartment_id', apartmentId)
+      .order('check_in_date', { ascending: true })
+    
+    if (startDate) {
+      query = query.gte('check_out_date', startDate)
+    }
+    if (endDate) {
+      query = query.lte('check_in_date', endDate)
+    }
+    
+    const { data, error } = await query
+    if (error) throw error
+    return data || []
+  }
+
+  static async create(booking: Omit<Booking, 'id' | 'created_at' | 'updated_at'>): Promise<Booking> {
+    const { data, error } = await supabase
+      .from('bookings')
+      .insert(booking)
+      .select()
+      .single()
+    
+    if (error) throw error
+    
+    // Update apartment availability for the booking period
+    if (booking.status === 'confirmed' || booking.status === 'checked_in') {
+      await this.updateAvailabilityForBooking(data.id, booking.apartment_id, booking.check_in_date, booking.check_out_date, 'booked')
+    }
+    
+    return data
+  }
+
+  static async update(id: string, booking: Partial<Booking>): Promise<Booking> {
+    // Get the existing booking to compare dates and status
+    const existingBooking = await this.getById(id)
+    if (!existingBooking) {
+      throw new Error(`Booking with ID ${id} not found`)
+    }
+    
+    const { data, error } = await supabase
+      .from('bookings')
+      .update(booking)
+      .eq('id', id)
+      .select()
+      .single()
+    
+    if (error) throw error
+    
+    // Handle availability updates if dates or status changed
+    const datesChanged = booking.check_in_date !== undefined || booking.check_out_date !== undefined
+    const statusChanged = booking.status !== undefined && booking.status !== existingBooking.status
+    
+    if (datesChanged || statusChanged) {
+      // Clear old availability if dates changed or status changed to cancelled
+      if (datesChanged || booking.status === 'cancelled') {
+        await this.updateAvailabilityForBooking(
+          id, 
+          existingBooking.apartment_id, 
+          existingBooking.check_in_date, 
+          existingBooking.check_out_date, 
+          'available'
+        )
+      }
+      
+      // Set new availability if booking is active
+      if (data.status === 'confirmed' || data.status === 'checked_in') {
+        await this.updateAvailabilityForBooking(
+          data.id, 
+          data.apartment_id, 
+          data.check_in_date, 
+          data.check_out_date, 
+          'booked'
+        )
+      }
+    }
+    
+    return data
+  }
+
+  static async delete(id: string): Promise<void> {
+    // Get the booking details before deletion
+    const booking = await this.getById(id)
+    if (!booking) {
+      throw new Error(`Booking with ID ${id} not found`)
+    }
+    
+    const { error } = await supabase
+      .from('bookings')
+      .delete()
+      .eq('id', id)
+    
+    if (error) throw error
+    
+    // Clear availability for the deleted booking period
+    await this.updateAvailabilityForBooking(
+      id, 
+      booking.apartment_id, 
+      booking.check_in_date, 
+      booking.check_out_date, 
+      'available'
+    )
+  }
+
+  private static async updateAvailabilityForBooking(
+    bookingId: string, 
+    apartmentId: string, 
+    checkInDate: string, 
+    checkOutDate: string, 
+    status: 'available' | 'booked'
+  ): Promise<void> {
+    try {
+      // Generate array of dates between check-in and check-out (inclusive of check-in, exclusive of check-out)
+      const dates: string[] = []
+      const currentDate = new Date(checkInDate)
+      const endDate = new Date(checkOutDate)
+      
+      while (currentDate < endDate) {
+        dates.push(currentDate.toISOString().split('T')[0])
+        currentDate.setDate(currentDate.getDate() + 1)
+      }
+      
+      if (dates.length > 0) {
+        await availabilityService.setBulkAvailability(apartmentId, dates, status)
+      }
+    } catch (error) {
+      console.error('Error updating availability for booking:', error)
+      // Don't throw here to avoid breaking the main booking operation
+    }
+  }
+
+  static async getBookingsForMonth(year: number, month: number): Promise<Booking[]> {
+    const startDate = new Date(year, month, 1).toISOString().split('T')[0]
+    const endDate = new Date(year, month + 1, 0).toISOString().split('T')[0]
+    
+    const { data, error } = await supabase
+      .from('bookings')
+      .select(`
+        *,
+        apartment:apartments(title)
+      `)
+      .or(`and(check_in_date.lte.${endDate},check_out_date.gte.${startDate})`)
+      .order('check_in_date', { ascending: true })
+    
+    if (error) throw error
+    return data || []
+  }
+}
+
+export const bookingService = BookingService
