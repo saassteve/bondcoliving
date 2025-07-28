@@ -123,25 +123,6 @@ export interface ApartmentICalFeed {
   created_at?: string
 }
 
-export interface Booking {
-  id: string
-  apartment_id: string
-  guest_name: string
-  guest_email?: string
-  guest_phone?: string
-  check_in_date: string
-  check_out_date: string
-  booking_source: string
-  booking_reference?: string
-  door_code?: string
-  special_instructions?: string
-  guest_count: number
-  total_amount?: number
-  status: 'confirmed' | 'checked_in' | 'checked_out' | 'cancelled'
-  created_at?: string
-  updated_at?: string
-}
-
 // Service Classes
 export class ApartmentService {
   // Generate URL-friendly slug from apartment title

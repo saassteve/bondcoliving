@@ -24,7 +24,6 @@ const AdminLayout: React.FC = () => {
     { name: 'Dashboard', path: '/admin', icon: LayoutDashboard },
     { name: 'Applications', path: '/admin/applications', icon: Users },
     { name: 'Rooms', path: '/admin/rooms', icon: Building },
-    { name: 'Bookings', path: '/admin/bookings', icon: Calendar },
     { name: 'Coworking', path: '/admin/coworking', icon: Coffee },
     { name: 'Account', path: '/admin/account', icon: Settings },
   ];
