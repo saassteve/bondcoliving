@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
-import { Users, Building, Coffee, Calendar, TrendingUp, AlertCircle } from 'lucide-react';
-import { apartmentService, applicationService, reviewService, featureHighlightService } from '../../lib/supabase';
+import { Users, Building, Coffee, Calendar, TrendingUp, AlertCircle, MapPin } from 'lucide-react';
+import { apartmentService, applicationService, reviewService, featureHighlightService, bookingService } from '../../lib/supabase';
 
 const AdminDashboardPage: React.FC = () => {
   const [stats, setStats] = useState({
@@ -14,6 +14,7 @@ const AdminDashboardPage: React.FC = () => {
     activeFeatures: 0,
   });
   const [recentApplications, setRecentApplications] = useState<any[]>([]);
+  const [upcomingBookings, setUpcomingBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -25,11 +26,12 @@ const AdminDashboardPage: React.FC = () => {
       setLoading(true);
       
       // Fetch all data in parallel
-      const [apartments, applications, reviews, features] = await Promise.all([
+      const [apartments, applications, reviews, features, bookings] = await Promise.all([
         apartmentService.getAll(),
         applicationService.getAll(),
         reviewService.getFeatured(),
         featureHighlightService.getActive(),
+        bookingService.getUpcoming(5),
       ]);
 
       // Calculate stats
@@ -47,6 +49,9 @@ const AdminDashboardPage: React.FC = () => {
 
       // Get recent applications (last 5)
       setRecentApplications(applications.slice(0, 5));
+      
+      // Set upcoming bookings
+      setUpcomingBookings(bookings);
       
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
