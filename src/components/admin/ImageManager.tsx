@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, X, Star, StarOff, Trash2, GripVertical } from 'lucide-react';
+import { Plus, X, Star, StarOff, Trash2, GripVertical, Save } from 'lucide-react';
 import { apartmentService, type ApartmentImage } from '../../lib/supabase';
 
 interface ImageManagerProps {
@@ -12,6 +12,9 @@ const ImageManager: React.FC<ImageManagerProps> = ({ apartmentId, onClose }) => 
   const [loading, setLoading] = useState(true);
   const [newImageUrl, setNewImageUrl] = useState('');
   const [isAdding, setIsAdding] = useState(false);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     fetchImages();
@@ -48,6 +51,64 @@ const ImageManager: React.FC<ImageManagerProps> = ({ apartmentId, onClose }) => 
       alert('Failed to add image');
     } finally {
       setIsAdding(false);
+    }
+  };
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null);
+      return;
+    }
+
+    const newImages = [...images];
+    const draggedImage = newImages[draggedIndex];
+    
+    // Remove the dragged item
+    newImages.splice(draggedIndex, 1);
+    
+    // Insert at new position
+    newImages.splice(dropIndex, 0, draggedImage);
+    
+    // Update sort_order for all images
+    const updatedImages = newImages.map((image, index) => ({
+      ...image,
+      sort_order: index
+    }));
+    
+    setImages(updatedImages);
+    setHasChanges(true);
+    setDraggedIndex(null);
+  };
+
+  const handleSaveOrder = async () => {
+    setIsSaving(true);
+    try {
+      // Update sort order for all images
+      await Promise.all(
+        images.map((image, index) =>
+          apartmentService.updateImage(image.id, { sort_order: index })
+        )
+      );
+      
+      setHasChanges(false);
+      await fetchImages(); // Refresh to confirm changes
+    } catch (error) {
+      console.error('Error saving image order:', error);
+      alert('Failed to save image order');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -99,12 +160,24 @@ const ImageManager: React.FC<ImageManagerProps> = ({ apartmentId, onClose }) => 
       <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold">Manage Images</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-3">
+            {hasChanges && (
+              <button
+                onClick={handleSaveOrder}
+                disabled={isSaving}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+              >
+                <Save className="w-4 h-4" />
+                {isSaving ? 'Saving...' : 'Save Order'}
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Add new image form */}
@@ -142,63 +215,104 @@ const ImageManager: React.FC<ImageManagerProps> = ({ apartmentId, onClose }) => 
             <p className="text-gray-600">Add your first image using the form above.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {images.map((image) => (
-              <div
-                key={image.id}
-                className={`relative group rounded-lg overflow-hidden border-2 ${
-                  image.is_featured ? 'border-yellow-400' : 'border-gray-200'
-                }`}
-              >
-                <div className="aspect-video">
-                  <img
-                    src={image.image_url}
-                    alt="Apartment"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                
-                {/* Featured badge */}
-                {image.is_featured && (
-                  <div className="absolute top-2 left-2 bg-yellow-400 text-yellow-900 px-2 py-1 rounded text-xs font-medium flex items-center gap-1">
-                    <Star className="w-3 h-3" />
-                    Featured
+          <>
+            {hasChanges && (
+              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center text-blue-700">
+                    <GripVertical className="w-4 h-4 mr-2" />
+                    <span className="text-sm font-medium">Image order has been changed</span>
                   </div>
-                )}
-
-                {/* Action buttons */}
-                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
-                  {!image.is_featured && (
-                    <button
-                      onClick={() => handleSetFeatured(image.id)}
-                      className="bg-yellow-500 text-white p-2 rounded-full hover:bg-yellow-600 transition-colors"
-                      title="Set as featured"
-                    >
-                      <Star className="w-4 h-4" />
-                    </button>
-                  )}
-                  
                   <button
-                    onClick={() => handleDeleteImage(image.id)}
-                    className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors"
-                    title="Delete image"
+                    onClick={handleSaveOrder}
+                    disabled={isSaving}
+                    className="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 disabled:opacity-50"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    {isSaving ? 'Saving...' : 'Save Changes'}
                   </button>
                 </div>
+              </div>
+            )}
+            
+            <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-600">
+                <strong>Tip:</strong> Drag and drop images to reorder them. The first image will be used as the featured image on the website.
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {images.map((image, index) => (
+                <div
+                  key={image.id}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, index)}
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, index)}
+                  className={`relative group rounded-lg overflow-hidden border-2 cursor-move transition-all ${
+                    image.is_featured ? 'border-yellow-400' : 'border-gray-200'
+                  } ${draggedIndex === index ? 'opacity-50 scale-95' : 'hover:scale-105'}`}
+                >
+                  <div className="aspect-video">
+                    <img
+                      src={image.image_url}
+                      alt="Apartment"
+                      className="w-full h-full object-cover"
+                      draggable={false}
+                    />
+                  </div>
+                  
+                  {/* Order indicator */}
+                  <div className="absolute top-2 left-2 bg-black bg-opacity-70 text-white px-2 py-1 rounded text-xs font-medium">
+                    #{index + 1}
+                  </div>
+                  
+                  {/* Featured badge */}
+                  {image.is_featured && (
+                    <div className="absolute top-2 right-2 bg-yellow-400 text-yellow-900 px-2 py-1 rounded text-xs font-medium flex items-center gap-1">
+                      <Star className="w-3 h-3" />
+                      Featured
+                    </div>
+                  )}
 
-                {/* Sort handle */}
-                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className="bg-white bg-opacity-80 p-1 rounded cursor-move">
-                    <GripVertical className="w-4 h-4 text-gray-600" />
+                  {/* Action buttons */}
+                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+                    {!image.is_featured && (
+                      <button
+                        onClick={() => handleSetFeatured(image.id)}
+                        className="bg-yellow-500 text-white p-2 rounded-full hover:bg-yellow-600 transition-colors"
+                        title="Set as featured"
+                      >
+                        <Star className="w-4 h-4" />
+                      </button>
+                    )}
+                    
+                    <button
+                      onClick={() => handleDeleteImage(image.id)}
+                      className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors"
+                      title="Delete image"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* Drag handle */}
+                  <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="bg-white bg-opacity-90 p-1 rounded cursor-move">
+                      <GripVertical className="w-4 h-4 text-gray-600" />
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </>
         )}
 
-        <div className="mt-6 flex justify-end">
+        <div className="mt-6 flex justify-between items-center">
+          <div className="text-sm text-gray-500">
+            {images.length > 0 && (
+              <span>Drag and drop to reorder • First image is featured</span>
+            )}
+          </div>
           <button
             onClick={onClose}
             className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
