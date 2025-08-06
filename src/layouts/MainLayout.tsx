@@ -170,7 +170,7 @@ const MainLayout: React.FC = () => {
             <div className="mt-12 pt-8 border-t border-[#C5C5B5]/10">
               <div className="mb-6 text-center">
                 <img 
-                  src="https://iili.io/FcjToIp.png" 
+                  src="https://ucarecdn.com/8a70b6b2-1930-403f-b333-8234cda9ac93/BondTextOnly.png" 
                   alt="Bond" 
                   className="h-8 w-auto mx-auto"
                 />
