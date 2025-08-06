@@ -275,6 +275,24 @@
     background: rgba(197, 197, 181, 0.5);
   }
 
+  /* Fix select element highlighting */
+  select {
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+  }
+
+  select:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  select option {
+    background-color: #1E1F1E !important;
+    color: #C5C5B5 !important;
+  }
+
   /* Enhanced animations */
   @keyframes slideInFromBottom {
     0% {
