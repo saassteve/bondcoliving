@@ -108,7 +108,13 @@ const BookingBar: React.FC<BookingBarProps> = ({ onSearch, isSticky = false }) =
               <select
                 value={searchParams.location}
       https://ucarecdn.com/958a4400-0486-4ba2-8e75-484d692d7df9/foundersbond.png          onChange={(e) => handleInputChange('location', e.target.value)}
-                className="w-full text-[#C5C5B5] bg-transparent border-none outline-none text-sm cursor-pointer appearance-none pr-6"
+                className="w-full text-[#C5C5B5] bg-transparent border-none outline-none text-sm cursor-pointer appearance-none pr-6 focus:outline-none focus:ring-0 focus:border-none"
+                style={{ 
+                  WebkitAppearance: 'none',
+                  MozAppearance: 'none',
+                  textShadow: 'none',
+                  boxShadow: 'none'
+                }}
               >
                 {locationOptions.map((option) => (
                   <option key={option.value} value={option.value} className="bg-[#1E1F1E] text-[#C5C5B5]">
