@@ -107,7 +107,7 @@ const BookingBar: React.FC<BookingBarProps> = ({ onSearch, isSticky = false }) =
             <div className="relative">
               <select
                 value={searchParams.location}
-                onChange={(e) => handleInputChange('location', e.target.value)}
+      https://ucarecdn.com/958a4400-0486-4ba2-8e75-484d692d7df9/foundersbond.png          onChange={(e) => handleInputChange('location', e.target.value)}
                 className="w-full text-[#C5C5B5] bg-transparent border-none outline-none text-sm cursor-pointer appearance-none pr-6"
               >
                 {locationOptions.map((option) => (
