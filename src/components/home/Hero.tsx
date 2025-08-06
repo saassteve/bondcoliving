@@ -8,9 +8,9 @@ const Hero: React.FC = () => {
   return (
     <section className="relative h-screen flex items-center pb-20 md:pb-24 lg:pb-24">
       <div className="absolute inset-0 bg-black/60 z-10"></div>
-      <div className="absolute inset-0 bg-[url('https://iili.io/FcOqdX9.png')] bg-cover bg-[center_bottom_20%]">
+      <div className="absolute inset-0 bg-[url('https://ucarecdn.com/958a4400-0486-4ba2-8e75-484d692d7df9/foundersbond.png')] bg-cover bg-[center_bottom_20%]">
         <img 
-          src="https://iili.io/FcOqdX9.png" 
+          src="https://ucarecdn.com/958a4400-0486-4ba2-8e75-484d692d7df9/foundersbond.png" 
           alt="Modern coliving space in central Funchal, Madeira with ocean views and contemporary design"
           className="w-full h-full object-cover opacity-0"
           loading="eager"
