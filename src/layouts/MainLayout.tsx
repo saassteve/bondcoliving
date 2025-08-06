@@ -32,7 +32,7 @@ const MainLayout: React.FC = () => {
             {/* Logo */}
             <Link to="/" className="flex items-center text-2xl font-bold tracking-tight text-[#C5C5B5]" onClick={closeMenu}>
               <img 
-                src="https://iili.io/FcjToIp.png" 
+                src="https://ucarecdn.com/8a70b6b2-1930-403f-b333-8234cda9ac93/BondTextOnly.png" 
                 alt="Bond" 
                 className="h-8 w-auto"
               />
