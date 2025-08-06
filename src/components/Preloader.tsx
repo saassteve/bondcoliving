@@ -45,7 +45,7 @@ const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
         {/* Logo */}
         <div className="mb-8">
           <img 
-            src="https://iili.io/FcjToIp.png" 
+            src="https://ucarecdn.com/8a70b6b2-1930-403f-b333-8234cda9ac93/BondTextOnly.png" 
             alt="Bond" 
             className="h-16 w-auto mx-auto animate-pulse"
           />
