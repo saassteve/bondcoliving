@@ -80,7 +80,7 @@ const Location: React.FC = () => {
           <div className="mb-16">
             <div className="aspect-video bg-[#C5C5B5]/5 rounded-3xl overflow-hidden relative">
               <img 
-                src="https://iili.io/Fceo0du.png"
+                src="https://ucarecdn.com/91ae305f-9593-43fa-91e3-54d21cb31b81/bondmap.png"
                 alt="Funchal cityscape panorama showing mountains, ocean, and central location of Bond coliving space in Madeira"
                 className="w-full h-full object-cover"
                 loading="lazy"
