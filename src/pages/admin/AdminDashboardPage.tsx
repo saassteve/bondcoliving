@@ -133,7 +133,7 @@ const AdminDashboardPage: React.FC = () => {
     },
     { 
       name: 'Active Bookings', 
-      value: stats.confirmedBookings.toString(), 
+      value: stats.confirmedBookings.toString(),
       icon: Calendar, 
       color: 'bg-green-500',
       subtext: `${stats.checkedInBookings} checked in`

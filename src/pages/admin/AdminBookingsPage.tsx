@@ -268,7 +268,11 @@ const AdminBookingsPage: React.FC = () => {
               {allDayItems.map(item => (
                 <div 
                   key={item.id} 
-                  onClick={() => item.type === 'booking' ? setSelectedBooking(item as Booking) : null}
+                  onClick={() => {
+                    if (item.type === 'booking') {
+                      setSelectedBooking(item as Booking);
+                    }
+                  }}
                   className={`text-xs p-1.5 rounded-md truncate border transition-all ${item.type === 'booking' ? 'cursor-pointer hover:shadow-sm hover:scale-105' : ''} ${
                     item.type === 'booking' ? (
                       item.status === 'confirmed' ? 'bg-blue-100 text-blue-900 border-blue-200' :
