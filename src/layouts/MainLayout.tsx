@@ -17,6 +17,7 @@ const MainLayout: React.FC = () => {
     { name: 'Home', path: '/', icon: Home },
     { name: 'About', path: '/about', icon: Book },
     { name: 'Coworking', path: '/coworking', icon: Coffee },
+    { name: 'FAQ', path: '/#faq', icon: Book },
   ];
 
   return (
@@ -151,6 +152,14 @@ const MainLayout: React.FC = () => {
                     >
                       Stay
                     </Link>
+                  </li>
+                  <li>
+                    <a 
+                      href="/#faq" 
+                      className="text-[#C5C5B5]/60 hover:text-[#C5C5B5] transition-colors text-sm uppercase tracking-wide"
+                    >
+                      FAQ
+                    </a>
                   </li>
                 </ul>
               </div>

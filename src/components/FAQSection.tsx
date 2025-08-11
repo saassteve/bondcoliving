@@ -82,7 +82,7 @@ const FAQSection: React.FC = () => {
   };
 
   return (
-    <section className="py-24 bg-[#1E1F1E]">
+    <section id="faq" className="py-24 bg-[#1E1F1E]">
       <div className="container">
         <AnimatedSection animation="fadeInUp">
           <div className="max-w-3xl mx-auto text-center mb-16">

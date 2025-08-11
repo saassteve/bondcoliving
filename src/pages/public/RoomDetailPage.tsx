@@ -371,6 +371,19 @@ const RoomDetailPage: React.FC = () => {
                     <p>
                       Minimum stay is one month, and we offer discounts for longer commitments.
                     </p>
+                    <div className="mt-6 p-4 bg-[#C5C5B5]/10 rounded-xl border border-[#C5C5B5]/20">
+                      <h4 className="text-lg font-bold text-[#C5C5B5] mb-2">Have Questions?</h4>
+                      <p className="text-[#C5C5B5]/80 text-sm mb-3">
+                        Find answers to common questions about what's included, cleaning services, WiFi quality, and more.
+                      </p>
+                      <a 
+                        href="/#faq" 
+                        className="inline-flex items-center text-[#C5C5B5] hover:text-white transition-colors text-sm font-medium"
+                      >
+                        View FAQ
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </a>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -405,6 +418,19 @@ const RoomDetailPage: React.FC = () => {
                   <p>
                     Minimum stay is one month, and we offer discounts for longer commitments.
                   </p>
+                  <div className="mt-6 p-4 bg-[#C5C5B5]/10 rounded-xl border border-[#C5C5B5]/20">
+                    <h4 className="text-lg font-bold text-[#C5C5B5] mb-2">Have Questions?</h4>
+                    <p className="text-[#C5C5B5]/80 text-sm mb-3">
+                      Find answers to common questions about what's included, cleaning services, WiFi quality, and more.
+                    </p>
+                    <a 
+                      href="/#faq" 
+                      className="inline-flex items-center text-[#C5C5B5] hover:text-white transition-colors text-sm font-medium"
+                    >
+                      View FAQ
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </a>
+                  </div>
                 </div>
               </div>
               
