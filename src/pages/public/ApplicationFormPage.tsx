@@ -4,13 +4,15 @@ import { useNavigate } from 'react-router-dom';
 import { Calendar, Mail, Phone, User, Home, MessageSquare, Search, ArrowRight, CheckCircle } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { applicationService, apartmentService, type Apartment } from '../../lib/supabase';
+import { applicationService, apartmentService, availabilityService, type Apartment } from '../../lib/supabase';
 
 const ApplicationFormPage: React.FC = () => {
   const navigate = useNavigate();
   const [apartments, setApartments] = useState<Apartment[]>([]);
+  const [availableApartments, setAvailableApartments] = useState<Apartment[]>([]);
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [checkingAvailability, setCheckingAvailability] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -26,15 +28,59 @@ const ApplicationFormPage: React.FC = () => {
     fetchApartments();
   }, []);
 
+  useEffect(() => {
+    if (formData.arrival_date && formData.departure_date) {
+      checkApartmentAvailability();
+    } else {
+      setAvailableApartments(apartments);
+    }
+  }, [formData.arrival_date, formData.departure_date, apartments]);
   const fetchApartments = async () => {
     try {
       const data = await apartmentService.getAll();
       setApartments(data);
+      setAvailableApartments(data);
     } catch (error) {
       console.error('Error fetching apartments:', error);
     }
   };
 
+  const checkApartmentAvailability = async () => {
+    if (!formData.arrival_date || !formData.departure_date) {
+      setAvailableApartments(apartments);
+      return;
+    }
+
+    setCheckingAvailability(true);
+    try {
+      const available = await Promise.all(
+        apartments.map(async (apartment) => {
+          try {
+            const isAvailable = await availabilityService.checkAvailability(
+              apartment.id,
+              formData.arrival_date,
+              formData.departure_date
+            );
+            return { apartment, isAvailable };
+          } catch (error) {
+            console.error(`Error checking availability for ${apartment.title}:`, error);
+            return { apartment, isAvailable: true }; // Default to available if check fails
+          }
+        })
+      );
+
+      const availableApts = available
+        .filter(({ isAvailable }) => isAvailable)
+        .map(({ apartment }) => apartment);
+
+      setAvailableApartments(availableApts);
+    } catch (error) {
+      console.error('Error checking apartment availability:', error);
+      setAvailableApartments(apartments); // Fallback to all apartments
+    } finally {
+      setCheckingAvailability(false);
+    }
+  };
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
@@ -122,6 +168,7 @@ const ApplicationFormPage: React.FC = () => {
         const minDeparture = new Date(date.getTime() + (30 * 24 * 60 * 60 * 1000)); // 30 days in milliseconds
         if (departureDate < minDeparture) {
           handleInputChange('departure_date', '');
+          handleInputChange('apartment_preference', ''); // Clear apartment preference when dates change
         }
       }
     }
@@ -130,6 +177,10 @@ const ApplicationFormPage: React.FC = () => {
   const handleDepartureDateChange = (date: Date | null) => {
     if (date) {
       handleInputChange('departure_date', formatDateForInput(date));
+      // Clear apartment preference when departure date changes
+      if (formData.apartment_preference) {
+        handleInputChange('apartment_preference', '');
+      }
     }
   };
 
@@ -320,30 +371,20 @@ const ApplicationFormPage: React.FC = () => {
                         <label htmlFor="arrival_date" className="block text-sm uppercase tracking-wide mb-3 text-[#C5C5B5]/80">
                           Arrival Date *
                         </label>
-                        <div 
-                          className={`relative cursor-pointer ${
-                            errors.arrival_date ? 'border-red-500/50' : 'border-[#C5C5B5]/20 focus-within:border-[#C5C5B5]'
-                          } border-2 rounded-2xl bg-[#C5C5B5]/5 transition-all`}
-                        >
+                        <div className="relative">
                           <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#C5C5B5]/60 pointer-events-none" />
                           <DatePicker
-                            id="arrival_date"
                             selected={formData.arrival_date ? new Date(formData.arrival_date) : null}
                             onChange={handleArrivalDateChange}
                             minDate={new Date()}
                             placeholderText="Select arrival date"
-                            className="w-full pl-12 pr-4 py-4 bg-transparent text-[#C5C5B5] placeholder-[#C5C5B5]/40 focus:outline-none cursor-pointer"
+                            className={`w-full pl-12 pr-4 py-4 bg-[#C5C5B5]/5 border-2 rounded-2xl text-[#C5C5B5] placeholder-[#C5C5B5]/40 focus:outline-none transition-all cursor-pointer ${
+                              errors.arrival_date ? 'border-red-500/50' : 'border-[#C5C5B5]/20 focus:border-[#C5C5B5]'
+                            }`}
                             calendarClassName="custom-datepicker"
                             popperClassName="custom-datepicker-popper"
                             dateFormat="MMMM dd, yyyy"
                             required
-                          />
-                          <div 
-                            className="absolute inset-0 cursor-pointer"
-                            onClick={() => {
-                              const input = document.querySelector('#arrival_date input') as HTMLInputElement;
-                              if (input) input.click();
-                            }}
                           />
                         </div>
                         {errors.arrival_date && <p className="mt-2 text-sm text-red-400">{errors.arrival_date}</p>}
@@ -353,35 +394,21 @@ const ApplicationFormPage: React.FC = () => {
                         <label htmlFor="departure_date" className="block text-sm uppercase tracking-wide mb-3 text-[#C5C5B5]/80">
                           Departure Date *
                         </label>
-                        <div 
-                          className={`relative cursor-pointer ${
-                            errors.departure_date ? 'border-red-500/50' : 'border-[#C5C5B5]/20 focus-within:border-[#C5C5B5]'
-                          } border-2 rounded-2xl bg-[#C5C5B5]/5 transition-all ${
-                            !formData.arrival_date ? 'opacity-50 cursor-not-allowed' : ''
-                          }`}
-                        >
+                        <div className="relative">
                           <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#C5C5B5]/60 pointer-events-none" />
                           <DatePicker
-                            id="departure_date"
                             selected={formData.departure_date ? new Date(formData.departure_date) : null}
                             onChange={handleDepartureDateChange}
                             minDate={getMinDepartureDate()}
                             placeholderText={formData.arrival_date ? "Select departure date" : "Select arrival date first"}
-                            className="w-full pl-12 pr-4 py-4 bg-transparent text-[#C5C5B5] placeholder-[#C5C5B5]/40 focus:outline-none cursor-pointer"
+                            className={`w-full pl-12 pr-4 py-4 bg-[#C5C5B5]/5 border-2 rounded-2xl text-[#C5C5B5] placeholder-[#C5C5B5]/40 focus:outline-none transition-all cursor-pointer ${
+                              errors.departure_date ? 'border-red-500/50' : 'border-[#C5C5B5]/20 focus:border-[#C5C5B5]'
+                            } ${!formData.arrival_date ? 'opacity-50 cursor-not-allowed' : ''}`}
                             calendarClassName="custom-datepicker"
                             popperClassName="custom-datepicker-popper"
                             dateFormat="MMMM dd, yyyy"
                             disabled={!formData.arrival_date}
                             required
-                          />
-                          <div 
-                            className="absolute inset-0 cursor-pointer"
-                            onClick={() => {
-                              if (formData.arrival_date) {
-                                const input = document.querySelector('#departure_date input') as HTMLInputElement;
-                                if (input) input.click();
-                              }
-                            }}
                           />
                         </div>
                         {errors.departure_date && <p className="mt-2 text-sm text-red-400">{errors.departure_date}</p>}
@@ -395,7 +422,7 @@ const ApplicationFormPage: React.FC = () => {
 
                     <div className="relative group">
                       <label htmlFor="apartment_preference" className="block text-sm uppercase tracking-wide mb-3 text-[#C5C5B5]/80">
-                        Apartment Preference
+                        Apartment Preference {checkingAvailability && <span className="text-xs">(Checking availability...)</span>}
                       </label>
                       <div className="relative">
                         <Home className="absolute left-4 top-4 w-5 h-5 text-[#C5C5B5]/60" />
@@ -403,16 +430,41 @@ const ApplicationFormPage: React.FC = () => {
                           id="apartment_preference"
                           value={formData.apartment_preference}
                           onChange={(e) => handleInputChange('apartment_preference', e.target.value)}
-                          className="w-full pl-12 pr-4 py-4 bg-[#C5C5B5]/5 border-2 border-[#C5C5B5]/20 rounded-2xl text-[#C5C5B5] focus:outline-none focus:border-[#C5C5B5] transition-all appearance-none cursor-pointer"
+                          className={`w-full pl-12 pr-4 py-4 bg-[#C5C5B5]/5 border-2 border-[#C5C5B5]/20 rounded-2xl text-[#C5C5B5] focus:outline-none focus:border-[#C5C5B5] transition-all appearance-none cursor-pointer ${
+                            checkingAvailability ? 'opacity-50' : ''
+                          }`}
+                          disabled={checkingAvailability}
                         >
                           <option value="" className="bg-[#1E1F1E] text-[#C5C5B5]">No preference</option>
-                          {apartments.map((apartment) => (
+                          {availableApartments.map((apartment) => (
                             <option key={apartment.id} value={apartment.title} className="bg-[#1E1F1E] text-[#C5C5B5]">
                               {apartment.title} - €{apartment.price}/month
                             </option>
                           ))}
+                          {formData.arrival_date && formData.departure_date && availableApartments.length === 0 && (
+                            <option value="" className="bg-[#1E1F1E] text-red-400" disabled>
+                              No apartments available for selected dates
+                            </option>
+                          )}
                         </select>
                       </div>
+                      {formData.arrival_date && formData.departure_date && (
+                        <div className="mt-3 text-sm">
+                          {availableApartments.length > 0 ? (
+                            <p className="text-green-400">
+                              ✓ {availableApartments.length} apartment{availableApartments.length !== 1 ? 's' : ''} available for your dates
+                            </p>
+                          ) : checkingAvailability ? (
+                            <p className="text-[#C5C5B5]/60">
+                              Checking availability...
+                            </p>
+                          ) : (
+                            <p className="text-red-400">
+                              ✗ No apartments available for selected dates. Please try different dates.
+                            </p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
