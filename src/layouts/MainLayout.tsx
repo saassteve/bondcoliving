@@ -17,8 +17,24 @@ const MainLayout: React.FC = () => {
     { name: 'Home', path: '/', icon: Home },
     { name: 'About', path: '/about', icon: Book },
     { name: 'Coworking', path: '/coworking', icon: Coffee },
-    { name: 'FAQ', path: '/#faq', icon: Book },
   ];
+
+  const handleFAQClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    
+    // If we're not on the home page, navigate there first
+    if (location.pathname !== '/') {
+      window.location.href = '/#faq';
+      return;
+    }
+    
+    // If we're on the home page, scroll to FAQ section
+    const faqSection = document.getElementById('faq');
+    if (faqSection) {
+      faqSection.scrollIntoView({ behavior: 'smooth' });
+    }
+    closeMenu();
+  };
 
   return (
     <>
@@ -58,6 +74,13 @@ const MainLayout: React.FC = () => {
                   </Link>
                 );
               })}
+              <button
+                onClick={handleFAQClick}
+                className="flex items-center text-sm uppercase tracking-wide transition duration-150 ease-in-out text-[#C5C5B5]/60 hover:text-[#C5C5B5]"
+              >
+                <Book className="w-4 h-4 mr-2" />
+                FAQ
+              </button>
               <div className="flex items-center space-x-4">
                 <Link
                   to="/apply"
@@ -101,6 +124,13 @@ const MainLayout: React.FC = () => {
                     </Link>
                   );
                 })}
+                <button
+                  onClick={handleFAQClick}
+                  className="flex items-center py-2 text-sm uppercase tracking-wide text-[#C5C5B5]/60 hover:text-[#C5C5B5]"
+                >
+                  <Book className="w-5 h-5 mr-3" />
+                  FAQ
+                </button>
                 <Link
                   to="/apply"
                   className="flex items-center py-3 px-4 text-sm uppercase tracking-wide bg-gradient-to-r from-[#C5C5B5] to-white text-[#1E1F1E] rounded-full font-semibold mt-4 justify-center hover:from-white hover:to-[#C5C5B5] transition-all duration-300"
@@ -146,20 +176,20 @@ const MainLayout: React.FC = () => {
                     </li>
                   ))}
                   <li>
+                    <button 
+                      onClick={handleFAQClick}
+                      className="text-[#C5C5B5]/60 hover:text-[#C5C5B5] transition-colors text-sm uppercase tracking-wide"
+                    >
+                      FAQ
+                    </button>
+                  </li>
+                  <li>
                     <Link 
                       to="/apply" 
                       className="text-[#C5C5B5]/60 hover:text-[#C5C5B5] transition-colors text-sm uppercase tracking-wide"
                     >
                       Stay
                     </Link>
-                  </li>
-                  <li>
-                    <a 
-                      href="/#faq" 
-                      className="text-[#C5C5B5]/60 hover:text-[#C5C5B5] transition-colors text-sm uppercase tracking-wide"
-                    >
-                      FAQ
-                    </a>
                   </li>
                 </ul>
               </div>
