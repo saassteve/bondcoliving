@@ -132,12 +132,6 @@ const ApplicationFormPage: React.FC = () => {
         if (!formData.departure_date) newErrors.departure_date = 'Departure date is required';
         if (dateError) newErrors.departure_date = dateError;
         break;
-      case 3:
-        if (!formData.about.trim()) newErrors.about = 'Please tell us about yourself';
-        if (formData.about.trim().length < 50) {
-          newErrors.about = 'Please provide at least 50 characters';
-        }
-        break;
     }
     
     setErrors(newErrors);
@@ -179,7 +173,7 @@ const ApplicationFormPage: React.FC = () => {
         arrival_date: formData.arrival_date,
         departure_date: formData.departure_date,
         apartment_preference: formData.apartment_preference?.trim() || null,
-        about: formData.about.trim(),
+        about: 'Application submitted via website form',
         heard_from: formData.heard_from?.trim() || null
       };
       
