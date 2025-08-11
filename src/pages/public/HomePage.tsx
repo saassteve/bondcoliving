@@ -10,6 +10,7 @@ import WhoItsFor from '../../components/home/WhoItsFor';
 import Location from '../../components/home/Location';
 import CommunityEvents from '../../components/home/CommunityEvents';
 import FinalCTA from '../../components/home/FinalCTA';
+import FAQSection from '../../components/FAQSection';
 
 const HomePage: React.FC = () => {
   return (
@@ -44,6 +45,7 @@ const HomePage: React.FC = () => {
       <Reviews />
       <WhoItsFor />
       <Location />
+      <FAQSection />
       <FinalCTA />
     </>
   );

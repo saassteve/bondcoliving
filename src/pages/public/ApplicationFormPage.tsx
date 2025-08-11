@@ -324,10 +324,6 @@ const ApplicationFormPage: React.FC = () => {
                           className={`relative cursor-pointer ${
                             errors.arrival_date ? 'border-red-500/50' : 'border-[#C5C5B5]/20 focus-within:border-[#C5C5B5]'
                           } border-2 rounded-2xl bg-[#C5C5B5]/5 transition-all`}
-                          onClick={() => {
-                            const input = document.querySelector('#arrival_date input') as HTMLInputElement;
-                            if (input) input.focus();
-                          }}
                         >
                           <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#C5C5B5]/60 pointer-events-none" />
                           <DatePicker
@@ -341,6 +337,13 @@ const ApplicationFormPage: React.FC = () => {
                             popperClassName="custom-datepicker-popper"
                             dateFormat="MMMM dd, yyyy"
                             required
+                          />
+                          <div 
+                            className="absolute inset-0 cursor-pointer"
+                            onClick={() => {
+                              const input = document.querySelector('#arrival_date input') as HTMLInputElement;
+                              if (input) input.click();
+                            }}
                           />
                         </div>
                         {errors.arrival_date && <p className="mt-2 text-sm text-red-400">{errors.arrival_date}</p>}
@@ -356,12 +359,6 @@ const ApplicationFormPage: React.FC = () => {
                           } border-2 rounded-2xl bg-[#C5C5B5]/5 transition-all ${
                             !formData.arrival_date ? 'opacity-50 cursor-not-allowed' : ''
                           }`}
-                          onClick={() => {
-                            if (formData.arrival_date) {
-                              const input = document.querySelector('#departure_date input') as HTMLInputElement;
-                              if (input) input.focus();
-                            }
-                          }}
                         >
                           <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#C5C5B5]/60 pointer-events-none" />
                           <DatePicker
@@ -376,6 +373,15 @@ const ApplicationFormPage: React.FC = () => {
                             dateFormat="MMMM dd, yyyy"
                             disabled={!formData.arrival_date}
                             required
+                          />
+                          <div 
+                            className="absolute inset-0 cursor-pointer"
+                            onClick={() => {
+                              if (formData.arrival_date) {
+                                const input = document.querySelector('#departure_date input') as HTMLInputElement;
+                                if (input) input.click();
+                              }
+                            }}
                           />
                         </div>
                         {errors.departure_date && <p className="mt-2 text-sm text-red-400">{errors.departure_date}</p>}
