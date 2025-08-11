@@ -459,7 +459,7 @@ const ApplicationFormPage: React.FC = () => {
           <label htmlFor="arrival_date" className="block text-sm uppercase tracking-wide mb-3 text-[#C5C5B5]/80">
             Planned Arrival *
           </label>
-          <div className="relative">
+          <div className="relative cursor-pointer" onClick={() => document.getElementById('arrival_date')?.focus()}>
             <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#C5C5B5]/40 group-focus-within:text-[#C5C5B5] transition-colors" />
             <input
               type="date"
@@ -481,7 +481,7 @@ const ApplicationFormPage: React.FC = () => {
           <label htmlFor="departure_date" className="block text-sm uppercase tracking-wide mb-3 text-[#C5C5B5]/80">
             Planned Departure *
           </label>
-          <div className="relative">
+          <div className="relative cursor-pointer" onClick={() => document.getElementById('departure_date')?.focus()}>
             <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#C5C5B5]/40 group-focus-within:text-[#C5C5B5] transition-colors" />
             <input
               type="date"
@@ -533,12 +533,12 @@ const ApplicationFormPage: React.FC = () => {
             className={`w-full pl-12 pr-4 py-4 bg-[#1E1F1E]/50 border-2 rounded-2xl text-[#C5C5B5] placeholder-[#C5C5B5]/40 focus:outline-none focus:border-[#C5C5B5] transition-all resize-none ${
               errors.about ? 'border-red-500' : 'border-[#C5C5B5]/20'
             }`}
-          ></textarea>
+                Reserve Your Place
         </div>
         <div className="flex justify-between items-center mt-2">
           {errors.about && <p className="text-red-400 text-sm">{errors.about}</p>}
           <p className="text-[#C5C5B5]/40 text-sm ml-auto">
-            {formData.about.length}/500 characters
+            Ready to secure your spot? We'll confirm your booking within 48 hours.
           </p>
         </div>
       </div>
@@ -577,7 +577,7 @@ const ApplicationFormPage: React.FC = () => {
               </h1>
             </div>
             <p className="text-xl text-[#C5C5B5]">
-              Ready to be part of something different? We'll get back to you within 48 hours.
+              Book Your Stay
             </p>
           </div>
         </div>
@@ -625,11 +625,11 @@ const ApplicationFormPage: React.FC = () => {
                     {isSubmitting ? (
                       <>
                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[#1E1F1E]"></div>
-                        Submitting...
+                        Booking...
                       </>
                     ) : (
                       <>
-                        Submit Application
+                        Complete Booking
                         <ArrowRight className="w-5 h-5" />
                       </>
                     )}
@@ -640,7 +640,7 @@ const ApplicationFormPage: React.FC = () => {
             
             <div className="text-center mt-12">
               <p className="text-[#C5C5B5]/60 text-sm">
-                We'll review your application and get back to you within 48 hours.
+                We'll confirm your booking and get back to you within 48 hours.
               </p>
             </div>
           </div>
