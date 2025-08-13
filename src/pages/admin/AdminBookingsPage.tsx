@@ -6,6 +6,7 @@ import BookingForm from '../../components/admin/BookingForm';
 
 const AdminBookingsPage: React.FC = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [calendarBookings, setCalendarBookings] = useState<Booking[]>([]);
   const [availability, setAvailability] = useState<Record<string, any[]>>({});
   const [apartments, setApartments] = useState<Apartment[]>([]);
   const [currentView, setCurrentView] = useState<'list' | 'calendar'>('calendar');
@@ -29,9 +30,7 @@ const AdminBookingsPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (currentView === 'calendar') {
-      fetchBookingsForMonth();
-    }
+    fetchCalendarData();
   }, [currentMonth, currentView]);
 
   // Update stats whenever bookings change
@@ -48,6 +47,7 @@ const AdminBookingsPage: React.FC = () => {
       cancelled: bookings.filter(b => b.status === 'cancelled').length,
     });
   };
+
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -65,13 +65,15 @@ const AdminBookingsPage: React.FC = () => {
     }
   };
 
-  const fetchBookingsForMonth = async () => {
+  const fetchCalendarData = async () => {
+    if (currentView !== 'calendar') return;
+    
     try {
       const { bookings: monthBookings, availability: monthAvailability } = await bookingService.getBookingsWithAvailability(
         currentMonth.getFullYear(),
         currentMonth.getMonth()
       );
-      setBookings(monthBookings);
+      setCalendarBookings(monthBookings);
       setAvailability(monthAvailability);
     } catch (error) {
       console.error('Error fetching month bookings:', error);
@@ -89,9 +91,7 @@ const AdminBookingsPage: React.FC = () => {
       
       resetForm();
       await fetchData();
-      if (currentView === 'calendar') {
-        await fetchBookingsForMonth();
-      }
+      await fetchCalendarData();
     } catch (error) {
       console.error('Error saving booking:', error);
       throw error;
@@ -111,9 +111,7 @@ const AdminBookingsPage: React.FC = () => {
     try {
       await bookingService.delete(id);
       await fetchData();
-      if (currentView === 'calendar') {
-        await fetchBookingsForMonth();
-      }
+      await fetchCalendarData();
     } catch (error) {
       console.error('Error deleting booking:', error);
       alert('Failed to delete booking');
@@ -216,7 +214,7 @@ const AdminBookingsPage: React.FC = () => {
       const isPast = date < today && !isToday;
       
       // Find bookings for this day
-      const dayBookings = bookings.filter(booking => {
+      const dayBookings = calendarBookings.filter(booking => {
         const checkIn = new Date(booking.check_in_date);
         const checkOut = new Date(booking.check_out_date);
         return date >= checkIn && date < checkOut;
