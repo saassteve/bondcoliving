@@ -168,7 +168,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
                 name="guest_name"
                 value={formData.guest_name}
                 onChange={handleChange}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900 ${
                   errors.guest_name ? 'border-red-300' : 'border-gray-300'
                 }`}
                 required
@@ -186,7 +186,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
                 name="guest_email"
                 value={formData.guest_email}
                 onChange={handleChange}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900 ${
                   errors.guest_email ? 'border-red-300' : 'border-gray-300'
                 }`}
               />
@@ -203,7 +203,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
                 name="guest_phone"
                 value={formData.guest_phone}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900"
               />
             </div>
 
@@ -217,7 +217,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
                 value={formData.guest_count}
                 onChange={handleChange}
                 min="1"
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900 ${
                   errors.guest_count ? 'border-red-300' : 'border-gray-300'
                 }`}
                 required
@@ -238,7 +238,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
                 name="check_in_date"
                 value={formData.check_in_date}
                 onChange={handleChange}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900 ${
                   errors.check_in_date ? 'border-red-300' : 'border-gray-300'
                 }`}
                 required
@@ -257,7 +257,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
                 value={formData.check_out_date}
                 onChange={handleChange}
                 min={formData.check_in_date}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900 ${
                   errors.check_out_date ? 'border-red-300' : 'border-gray-300'
                 }`}
                 required
@@ -276,7 +276,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
                 name="booking_source"
                 value={formData.booking_source}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900"
               >
                 <option value="direct">Direct</option>
                 <option value="airbnb">Airbnb</option>
@@ -296,7 +296,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
                 value={formData.booking_reference}
                 onChange={handleChange}
                 placeholder="e.g., AB123456789"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900"
               />
             </div>
 
@@ -311,7 +311,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
                 value={formData.door_code}
                 onChange={handleChange}
                 placeholder="e.g., 1234"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900"
               />
             </div>
 
@@ -328,7 +328,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
                 step="0.01"
                 min="0"
                 placeholder="0.00"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900"
               />
             </div>
           </div>
@@ -342,7 +342,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
               name="status"
               value={formData.status}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900"
             >
               <option value="confirmed">Confirmed</option>
               <option value="checked_in">Checked In</option>
@@ -363,7 +363,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
               onChange={handleChange}
               rows={3}
               placeholder="Any special requests or notes..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900"
             />
           </div>
 

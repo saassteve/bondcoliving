@@ -695,6 +695,9 @@ export interface Booking {
   status: 'confirmed' | 'checked_in' | 'checked_out' | 'cancelled'
   created_at?: string
   updated_at?: string
+  apartment?: {
+    title: string
+  }
 }
 
 export class BookingService {

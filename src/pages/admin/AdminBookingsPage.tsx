@@ -186,9 +186,10 @@ const AdminBookingsPage: React.FC = () => {
     window.URL.revokeObjectURL(url);
   };
 
-  const filteredBookings = filter === 'all' 
+  const filteredBookings = (filter === 'all' 
     ? bookings 
-    : bookings.filter(booking => booking.status === filter);
+    : bookings.filter(booking => booking.status === filter))
+    .sort((a, b) => new Date(a.check_in_date).getTime() - new Date(b.check_in_date).getTime());
 
   // Calendar rendering functions
   const renderCalendar = () => {
