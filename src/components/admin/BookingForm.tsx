@@ -141,7 +141,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
               name="apartment_id"
               value={formData.apartment_id}
               onChange={handleChange}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900 ${
                 errors.apartment_id ? 'border-red-300' : 'border-gray-300'
               }`}
               required
