@@ -9,7 +9,7 @@ const AdminBookingsPage: React.FC = () => {
   const [calendarBookings, setCalendarBookings] = useState<Booking[]>([]);
   const [availability, setAvailability] = useState<Record<string, any[]>>({});
   const [apartments, setApartments] = useState<Apartment[]>([]);
-  const [currentView, setCurrentView] = useState<'list' | 'calendar'>('calendar');
+  const [currentView, setCurrentView] = useState<'list' | 'calendar' | 'timeline'>('timeline');
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -330,8 +330,18 @@ const AdminBookingsPage: React.FC = () => {
           <div className="mt-4 sm:mt-0 flex items-center space-x-3">
             <div className="flex items-center">
               <button
-                onClick={() => setCurrentView('calendar')}
+                onClick={() => setCurrentView('timeline')}
                 className={`px-3 py-1 rounded-l-md ${
+                  currentView === 'timeline' 
+                    ? 'bg-indigo-600 text-white' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                Timeline
+              </button>
+              <button
+                onClick={() => setCurrentView('calendar')}
+                className={`px-3 py-1 ${
                   currentView === 'calendar' 
                     ? 'bg-indigo-600 text-white' 
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -419,7 +429,185 @@ const AdminBookingsPage: React.FC = () => {
             </div>
           </div>
         </div>
-        {currentView === 'calendar' ? (
+        {currentView === 'timeline' ? (
+          /* Timeline View */
+          <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200">
+            <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+              <button onClick={previousMonth} className="p-1 rounded hover:bg-gray-100">
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              
+              <h2 className="text-lg font-semibold">
+                {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+              </h2>
+              
+              <button onClick={nextMonth} className="p-1 rounded hover:bg-gray-100">
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
+            
+            {/* Timeline Header - Days of Month */}
+            <div className="border-b border-gray-200 bg-gray-50">
+              <div className="flex">
+                <div className="w-48 p-3 border-r border-gray-200 text-sm font-medium text-gray-700">
+                  Apartments
+                </div>
+                <div className="flex-1 overflow-x-auto">
+                  <div className="flex min-w-max">
+                    {Array.from({ length: new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate() }, (_, i) => {
+                      const day = i + 1;
+                      const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+                      const isToday = date.toDateString() === new Date().toDateString();
+                      
+                      return (
+                        <div 
+                          key={day} 
+                          className={`w-12 p-2 text-center text-xs font-medium border-r border-gray-200 ${
+                            isToday ? 'bg-blue-100 text-blue-800' : 'text-gray-600'
+                          }`}
+                        >
+                          <div className="font-semibold">{day}</div>
+                          <div className="text-xs opacity-75">
+                            {date.toLocaleDateString('en-US', { weekday: 'short' }).charAt(0)}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Timeline Body - Apartments and Bookings */}
+            <div className="max-h-96 overflow-y-auto">
+              {apartments.map((apartment) => {
+                const apartmentBookings = calendarBookings.filter(booking => booking.apartment_id === apartment.id);
+                
+                return (
+                  <div key={apartment.id} className="border-b border-gray-100 hover:bg-gray-50">
+                    <div className="flex">
+                      <div className="w-48 p-4 border-r border-gray-200">
+                        <div className="text-sm font-medium text-gray-900 truncate" title={apartment.title}>
+                          {apartment.title}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          €{apartment.price}/month
+                        </div>
+                      </div>
+                      <div className="flex-1 relative overflow-x-auto">
+                        <div className="flex min-w-max relative h-16">
+                          {/* Day columns */}
+                          {Array.from({ length: new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate() }, (_, i) => {
+                            const day = i + 1;
+                            const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+                            const isToday = date.toDateString() === new Date().toDateString();
+                            
+                            return (
+                              <div 
+                                key={day} 
+                                className={`w-12 border-r border-gray-200 h-full ${
+                                  isToday ? 'bg-blue-50' : ''
+                                }`}
+                              />
+                            );
+                          })}
+                          
+                          {/* Booking bars */}
+                          {apartmentBookings.map((booking) => {
+                            const checkIn = new Date(booking.check_in_date);
+                            const checkOut = new Date(booking.check_out_date);
+                            const monthStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+                            const monthEnd = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+                            
+                            // Calculate position and width
+                            const startDay = Math.max(1, checkIn.getDate());
+                            const endDay = Math.min(monthEnd.getDate(), checkOut.getDate());
+                            
+                            // Only show if booking overlaps with current month
+                            if (checkOut < monthStart || checkIn > monthEnd) return null;
+                            
+                            const left = (startDay - 1) * 48; // 48px per day (w-12)
+                            const width = (endDay - startDay + 1) * 48;
+                            
+                            const getBookingColor = (status: string) => {
+                              switch (status) {
+                                case 'confirmed':
+                                  return 'bg-blue-500 hover:bg-blue-600';
+                                case 'checked_in':
+                                  return 'bg-green-500 hover:bg-green-600';
+                                case 'checked_out':
+                                  return 'bg-gray-500 hover:bg-gray-600';
+                                case 'cancelled':
+                                  return 'bg-red-500 hover:bg-red-600';
+                                default:
+                                  return 'bg-blue-500 hover:bg-blue-600';
+                              }
+                            };
+                            
+                            return (
+                              <div
+                                key={booking.id}
+                                onClick={() => setSelectedBooking(booking)}
+                                className={`absolute top-2 h-12 rounded-md cursor-pointer transition-all ${getBookingColor(booking.status)} text-white text-xs font-medium flex items-center px-2 shadow-sm hover:shadow-md hover:scale-105 z-10`}
+                                style={{
+                                  left: `${left}px`,
+                                  width: `${Math.max(width, 48)}px` // Minimum width of one day
+                                }}
+                                title={`${booking.guest_name} - ${formatDate(booking.check_in_date)} to ${formatDate(booking.check_out_date)}`}
+                              >
+                                <div className="truncate">
+                                  <div className="font-medium">{booking.guest_name}</div>
+                                  {width > 96 && ( // Only show dates if bar is wide enough
+                                    <div className="text-xs opacity-90">
+                                      {checkIn.getDate()}/{checkIn.getMonth() + 1} - {checkOut.getDate()}/{checkOut.getMonth() + 1}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+              
+              {apartments.length === 0 && (
+                <div className="p-8 text-center text-gray-500">
+                  <Building className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                  <p>No apartments configured</p>
+                </div>
+              )}
+            </div>
+            
+            {/* Timeline Legend */}
+            <div className="p-4 border-t border-gray-200 bg-gray-50">
+              <div className="flex flex-wrap gap-4 text-xs">
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 bg-blue-500 rounded"></div>
+                  <span>Confirmed</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 bg-green-500 rounded"></div>
+                  <span>Checked In</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 bg-gray-500 rounded"></div>
+                  <span>Checked Out</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 bg-red-500 rounded"></div>
+                  <span>Cancelled</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 bg-blue-100 border border-blue-400 rounded"></div>
+                  <span>Today</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : currentView === 'calendar' ? (
           /* Calendar View */
           <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200">
             <div className="p-4 border-b border-gray-200 flex items-center justify-between">
