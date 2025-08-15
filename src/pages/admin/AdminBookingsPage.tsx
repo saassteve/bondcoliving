@@ -481,7 +481,16 @@ const AdminBookingsPage: React.FC = () => {
             {/* Timeline Body - Apartments and Bookings */}
             <div className="max-h-96 overflow-y-auto">
               {apartments.map((apartment) => {
-                const apartmentBookings = calendarBookings.filter(booking => booking.apartment_id === apartment.id);
+                const apartmentBookings = bookings.filter(booking => {
+                  const checkIn = new Date(booking.check_in_date);
+                  const checkOut = new Date(booking.check_out_date);
+                  const monthStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+                  const monthEnd = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+                  
+                  return booking.apartment_id === apartment.id && 
+                         checkOut >= monthStart && 
+                         checkIn <= monthEnd;
+                });
                 
                 return (
                   <div key={apartment.id} className="border-b border-gray-100 hover:bg-gray-50">
@@ -519,12 +528,22 @@ const AdminBookingsPage: React.FC = () => {
                             const monthStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
                             const monthEnd = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
                             
-                            // Calculate position and width
-                            const startDay = Math.max(1, checkIn.getDate());
-                            const endDay = Math.min(monthEnd.getDate(), checkOut.getDate());
+                            // Calculate position and width more accurately
+                            let startDay, endDay;
                             
-                            // Only show if booking overlaps with current month
-                            if (checkOut < monthStart || checkIn > monthEnd) return null;
+                            if (checkIn < monthStart) {
+                              startDay = 1;
+                            } else {
+                              startDay = checkIn.getDate();
+                            }
+                            
+                            if (checkOut > monthEnd) {
+                              endDay = monthEnd.getDate();
+                            } else {
+                              // For check-out date, we want to show until the day before checkout
+                              endDay = checkOut.getDate() - 1;
+                              if (endDay < startDay) endDay = startDay; // Ensure at least one day is shown
+                            }
                             
                             const left = (startDay - 1) * 48; // 48px per day (w-12)
                             const width = (endDay - startDay + 1) * 48;
@@ -557,9 +576,9 @@ const AdminBookingsPage: React.FC = () => {
                               >
                                 <div className="truncate">
                                   <div className="font-medium">{booking.guest_name}</div>
-                                  {width > 96 && ( // Only show dates if bar is wide enough
+                                  {width > 120 && ( // Only show dates if bar is wide enough
                                     <div className="text-xs opacity-90">
-                                      {checkIn.getDate()}/{checkIn.getMonth() + 1} - {checkOut.getDate()}/{checkOut.getMonth() + 1}
+                                      {formatDate(booking.check_in_date).split(',')[0]} - {formatDate(booking.check_out_date).split(',')[0]}
                                     </div>
                                   )}
                                 </div>
@@ -575,7 +594,7 @@ const AdminBookingsPage: React.FC = () => {
               
               {apartments.length === 0 && (
                 <div className="p-8 text-center text-gray-500">
-                  <Building className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                  <Calendar className="w-8 h-8 mx-auto mb-2 text-gray-400" />
                   <p>No apartments configured</p>
                 </div>
               )}
