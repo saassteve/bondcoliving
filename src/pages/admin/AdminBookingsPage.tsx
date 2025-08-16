@@ -448,12 +448,12 @@ const AdminBookingsPage: React.FC = () => {
             
             {/* Timeline Header - Days of Month */}
             <div className="border-b border-gray-200 bg-gray-50">
-              <div className="flex">
+              <div className="flex overflow-x-auto" id="timeline-header">
                 <div className="w-48 p-3 border-r border-gray-200 text-sm font-medium text-gray-700">
                   Apartments
                 </div>
-                <div className="flex-1 overflow-x-auto">
-                  <div className="flex min-w-max">
+                <div className="flex-1">
+                  <div className="flex min-w-max" style={{ minWidth: `${new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate() * 48}px` }}>
                     {Array.from({ length: new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate() }, (_, i) => {
                       const day = i + 1;
                       const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
@@ -479,7 +479,7 @@ const AdminBookingsPage: React.FC = () => {
             </div>
             
             {/* Timeline Body - Apartments and Bookings */}
-            <div className="max-h-96 overflow-y-auto">
+            <div className="max-h-96 overflow-y-auto" id="timeline-body">
               {apartments.map((apartment) => {
                 const apartmentBookings = bookings.filter(booking => {
                   const checkIn = new Date(booking.check_in_date);
@@ -494,7 +494,7 @@ const AdminBookingsPage: React.FC = () => {
                 
                 return (
                   <div key={apartment.id} className="border-b border-gray-100 hover:bg-gray-50">
-                    <div className="flex">
+                    <div className="flex overflow-hidden">
                       <div className="w-48 p-4 border-r border-gray-200">
                         <div className="text-sm font-medium text-gray-900 truncate" title={apartment.title}>
                           {apartment.title}
@@ -503,8 +503,8 @@ const AdminBookingsPage: React.FC = () => {
                           €{apartment.price}/month
                         </div>
                       </div>
-                      <div className="flex-1 relative overflow-x-auto">
-                        <div className="flex min-w-max relative h-16">
+                      <div className="flex-1 relative">
+                        <div className="flex min-w-max relative h-16" style={{ minWidth: `${new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate() * 48}px` }}>
                           {/* Day columns */}
                           {Array.from({ length: new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate() }, (_, i) => {
                             const day = i + 1;
@@ -930,6 +930,31 @@ const AdminBookingsPage: React.FC = () => {
       </div>
     </>
   );
+
+  // Add scroll synchronization effect
+  useEffect(() => {
+    const header = document.getElementById('timeline-header');
+    const body = document.getElementById('timeline-body');
+    
+    if (!header || !body) return;
+    
+    const syncScroll = (source: HTMLElement, target: HTMLElement) => {
+      return () => {
+        target.scrollLeft = source.scrollLeft;
+      };
+    };
+    
+    const headerScrollHandler = syncScroll(header, body);
+    const bodyScrollHandler = syncScroll(body, header);
+    
+    header.addEventListener('scroll', headerScrollHandler);
+    body.addEventListener('scroll', bodyScrollHandler);
+    
+    return () => {
+      header.removeEventListener('scroll', headerScrollHandler);
+      body.removeEventListener('scroll', bodyScrollHandler);
+    };
+  }, [currentView, apartments]);
 };
 
 export default AdminBookingsPage;
