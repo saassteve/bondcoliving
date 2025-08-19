@@ -291,109 +291,21 @@ const AdminBookingsPage: React.FC = () => {
         </div>
 
         {currentView === 'timeline' ? (
-          /* Timeline View - Improved */
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200">
-            {/* Timeline Controls */}
-            <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
-              <div className="flex items-center space-x-2">
-                <button onClick={previousTimelinePeriod} className="p-2 rounded hover:bg-gray-200 transition-colors">
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
-                <button onClick={nextTimelinePeriod} className="p-2 rounded hover:bg-gray-200 transition-colors">
-                  <ChevronRight className="w-5 h-5" />
-                </button>
-              </div>
-              
-              <div className="flex items-center space-x-3">
-                <span className="text-sm font-medium text-gray-700">
-                  {timelineStartDate.toLocaleDateString('en-US', { 
-                    month: 'short', 
-                    day: 'numeric',
-                    year: 'numeric'
-                  })} - {new Date(timelineStartDate.getTime() + (timelineDays - 1) * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { 
-                    month: 'short', 
-                    day: 'numeric',
-                    year: 'numeric'
-                  })}
-                </span>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <button 
-                  onClick={goToToday}
-                  className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
-                >
-                  Today
-                </button>
-                <button 
-                  onClick={goToNextBooking}
-                  className="px-3 py-1 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors"
-                >
-                  Next Booking
-                </button>
-                <select
-                  value={timelineDays}
-                  onChange={(e) => setTimelineDays(parseInt(e.target.value))}
-                  className="px-2 py-1 text-sm border border-gray-300 rounded"
-                >
-                  <option value={14}>14 days</option>
-                  <option value={30}>30 days</option>
-                  <option value={60}>60 days</option>
-                  <option value={90}>90 days</option>
-                </select>
-              </div>
-            </div>
-            
-            {/* Timeline Header - Dates */}
-            <div className="border-b border-gray-200 bg-gray-50 overflow-hidden">
-              <div className="flex">
-                <div className="w-48 p-3 border-r border-gray-200 text-sm font-medium text-gray-700 bg-white sticky left-0 z-20">
-                  Apartments
-                </div>
-                <div className="flex-1 overflow-x-auto" id="timeline-header">
-                  <div className="flex min-w-max" style={{ minWidth: `${timelineDays * 48}px` }}>
-                    {getTimelineDates().map((date, index) => {
-                      const isToday = date.toDateString() === new Date().toDateString();
-                      const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-                      
-                      return (
-                        <div 
-                          key={index} 
-                          className={`w-12 p-2 text-center text-xs font-medium border-r border-gray-200 ${
-                            isToday ? 'bg-blue-100 text-blue-800' : 
-                            isWeekend ? 'bg-gray-100 text-gray-600' : 'text-gray-600'
-                          }`}
-                        >
-                          <div className="font-semibold">{date.getDate()}</div>
-                          <div className="text-xs opacity-75">
-                            {date.toLocaleDateString('en-US', { weekday: 'short' })}
-                          </div>
-                          {index === 0 || date.getDate() === 1 ? (
-                            <div className="text-xs opacity-60 mt-1">
-                              {date.toLocaleDateString('en-US', { month: 'short' })}
-                            </div>
-                          ) : null}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Timeline Body - Apartments and Bookings */}
-            <div className="max-h-96 overflow-y-auto" id="timeline-body">
-              <div className="overflow-x-auto">
-                <BookingTimeline
-                  bookings={bookings}
-                  apartments={apartments}
-                  onBookingClick={setSelectedBooking}
-                  getApartmentTitle={getApartmentTitle}
-                  formatDate={formatDate}
-                />
-              </div>
-            </div>
-          </div>
+          <BookingTimeline
+            bookings={bookings}
+            apartments={apartments}
+            onBookingClick={setSelectedBooking}
+            getApartmentTitle={getApartmentTitle}
+            formatDate={formatDate}
+            timelineStartDate={timelineStartDate}
+            timelineDays={timelineDays}
+            onTimelineStartDateChange={setTimelineStartDate}
+            onTimelineDaysChange={setTimelineDays}
+            onGoToToday={goToToday}
+            onGoToNextBooking={goToNextBooking}
+            onPreviousPeriod={previousTimelinePeriod}
+            onNextPeriod={nextTimelinePeriod}
+          />
         ) : null}
 
         {/* Render appropriate view */}
