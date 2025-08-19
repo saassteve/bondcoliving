@@ -116,7 +116,7 @@ const BookingTimeline: React.FC<BookingTimelineProps> = ({
                 €{apartment.price}/month
               </div>
             </div>
-            <div className="flex-1 relative h-16 overflow-hidden">
+            <div className="flex-1 relative h-16 overflow-hidden min-w-0">
               <div className="flex relative h-full" style={{ width: `${timelineDays * 48}px` }}>
                 {timelineDates.map((date, index) => {
                   const dateString = date.toISOString().split('T')[0];
