@@ -116,7 +116,7 @@ const BookingTimeline: React.FC<BookingTimelineProps> = ({
                 €{apartment.price}/month
               </div>
             </div>
-            <div className="flex-1 relative h-16">
+            <div className="flex-1 relative h-16 overflow-hidden">
               <div className="flex relative h-full" style={{ width: `${timelineDays * 48}px` }}>
                 {timelineDates.map((date, index) => {
                   const dateString = date.toISOString().split('T')[0];
@@ -136,15 +136,20 @@ const BookingTimeline: React.FC<BookingTimelineProps> = ({
                   const checkIn = new Date(booking.check_in_date);
                   const checkOut = new Date(booking.check_out_date);
                   
-                  // Calculate exact position based on dates
+                  // Calculate position based on date alignment with timeline
                   const timelineStart = timelineDates[0];
                   const timelineEnd = timelineDates[timelineDates.length - 1];
                   
-                  // Calculate start position (in days from timeline start)
-                  const startDiff = Math.max(0, Math.floor((checkIn.getTime() - timelineStart.getTime()) / (1000 * 60 * 60 * 24)));
+                  // Set both dates to midnight for accurate day comparison
+                  const checkInMidnight = new Date(checkIn.getFullYear(), checkIn.getMonth(), checkIn.getDate());
+                  const checkOutMidnight = new Date(checkOut.getFullYear(), checkOut.getMonth(), checkOut.getDate());
+                  const timelineStartMidnight = new Date(timelineStart.getFullYear(), timelineStart.getMonth(), timelineStart.getDate());
                   
-                  // Calculate end position (in days from timeline start)
-                  const endDiff = Math.min(timelineDays - 1, Math.floor((checkOut.getTime() - timelineStart.getTime()) / (1000 * 60 * 60 * 24)));
+                  // Calculate start position (in days from timeline start)
+                  const startDiff = Math.floor((checkInMidnight.getTime() - timelineStartMidnight.getTime()) / (1000 * 60 * 60 * 24));
+                  
+                  // Calculate end position (in days from timeline start) - checkout is exclusive
+                  const endDiff = Math.floor((checkOutMidnight.getTime() - timelineStartMidnight.getTime()) / (1000 * 60 * 60 * 24)) - 1;
                   
                   // Skip if booking is completely outside the timeline
                   if (endDiff < 0 || startDiff >= timelineDays) {
@@ -152,7 +157,7 @@ const BookingTimeline: React.FC<BookingTimelineProps> = ({
                   }
                   
                   const startDay = Math.max(0, startDiff);
-                  const endDay = Math.max(startDay, endDiff);
+                  const endDay = Math.min(timelineDays - 1, Math.max(startDay, endDiff));
                   
                   const left = startDay * 48;
                   const width = (endDay - startDay + 1) * 48;
@@ -161,7 +166,7 @@ const BookingTimeline: React.FC<BookingTimelineProps> = ({
                     <div
                       key={booking.id}
                       onClick={() => onBookingClick(booking)}
-                      className={`absolute top-2 h-12 rounded-md cursor-pointer transition-all ${getBookingColor(booking.status)} text-white text-xs font-medium flex items-center px-2 shadow-sm hover:shadow-md hover:scale-105 z-10 border-2`}
+                      className={`absolute top-2 h-12 rounded-md cursor-pointer transition-all ${getBookingColor(booking.status)} text-white text-xs font-medium flex items-center px-2 shadow-sm hover:shadow-md hover:scale-105 z-20 border-2`}
                       style={{
                         left: `${left}px`,
                         width: `${Math.max(width, 48)}px`
@@ -172,7 +177,7 @@ const BookingTimeline: React.FC<BookingTimelineProps> = ({
                         <div className="font-medium truncate">{booking.guest_name}</div>
                         {width > 120 && (
                           <div className="text-xs opacity-90 truncate">
-                            {formatDate(booking.check_in_date).split(',')[0]} - {formatDate(booking.check_out_date).split(',')[0]}
+                            {booking.check_in_date.split('-')[2]}/{booking.check_in_date.split('-')[1]} - {booking.check_out_date.split('-')[2]}/{booking.check_out_date.split('-')[1]}
                           </div>
                         )}
                       </div>
