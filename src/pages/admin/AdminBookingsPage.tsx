@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Plus } from 'lucide-react';
+import { Plus, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import { bookingService, apartmentService, type Booking, type Apartment } from '../../lib/supabase';
 import BookingForm from '../../components/admin/BookingForm';
 import BookingTimeline from '../../components/admin/BookingTimeline';
@@ -18,12 +18,19 @@ const AdminBookingsPage: React.FC = () => {
   const [filter, setFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [timelineStartDate, setTimelineStartDate] = useState(new Date());
+  const [timelineDays, setTimelineDays] = useState(30);
   const [stats, setStats] = useState({
     total: 0,
     confirmed: 0,
     checkedIn: 0,
     checkedOut: 0,
     cancelled: 0,
+  });
+
+  const filteredBookings = bookings.filter(booking => {
+    if (filter === 'all') return true;
+    return booking.status === filter;
   });
 
   useEffect(() => {
@@ -34,6 +41,11 @@ const AdminBookingsPage: React.FC = () => {
   useEffect(() => {
     updateStats();
   }, [bookings]);
+
+  const initializeTimelineView = async () => {
+    await fetchData();
+  };
+
   const updateStats = () => {
     setStats({
       total: bookings.length,
@@ -102,6 +114,7 @@ const AdminBookingsPage: React.FC = () => {
     setShowForm(false);
     setSelectedBooking(null);
   };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -109,6 +122,7 @@ const AdminBookingsPage: React.FC = () => {
       day: 'numeric',
     });
   };
+
   const getApartmentTitle = (apartmentId: string) => {
     const apartment = apartments.find(apt => apt.id === apartmentId);
     return apartment?.title || 'Unknown Apartment';
@@ -138,6 +152,45 @@ const AdminBookingsPage: React.FC = () => {
     a.download = `bond-bookings-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
+  };
+
+  const getTimelineDates = () => {
+    const dates = [];
+    for (let i = 0; i < timelineDays; i++) {
+      const date = new Date(timelineStartDate);
+      date.setDate(date.getDate() + i);
+      dates.push(date);
+    }
+    return dates;
+  };
+
+  const previousTimelinePeriod = () => {
+    const newDate = new Date(timelineStartDate);
+    newDate.setDate(newDate.getDate() - timelineDays);
+    setTimelineStartDate(newDate);
+  };
+
+  const nextTimelinePeriod = () => {
+    const newDate = new Date(timelineStartDate);
+    newDate.setDate(newDate.getDate() + timelineDays);
+    setTimelineStartDate(newDate);
+  };
+
+  const goToToday = () => {
+    setTimelineStartDate(new Date());
+  };
+
+  const goToNextBooking = () => {
+    const today = new Date();
+    const upcomingBookings = bookings.filter(booking => 
+      new Date(booking.check_in_date) >= today
+    ).sort((a, b) => 
+      new Date(a.check_in_date).getTime() - new Date(b.check_in_date).getTime()
+    );
+    
+    if (upcomingBookings.length > 0) {
+      setTimelineStartDate(new Date(upcomingBookings[0].check_in_date));
+    }
   };
 
   if (loading) {
@@ -331,17 +384,20 @@ const AdminBookingsPage: React.FC = () => {
             {/* Timeline Body - Apartments and Bookings */}
             <div className="max-h-96 overflow-y-auto" id="timeline-body">
               <div className="overflow-x-auto">
+                <BookingTimeline
+                  bookings={bookings}
+                  apartments={apartments}
+                  onBookingClick={setSelectedBooking}
+                  getApartmentTitle={getApartmentTitle}
+                  formatDate={formatDate}
+                />
+              </div>
+            </div>
+          </div>
+        ) : null}
 
         {/* Render appropriate view */}
-        {currentView === 'timeline' ? (
-          <BookingTimeline
-            bookings={bookings}
-            apartments={apartments}
-            onBookingClick={setSelectedBooking}
-            getApartmentTitle={getApartmentTitle}
-            formatDate={formatDate}
-          />
-        ) : currentView === 'calendar' ? (
+        {currentView === 'timeline' ? null : currentView === 'calendar' ? (
           <BookingCalendar
             apartments={apartments}
             onBookingClick={setSelectedBooking}
