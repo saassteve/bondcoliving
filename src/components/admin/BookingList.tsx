@@ -51,7 +51,20 @@ const BookingList: React.FC<BookingListProps> = ({
   const filteredBookings = (filter === 'all' 
     ? bookings 
     : bookings.filter(booking => booking.status === filter))
-    .sort((a, b) => new Date(a.check_in_date).getTime() - new Date(b.check_in_date).getTime());
+    .sort((a, b) => {
+      // Primary sort: Check-in date (earliest first)
+      const dateComparison = new Date(a.check_in_date).getTime() - new Date(b.check_in_date).getTime();
+      if (dateComparison !== 0) return dateComparison;
+      
+      // Secondary sort: Status priority (checked_in > confirmed > checked_out > cancelled)
+      const statusPriority = { 'checked_in': 1, 'confirmed': 2, 'checked_out': 3, 'cancelled': 4 };
+      const aPriority = statusPriority[a.status as keyof typeof statusPriority] || 5;
+      const bPriority = statusPriority[b.status as keyof typeof statusPriority] || 5;
+      if (aPriority !== bPriority) return aPriority - bPriority;
+      
+      // Tertiary sort: Guest name alphabetically
+      return a.guest_name.localeCompare(b.guest_name);
+    });
 
   return (
     <>
@@ -241,7 +254,7 @@ const BookingList: React.FC<BookingListProps> = ({
               
               {filteredBookings.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                  <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
                     No bookings found
                   </td>
                 </tr>
