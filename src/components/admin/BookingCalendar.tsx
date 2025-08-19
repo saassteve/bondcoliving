@@ -1,0 +1,215 @@
+import React, { useState, useEffect } from 'react';
+import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
+import { bookingService, type Booking, type Apartment } from '../../lib/supabase';
+
+interface BookingCalendarProps {
+  apartments: Apartment[];
+  onBookingClick: (booking: Booking) => void;
+  getApartmentTitle: (apartmentId: string) => string;
+  formatDate: (dateString: string) => string;
+}
+
+const BookingCalendar: React.FC<BookingCalendarProps> = ({
+  apartments,
+  onBookingClick,
+  getApartmentTitle,
+  formatDate
+}) => {
+  const [calendarBookings, setCalendarBookings] = useState<Booking[]>([]);
+  const [availability, setAvailability] = useState<Record<string, any[]>>({});
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetchCalendarData();
+  }, [currentMonth]);
+
+  const fetchCalendarData = async () => {
+    try {
+      setLoading(true);
+      const { bookings: monthBookings, availability: monthAvailability } = await bookingService.getBookingsWithAvailability(
+        currentMonth.getFullYear(),
+        currentMonth.getMonth()
+      );
+      setCalendarBookings(monthBookings);
+      setAvailability(monthAvailability);
+    } catch (error) {
+      console.error('Error fetching month bookings:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const previousMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
+  };
+
+  const nextMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
+  };
+
+  const statusBadgeClass = (status: string) => {
+    switch(status) {
+      case 'confirmed':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'checked_in':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'checked_out':
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800 border-red-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const renderCalendar = () => {
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const today = new Date();
+    const todayString = today.toISOString().split('T')[0];
+    
+    const days = [];
+    
+    // Empty cells for days before month starts
+    for (let i = 0; i < firstDay; i++) {
+      days.push(<div key={`empty-${i}`} className="h-28 bg-gray-50 border border-gray-200"></div>);
+    }
+    
+    // Days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(year, month, day);
+      const dateString = date.toISOString().split('T')[0];
+      const isToday = dateString === todayString;
+      const isPast = date < today && !isToday;
+      
+      // Find bookings for this day
+      const dayBookings = calendarBookings.filter(booking => {
+        const checkIn = new Date(booking.check_in_date);
+        const checkOut = new Date(booking.check_out_date);
+        return date >= checkIn && date < checkOut;
+      });
+      
+      // Find availability blocks for this day
+      const dayAvailabilityBlocks = Object.entries(availability).flatMap(([apartmentId, aptAvailability]) => {
+        const apartment = apartments.find(apt => apt.id === apartmentId);
+        const dayAvailability = aptAvailability.find((avail: any) => avail.date === dateString);
+        
+        if (dayAvailability && dayAvailability.status !== 'available') {
+          return [{
+            id: `availability-${dayAvailability.id}`,
+            apartment_id: apartmentId,
+            apartment_title: apartment?.title || 'Unknown',
+            status: dayAvailability.status,
+            notes: dayAvailability.notes,
+            booking_reference: dayAvailability.booking_reference,
+            type: 'availability'
+          }];
+        }
+        return [];
+      });
+      
+      // Combine bookings and availability blocks
+      const allDayItems = [
+        ...dayBookings.map(booking => ({
+          ...booking,
+          type: 'booking',
+          apartment_title: getApartmentTitle(booking.apartment_id)
+        })),
+        ...dayAvailabilityBlocks
+      ];
+      
+      days.push(
+        <div key={day} className={`h-28 border border-gray-200 p-2 overflow-y-auto relative ${
+          isToday ? 'bg-blue-50 border-blue-300' : 
+          isPast ? 'bg-gray-50' : 'bg-white'
+        }`}>
+          <div className={`font-semibold text-sm mb-2 ${
+            isToday ? 'text-blue-700' : 
+            isPast ? 'text-gray-400' : 'text-gray-900'
+          }`}>
+            {day}
+            {isToday && <div className="absolute top-1 right-1 w-2 h-2 bg-blue-500 rounded-full"></div>}
+          </div>
+          {allDayItems.length > 0 ? (
+            <div className="space-y-1">
+              {allDayItems.map(item => (
+                <div 
+                  key={item.id} 
+                  onClick={() => {
+                    if (item.type === 'booking') {
+                      onBookingClick(item as Booking);
+                    }
+                  }}
+                  className={`text-xs p-1.5 rounded-md truncate border transition-all ${item.type === 'booking' ? 'cursor-pointer hover:shadow-sm hover:scale-105' : ''} ${
+                    item.type === 'booking' ? statusBadgeClass(item.status) : (
+                      item.status === 'booked' ? 'bg-orange-100 text-orange-900 border-orange-200' :
+                      'bg-yellow-100 text-yellow-900 border-yellow-200'
+                    )
+                  }`}
+                  title={
+                    item.type === 'booking' 
+                      ? `${(item as any).guest_name} - ${item.apartment_title}` 
+                      : `${item.status.toUpperCase()} - ${item.apartment_title}${item.notes ? ` (${item.notes})` : ''}`
+                  }
+                >
+                  <div className="font-medium">
+                    {item.type === 'booking' ? (item as any).guest_name : item.status.toUpperCase()}
+                  </div>
+                  <div className="text-xs opacity-75 truncate">
+                    {item.apartment_title}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      );
+    }
+    
+    return days;
+  };
+
+  return (
+    <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200">
+      <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+        <button onClick={previousMonth} className="p-1 rounded hover:bg-gray-100">
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+        
+        <h2 className="text-lg font-semibold">
+          {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+        </h2>
+        
+        <button onClick={nextMonth} className="p-1 rounded hover:bg-gray-100">
+          <ChevronRight className="w-5 h-5" />
+        </button>
+      </div>
+      
+      <div className="grid grid-cols-7 text-center py-2 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-700">
+        <div>Sunday</div>
+        <div>Monday</div>
+        <div>Tuesday</div>
+        <div>Wednesday</div>
+        <div>Thursday</div>
+        <div>Friday</div>
+        <div>Saturday</div>
+      </div>
+      
+      <div className="grid grid-cols-7 auto-rows-auto">
+        {loading ? (
+          <div className="col-span-7 p-8 text-center">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600 mx-auto mb-2"></div>
+            <p className="text-gray-600">Loading calendar...</p>
+          </div>
+        ) : (
+          renderCalendar()
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default BookingCalendar;
