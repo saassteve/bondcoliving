@@ -11,6 +11,8 @@ const AdminBookingsPage: React.FC = () => {
   const [apartments, setApartments] = useState<Apartment[]>([]);
   const [currentView, setCurrentView] = useState<'list' | 'calendar' | 'timeline'>('timeline');
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [timelineStartDate, setTimelineStartDate] = useState(new Date());
+  const [timelineDays, setTimelineDays] = useState(30); // Show 30 days at a time
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
@@ -27,10 +29,14 @@ const AdminBookingsPage: React.FC = () => {
 
   useEffect(() => {
     fetchData();
+    // Set initial timeline to show current bookings
+    initializeTimelineView();
   }, []);
 
   useEffect(() => {
-    fetchCalendarData();
+    if (currentView === 'calendar') {
+      fetchCalendarData();
+    }
   }, [currentMonth, currentView]);
 
   // Update stats whenever bookings change
@@ -38,6 +44,22 @@ const AdminBookingsPage: React.FC = () => {
     updateStats();
   }, [bookings]);
 
+  const initializeTimelineView = () => {
+    // Find the earliest upcoming booking or use today
+    const today = new Date();
+    const upcomingBookings = bookings.filter(booking => 
+      new Date(booking.check_in_date) >= today && booking.status !== 'cancelled'
+    );
+    
+    if (upcomingBookings.length > 0) {
+      const earliestBooking = upcomingBookings.sort((a, b) => 
+        new Date(a.check_in_date).getTime() - new Date(b.check_in_date).getTime()
+      )[0];
+      setTimelineStartDate(new Date(earliestBooking.check_in_date));
+    } else {
+      setTimelineStartDate(today);
+    }
+  };
   const updateStats = () => {
     setStats({
       total: bookings.length,
@@ -66,8 +88,6 @@ const AdminBookingsPage: React.FC = () => {
   };
 
   const fetchCalendarData = async () => {
-    if (currentView !== 'calendar') return;
-    
     try {
       const { bookings: monthBookings, availability: monthAvailability } = await bookingService.getBookingsWithAvailability(
         currentMonth.getFullYear(),
@@ -91,7 +111,9 @@ const AdminBookingsPage: React.FC = () => {
       
       resetForm();
       await fetchData();
-      await fetchCalendarData();
+      if (currentView === 'calendar') {
+        await fetchCalendarData();
+      }
     } catch (error) {
       console.error('Error saving booking:', error);
       throw error;
@@ -111,7 +133,9 @@ const AdminBookingsPage: React.FC = () => {
     try {
       await bookingService.delete(id);
       await fetchData();
-      await fetchCalendarData();
+      if (currentView === 'calendar') {
+        await fetchCalendarData();
+      }
     } catch (error) {
       console.error('Error deleting booking:', error);
       alert('Failed to delete booking');
@@ -124,6 +148,47 @@ const AdminBookingsPage: React.FC = () => {
     setSelectedBooking(null);
   };
 
+  // Timeline navigation functions
+  const previousTimelinePeriod = () => {
+    const newStartDate = new Date(timelineStartDate);
+    newStartDate.setDate(newStartDate.getDate() - timelineDays);
+    setTimelineStartDate(newStartDate);
+  };
+
+  const nextTimelinePeriod = () => {
+    const newStartDate = new Date(timelineStartDate);
+    newStartDate.setDate(newStartDate.getDate() + timelineDays);
+    setTimelineStartDate(newStartDate);
+  };
+
+  const goToToday = () => {
+    setTimelineStartDate(new Date());
+  };
+
+  const goToNextBooking = () => {
+    const today = new Date();
+    const upcomingBookings = bookings.filter(booking => 
+      new Date(booking.check_in_date) > today && booking.status !== 'cancelled'
+    );
+    
+    if (upcomingBookings.length > 0) {
+      const nextBooking = upcomingBookings.sort((a, b) => 
+        new Date(a.check_in_date).getTime() - new Date(b.check_in_date).getTime()
+      )[0];
+      setTimelineStartDate(new Date(nextBooking.check_in_date));
+    }
+  };
+
+  // Generate timeline dates
+  const getTimelineDates = () => {
+    const dates = [];
+    for (let i = 0; i < timelineDays; i++) {
+      const date = new Date(timelineStartDate);
+      date.setDate(date.getDate() + i);
+      dates.push(date);
+    }
+    return dates;
+  };
   const previousMonth = () => {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
   };
@@ -140,6 +205,20 @@ const AdminBookingsPage: React.FC = () => {
     });
   };
 
+  const formatTimelineDate = (date: Date) => {
+    const today = new Date();
+    const isToday = date.toDateString() === today.toDateString();
+    const isTomorrow = date.toDateString() === new Date(today.getTime() + 24 * 60 * 60 * 1000).toDateString();
+    
+    if (isToday) return 'Today';
+    if (isTomorrow) return 'Tomorrow';
+    
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric',
+      weekday: 'short'
+    });
+  };
   const statusBadgeClass = (status: string) => {
     switch(status) {
       case 'confirmed':
@@ -191,6 +270,131 @@ const AdminBookingsPage: React.FC = () => {
     : bookings.filter(booking => booking.status === filter))
     .sort((a, b) => new Date(a.check_in_date).getTime() - new Date(b.check_in_date).getTime());
 
+  // Timeline rendering functions
+  const renderTimeline = () => {
+    const timelineDates = getTimelineDates();
+    const today = new Date();
+    const todayString = today.toISOString().split('T')[0];
+    
+    return apartments.map((apartment) => {
+      // Find bookings for this apartment that overlap with the timeline period
+      const apartmentBookings = bookings.filter(booking => {
+        const checkIn = new Date(booking.check_in_date);
+        const checkOut = new Date(booking.check_out_date);
+        const timelineStart = timelineDates[0];
+        const timelineEnd = timelineDates[timelineDates.length - 1];
+        
+        return booking.apartment_id === apartment.id && 
+               checkOut > timelineStart && 
+               checkIn <= timelineEnd;
+      });
+      
+      return (
+        <div key={apartment.id} className="border-b border-gray-100 hover:bg-gray-50">
+          <div className="flex">
+            <div className="w-48 p-4 border-r border-gray-200 bg-white sticky left-0 z-10">
+              <div className="text-sm font-medium text-gray-900 truncate" title={apartment.title}>
+                {apartment.title}
+              </div>
+              <div className="text-xs text-gray-500">
+                €{apartment.price}/month
+              </div>
+            </div>
+            <div className="flex-1 relative h-16">
+              <div className="flex min-w-max relative h-full" style={{ minWidth: `${timelineDays * 48}px` }}>
+                {/* Day columns */}
+                {timelineDates.map((date, index) => {
+                  const dateString = date.toISOString().split('T')[0];
+                  const isToday = dateString === todayString;
+                  
+                  return (
+                    <div 
+                      key={dateString} 
+                      className={`w-12 border-r border-gray-200 h-full ${
+                        isToday ? 'bg-blue-50' : ''
+                      }`}
+                    />
+                  );
+                })}
+                
+                {/* Booking bars */}
+                {apartmentBookings.map((booking) => {
+                  const checkIn = new Date(booking.check_in_date);
+                  const checkOut = new Date(booking.check_out_date);
+                  const timelineStart = timelineDates[0];
+                  
+                  // Calculate position and width
+                  let startDay = 0;
+                  let endDay = timelineDays - 1;
+                  
+                  // Find start position
+                  for (let i = 0; i < timelineDates.length; i++) {
+                    if (timelineDates[i] >= checkIn) {
+                      startDay = i;
+                      break;
+                    }
+                  }
+                  
+                  // Find end position (day before checkout)
+                  for (let i = timelineDates.length - 1; i >= 0; i--) {
+                    const dayBefore = new Date(checkOut);
+                    dayBefore.setDate(dayBefore.getDate() - 1);
+                    if (timelineDates[i] <= dayBefore) {
+                      endDay = i;
+                      break;
+                    }
+                  }
+                  
+                  // Ensure we show at least one day
+                  if (endDay < startDay) endDay = startDay;
+                  
+                  const left = startDay * 48;
+                  const width = (endDay - startDay + 1) * 48;
+                  
+                  const getBookingColor = (status: string) => {
+                    switch (status) {
+                      case 'confirmed':
+                        return 'bg-blue-500 hover:bg-blue-600 border-blue-600';
+                      case 'checked_in':
+                        return 'bg-green-500 hover:bg-green-600 border-green-600';
+                      case 'checked_out':
+                        return 'bg-gray-500 hover:bg-gray-600 border-gray-600';
+                      case 'cancelled':
+                        return 'bg-red-500 hover:bg-red-600 border-red-600';
+                      default:
+                        return 'bg-blue-500 hover:bg-blue-600 border-blue-600';
+                    }
+                  };
+                  
+                  return (
+                    <div
+                      key={booking.id}
+                      onClick={() => setSelectedBooking(booking)}
+                      className={`absolute top-2 h-12 rounded-md cursor-pointer transition-all ${getBookingColor(booking.status)} text-white text-xs font-medium flex items-center px-2 shadow-sm hover:shadow-md hover:scale-105 z-20 border-2`}
+                      style={{
+                        left: `${left}px`,
+                        width: `${Math.max(width, 48)}px`
+                      }}
+                      title={`${booking.guest_name} - ${formatDate(booking.check_in_date)} to ${formatDate(booking.check_out_date)} (${booking.status})`}
+                    >
+                      <div className="truncate w-full">
+                        <div className="font-medium truncate">{booking.guest_name}</div>
+                        {width > 120 && (
+                          <div className="text-xs opacity-90 truncate">
+                            {formatDate(booking.check_in_date).split(',')[0]} - {formatDate(booking.check_out_date).split(',')[0]}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    });
+  };
   // Calendar rendering functions
   const renderCalendar = () => {
     const year = currentMonth.getFullYear();
@@ -403,34 +607,139 @@ const AdminBookingsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Calendar Legend */}
-        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Calendar Legend</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 text-sm">
-            <div className="flex items-center gap-1">
-              <div className="w-4 h-4 bg-blue-100 border border-blue-200 rounded"></div>
-              <span className="text-gray-900 font-medium">Confirmed Booking</span>
+        {currentView === 'timeline' ? (
+          /* Timeline View - Improved */
+          <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200">
+            {/* Timeline Controls */}
+            <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
+              <div className="flex items-center space-x-2">
+                <button onClick={previousTimelinePeriod} className="p-2 rounded hover:bg-gray-200 transition-colors">
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <button onClick={nextTimelinePeriod} className="p-2 rounded hover:bg-gray-200 transition-colors">
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+              
+              <div className="flex items-center space-x-3">
+                <span className="text-sm font-medium text-gray-700">
+                  {timelineStartDate.toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric',
+                    year: 'numeric'
+                  })} - {new Date(timelineStartDate.getTime() + (timelineDays - 1) * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric',
+                    year: 'numeric'
+                  })}
+                </span>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <button 
+                  onClick={goToToday}
+                  className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
+                >
+                  Today
+                </button>
+                <button 
+                  onClick={goToNextBooking}
+                  className="px-3 py-1 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors"
+                >
+                  Next Booking
+                </button>
+                <select
+                  value={timelineDays}
+                  onChange={(e) => setTimelineDays(parseInt(e.target.value))}
+                  className="px-2 py-1 text-sm border border-gray-300 rounded"
+                >
+                  <option value={14}>14 days</option>
+                  <option value={30}>30 days</option>
+                  <option value={60}>60 days</option>
+                  <option value={90}>90 days</option>
+                </select>
+              </div>
             </div>
-            <div className="flex items-center gap-1">
-              <div className="w-4 h-4 bg-green-100 border border-green-200 rounded"></div>
-              <span className="text-gray-900 font-medium">Checked In</span>
+            
+            {/* Timeline Header - Dates */}
+            <div className="border-b border-gray-200 bg-gray-50 overflow-hidden">
+              <div className="flex">
+                <div className="w-48 p-3 border-r border-gray-200 text-sm font-medium text-gray-700 bg-white sticky left-0 z-20">
+                  Apartments
+                </div>
+                <div className="flex-1 overflow-x-auto" id="timeline-header">
+                  <div className="flex min-w-max" style={{ minWidth: `${timelineDays * 48}px` }}>
+                    {getTimelineDates().map((date, index) => {
+                      const isToday = date.toDateString() === new Date().toDateString();
+                      const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+                      
+                      return (
+                        <div 
+                          key={index} 
+                          className={`w-12 p-2 text-center text-xs font-medium border-r border-gray-200 ${
+                            isToday ? 'bg-blue-100 text-blue-800' : 
+                            isWeekend ? 'bg-gray-100 text-gray-600' : 'text-gray-600'
+                          }`}
+                        >
+                          <div className="font-semibold">{date.getDate()}</div>
+                          <div className="text-xs opacity-75">
+                            {date.toLocaleDateString('en-US', { weekday: 'short' })}
+                          </div>
+                          {index === 0 || date.getDate() === 1 ? (
+                            <div className="text-xs opacity-60 mt-1">
+                              {date.toLocaleDateString('en-US', { month: 'short' })}
+                            </div>
+                          ) : null}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-1">
-              <div className="w-4 h-4 bg-gray-100 border border-gray-200 rounded"></div>
-              <span className="text-gray-900 font-medium">Checked Out</span>
+            
+            {/* Timeline Body - Apartments and Bookings */}
+            <div className="max-h-96 overflow-y-auto" id="timeline-body">
+              <div className="overflow-x-auto">
+                {renderTimeline()}
+              </div>
+              
+              {apartments.length === 0 && (
+                <div className="p-8 text-center text-gray-500">
+                  <Calendar className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                  <p>No apartments configured</p>
+                </div>
+              )}
             </div>
-            <div className="flex items-center gap-1">
-              <div className="w-4 h-4 bg-red-100 border border-red-200 rounded"></div>
-              <span className="text-gray-900 font-medium">Cancelled</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-4 h-4 bg-orange-100 border border-orange-200 rounded"></div>
-              <span className="text-gray-900 font-medium">Blocked (Apartment Calendar)</span>
+            
+            {/* Timeline Legend */}
+            <div className="p-4 border-t border-gray-200 bg-gray-50">
+              <div className="flex flex-wrap gap-4 text-xs">
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 bg-blue-500 rounded border border-blue-600"></div>
+                  <span>Confirmed</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 bg-green-500 rounded border border-green-600"></div>
+                  <span>Checked In</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 bg-gray-500 rounded border border-gray-600"></div>
+                  <span>Checked Out</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 bg-red-500 rounded border border-red-600"></div>
+                  <span>Cancelled</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 bg-blue-100 border border-blue-400 rounded ring-1 ring-blue-400"></div>
+                  <span>Today</span>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-        {currentView === 'timeline' ? (
-          /* Timeline View */
+        ) : currentView === 'calendar' ? (
+          /* Calendar View */
           <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200">
             <div className="p-4 border-b border-gray-200 flex items-center justify-between">
               <button onClick={previousMonth} className="p-1 rounded hover:bg-gray-100">
@@ -446,30 +755,35 @@ const AdminBookingsPage: React.FC = () => {
               </button>
             </div>
             
-            {/* Timeline Header - Days of Month */}
-            <div className="border-b border-gray-200 bg-gray-50">
-              <div className="flex overflow-x-auto" id="timeline-header">
-                <div className="w-48 p-3 border-r border-gray-200 text-sm font-medium text-gray-700">
+            {/* Timeline Header - Dates */}
+            <div className="border-b border-gray-200 bg-gray-50 overflow-hidden">
+              <div className="flex">
+                <div className="w-48 p-3 border-r border-gray-200 text-sm font-medium text-gray-700 bg-white sticky left-0 z-20">
                   Apartments
                 </div>
-                <div className="flex-1">
-                  <div className="flex min-w-max" style={{ minWidth: `${new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate() * 48}px` }}>
-                    {Array.from({ length: new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate() }, (_, i) => {
-                      const day = i + 1;
-                      const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+                <div className="flex-1 overflow-x-auto" id="timeline-header">
+                  <div className="flex min-w-max" style={{ minWidth: `${timelineDays * 48}px` }}>
+                    {getTimelineDates().map((date, index) => {
                       const isToday = date.toDateString() === new Date().toDateString();
+                      const isWeekend = date.getDay() === 0 || date.getDay() === 6;
                       
                       return (
                         <div 
-                          key={day} 
+                          key={index} 
                           className={`w-12 p-2 text-center text-xs font-medium border-r border-gray-200 ${
-                            isToday ? 'bg-blue-100 text-blue-800' : 'text-gray-600'
+                            isToday ? 'bg-blue-100 text-blue-800' : 
+                            isWeekend ? 'bg-gray-100 text-gray-600' : 'text-gray-600'
                           }`}
                         >
-                          <div className="font-semibold">{day}</div>
+                          <div className="font-semibold">{date.getDate()}</div>
                           <div className="text-xs opacity-75">
-                            {date.toLocaleDateString('en-US', { weekday: 'short' }).charAt(0)}
+                            {date.toLocaleDateString('en-US', { weekday: 'short' })}
                           </div>
+                          {index === 0 || date.getDate() === 1 ? (
+                            <div className="text-xs opacity-60 mt-1">
+                              {date.toLocaleDateString('en-US', { month: 'short' })}
+                            </div>
+                          ) : null}
                         </div>
                       );
                     })}
@@ -480,117 +794,9 @@ const AdminBookingsPage: React.FC = () => {
             
             {/* Timeline Body - Apartments and Bookings */}
             <div className="max-h-96 overflow-y-auto" id="timeline-body">
-              {apartments.map((apartment) => {
-                const apartmentBookings = bookings.filter(booking => {
-                  const checkIn = new Date(booking.check_in_date);
-                  const checkOut = new Date(booking.check_out_date);
-                  const monthStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
-                  const monthEnd = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
-                  
-                  return booking.apartment_id === apartment.id && 
-                         checkOut >= monthStart && 
-                         checkIn <= monthEnd;
-                });
-                
-                return (
-                  <div key={apartment.id} className="border-b border-gray-100 hover:bg-gray-50">
-                    <div className="flex overflow-hidden">
-                      <div className="w-48 p-4 border-r border-gray-200">
-                        <div className="text-sm font-medium text-gray-900 truncate" title={apartment.title}>
-                          {apartment.title}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          €{apartment.price}/month
-                        </div>
-                      </div>
-                      <div className="flex-1 relative">
-                        <div className="flex min-w-max relative h-16" style={{ minWidth: `${new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate() * 48}px` }}>
-                          {/* Day columns */}
-                          {Array.from({ length: new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate() }, (_, i) => {
-                            const day = i + 1;
-                            const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
-                            const isToday = date.toDateString() === new Date().toDateString();
-                            
-                            return (
-                              <div 
-                                key={day} 
-                                className={`w-12 border-r border-gray-200 h-full ${
-                                  isToday ? 'bg-blue-50' : ''
-                                }`}
-                              />
-                            );
-                          })}
-                          
-                          {/* Booking bars */}
-                          {apartmentBookings.map((booking) => {
-                            const checkIn = new Date(booking.check_in_date);
-                            const checkOut = new Date(booking.check_out_date);
-                            const monthStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
-                            const monthEnd = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
-                            
-                            // Calculate position and width more accurately
-                            let startDay, endDay;
-                            
-                            if (checkIn < monthStart) {
-                              startDay = 1;
-                            } else {
-                              startDay = checkIn.getDate();
-                            }
-                            
-                            if (checkOut > monthEnd) {
-                              endDay = monthEnd.getDate();
-                            } else {
-                              // For check-out date, we want to show until the day before checkout
-                              endDay = checkOut.getDate() - 1;
-                              if (endDay < startDay) endDay = startDay; // Ensure at least one day is shown
-                            }
-                            
-                            const left = (startDay - 1) * 48; // 48px per day (w-12)
-                            const width = (endDay - startDay + 1) * 48;
-                            
-                            const getBookingColor = (status: string) => {
-                              switch (status) {
-                                case 'confirmed':
-                                  return 'bg-blue-500 hover:bg-blue-600';
-                                case 'checked_in':
-                                  return 'bg-green-500 hover:bg-green-600';
-                                case 'checked_out':
-                                  return 'bg-gray-500 hover:bg-gray-600';
-                                case 'cancelled':
-                                  return 'bg-red-500 hover:bg-red-600';
-                                default:
-                                  return 'bg-blue-500 hover:bg-blue-600';
-                              }
-                            };
-                            
-                            return (
-                              <div
-                                key={booking.id}
-                                onClick={() => setSelectedBooking(booking)}
-                                className={`absolute top-2 h-12 rounded-md cursor-pointer transition-all ${getBookingColor(booking.status)} text-white text-xs font-medium flex items-center px-2 shadow-sm hover:shadow-md hover:scale-105 z-10`}
-                                style={{
-                                  left: `${left}px`,
-                                  width: `${Math.max(width, 48)}px` // Minimum width of one day
-                                }}
-                                title={`${booking.guest_name} - ${formatDate(booking.check_in_date)} to ${formatDate(booking.check_out_date)}`}
-                              >
-                                <div className="truncate">
-                                  <div className="font-medium">{booking.guest_name}</div>
-                                  {width > 120 && ( // Only show dates if bar is wide enough
-                                    <div className="text-xs opacity-90">
-                                      {formatDate(booking.check_in_date).split(',')[0]} - {formatDate(booking.check_out_date).split(',')[0]}
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+              <div className="overflow-x-auto">
+                {renderTimeline()}
+              </div>
               
               {apartments.length === 0 && (
                 <div className="p-8 text-center text-gray-500">
@@ -604,19 +810,19 @@ const AdminBookingsPage: React.FC = () => {
             <div className="p-4 border-t border-gray-200 bg-gray-50">
               <div className="flex flex-wrap gap-4 text-xs">
                 <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-blue-500 rounded"></div>
+                  <div className="w-3 h-3 bg-blue-500 rounded border border-blue-600"></div>
                   <span>Confirmed</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-green-500 rounded"></div>
+                  <div className="w-3 h-3 bg-green-500 rounded border border-green-600"></div>
                   <span>Checked In</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-gray-500 rounded"></div>
+                  <div className="w-3 h-3 bg-gray-500 rounded border border-gray-600"></div>
                   <span>Checked Out</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-red-500 rounded"></div>
+                  <div className="w-3 h-3 bg-red-500 rounded border border-red-600"></div>
                   <span>Cancelled</span>
                 </div>
                 <div className="flex items-center gap-1">
@@ -933,6 +1139,8 @@ const AdminBookingsPage: React.FC = () => {
 
   // Add scroll synchronization effect
   useEffect(() => {
+    if (currentView !== 'timeline') return;
+    
     const header = document.getElementById('timeline-header');
     const body = document.getElementById('timeline-body');
     
@@ -954,7 +1162,7 @@ const AdminBookingsPage: React.FC = () => {
       header.removeEventListener('scroll', headerScrollHandler);
       body.removeEventListener('scroll', bodyScrollHandler);
     };
-  }, [currentView, apartments]);
+  }, [currentView, apartments, timelineStartDate, timelineDays]);
 };
 
 export default AdminBookingsPage;
