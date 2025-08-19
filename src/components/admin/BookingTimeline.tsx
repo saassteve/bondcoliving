@@ -86,7 +86,7 @@ const BookingTimeline: React.FC<BookingTimelineProps> = ({
       header.removeEventListener('scroll', headerScrollHandler);
       body.removeEventListener('scroll', bodyScrollHandler);
     };
-  }, [timelineStartDate, timelineDays]);
+  }, [timelineStartDate, timelineDays, apartments.length]);
 
   const renderApartmentRows = () => {
     const timelineDates = getTimelineDates();
@@ -166,7 +166,7 @@ const BookingTimeline: React.FC<BookingTimelineProps> = ({
                     <div
                       key={booking.id}
                       onClick={() => onBookingClick(booking)}
-                      className={`absolute top-2 h-12 rounded-md cursor-pointer transition-all ${getBookingColor(booking.status)} text-white text-xs font-medium flex items-center px-2 shadow-sm hover:shadow-md hover:scale-105 z-20 border-2`}
+                      className={`absolute top-2 h-12 rounded-md cursor-pointer transition-all ${getBookingColor(booking.status)} text-white text-xs font-medium flex items-center px-2 shadow-sm hover:shadow-md hover:scale-105 z-10 border-2`}
                       style={{
                         left: `${left}px`,
                         width: `${Math.max(width, 48)}px`
@@ -184,6 +184,28 @@ const BookingTimeline: React.FC<BookingTimelineProps> = ({
                     </div>
                   );
                 })}
+                
+                {/* Today indicator line */}
+                {(() => {
+                  const today = new Date();
+                  const todayString = today.toISOString().split('T')[0];
+                  const timelineStart = timelineDates[0];
+                  const timelineStartString = timelineStart.toISOString().split('T')[0];
+                  
+                  if (todayString >= timelineStartString) {
+                    const daysDiff = Math.floor((today.getTime() - timelineStart.getTime()) / (1000 * 60 * 60 * 24));
+                    if (daysDiff >= 0 && daysDiff < timelineDays) {
+                      const leftPosition = daysDiff * 48 + 24; // Center of the day
+                      return (
+                        <div
+                          className="absolute top-0 bottom-0 w-0.5 bg-red-500 z-30 pointer-events-none"
+                          style={{ left: `${leftPosition}px` }}
+                        />
+                      );
+                    }
+                  }
+                  return null;
+                })()}
               </div>
             </div>
           </div>
@@ -259,7 +281,7 @@ const BookingTimeline: React.FC<BookingTimelineProps> = ({
           <div className="w-48 p-3 border-r border-gray-200 text-sm font-medium text-gray-700 bg-white sticky left-0 z-20">
             Apartments
           </div>
-          <div className="flex-1 overflow-x-auto scrollbar-hide" id="timeline-header">
+          <div className="flex-1 overflow-x-auto" id="timeline-header" style={{ scrollbarWidth: 'thin' }}>
             <div className="flex" style={{ width: `${timelineDays * 48}px` }}>
               {getTimelineDates().map((date, index) => {
                 const isToday = date.toDateString() === new Date().toDateString();
@@ -292,7 +314,7 @@ const BookingTimeline: React.FC<BookingTimelineProps> = ({
       
       {/* Timeline Body - Apartments and Bookings */}
       <div className="max-h-96 overflow-y-auto">
-        <div className="overflow-x-auto scrollbar-hide" id="timeline-body">
+        <div className="overflow-x-auto" id="timeline-body" style={{ scrollbarWidth: 'thin' }}>
           {renderApartmentRows()}
         </div>
       </div>
