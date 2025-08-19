@@ -108,7 +108,7 @@ const BookingTimeline: React.FC<BookingTimelineProps> = ({
       return (
         <div key={apartment.id} className="border-b border-gray-100 hover:bg-gray-50">
           <div className="flex">
-            <div className="w-48 p-4 border-r border-gray-200 bg-white sticky left-0 z-10">
+            <div className="w-48 p-4 border-r border-gray-200 bg-white sticky left-0 z-30">
               <div className="text-sm font-medium text-gray-900 truncate" title={apartment.title}>
                 {apartment.title}
               </div>
@@ -136,26 +136,23 @@ const BookingTimeline: React.FC<BookingTimelineProps> = ({
                   const checkIn = new Date(booking.check_in_date);
                   const checkOut = new Date(booking.check_out_date);
                   
-                  let startDay = 0;
-                  let endDay = timelineDays - 1;
+                  // Calculate exact position based on dates
+                  const timelineStart = timelineDates[0];
+                  const timelineEnd = timelineDates[timelineDates.length - 1];
                   
-                  for (let i = 0; i < timelineDates.length; i++) {
-                    if (timelineDates[i] >= checkIn) {
-                      startDay = i;
-                      break;
-                    }
+                  // Calculate start position (in days from timeline start)
+                  const startDiff = Math.max(0, Math.floor((checkIn.getTime() - timelineStart.getTime()) / (1000 * 60 * 60 * 24)));
+                  
+                  // Calculate end position (in days from timeline start)
+                  const endDiff = Math.min(timelineDays - 1, Math.floor((checkOut.getTime() - timelineStart.getTime()) / (1000 * 60 * 60 * 24)));
+                  
+                  // Skip if booking is completely outside the timeline
+                  if (endDiff < 0 || startDiff >= timelineDays) {
+                    return null;
                   }
                   
-                  for (let i = timelineDates.length - 1; i >= 0; i--) {
-                    const dayBefore = new Date(checkOut);
-                    dayBefore.setDate(dayBefore.getDate() - 1);
-                    if (timelineDates[i] <= dayBefore) {
-                      endDay = i;
-                      break;
-                    }
-                  }
-                  
-                  if (endDay < startDay) endDay = startDay;
+                  const startDay = Math.max(0, startDiff);
+                  const endDay = Math.max(startDay, endDiff);
                   
                   const left = startDay * 48;
                   const width = (endDay - startDay + 1) * 48;
@@ -164,7 +161,7 @@ const BookingTimeline: React.FC<BookingTimelineProps> = ({
                     <div
                       key={booking.id}
                       onClick={() => onBookingClick(booking)}
-                      className={`absolute top-2 h-12 rounded-md cursor-pointer transition-all ${getBookingColor(booking.status)} text-white text-xs font-medium flex items-center px-2 shadow-sm hover:shadow-md hover:scale-105 z-20 border-2`}
+                      className={`absolute top-2 h-12 rounded-md cursor-pointer transition-all ${getBookingColor(booking.status)} text-white text-xs font-medium flex items-center px-2 shadow-sm hover:shadow-md hover:scale-105 z-10 border-2`}
                       style={{
                         left: `${left}px`,
                         width: `${Math.max(width, 48)}px`
