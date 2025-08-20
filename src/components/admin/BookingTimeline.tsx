@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React from 'react';
 import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { type Booking, type Apartment } from '../../lib/supabase';
 
@@ -33,8 +33,6 @@ const BookingTimeline: React.FC<BookingTimelineProps> = ({
   onPreviousPeriod,
   onNextPeriod
 }) => {
-  const timelineContainerRef = useRef<HTMLDivElement>(null);
-
   const getTimelineDates = () => {
     const dates = [];
     for (let i = 0; i < timelineDays; i++) {
@@ -64,6 +62,7 @@ const BookingTimeline: React.FC<BookingTimelineProps> = ({
     const checkIn = new Date(booking.check_in_date);
     const checkOut = new Date(booking.check_out_date);
     const timelineStart = timelineDates[0];
+    const timelineEnd = timelineDates[timelineDates.length - 1];
     
     // Set all dates to midnight for accurate day comparison
     const checkInMidnight = new Date(checkIn.getFullYear(), checkIn.getMonth(), checkIn.getDate());
@@ -93,7 +92,9 @@ const BookingTimeline: React.FC<BookingTimelineProps> = ({
   const timelineDates = getTimelineDates();
   const today = new Date();
   const todayString = today.toISOString().split('T')[0];
-  const totalTimelineWidth = timelineDays * 48;
+  const apartmentColumnWidth = 200; // Fixed width for apartment names
+  const dayWidth = 48; // Width per day
+  const totalTimelineWidth = apartmentColumnWidth + (timelineDays * dayWidth);
 
   return (
     <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200">
@@ -156,55 +157,53 @@ const BookingTimeline: React.FC<BookingTimelineProps> = ({
         </div>
       </div>
       
-      {/* Single Unified Scrollable Container */}
-      <div 
-        ref={timelineContainerRef}
-        className="overflow-auto max-h-96"
-        style={{ 
-          scrollbarWidth: 'thin',
-          scrollbarColor: '#cbd5e1 #f1f5f9'
-        }}
-      >
-        {/* Fixed Total Width Container */}
-        <div style={{ width: `${192 + totalTimelineWidth}px`, minWidth: `${192 + totalTimelineWidth}px` }}>
+      {/* Single Unified Timeline Container */}
+      <div className="overflow-auto max-h-[600px]">
+        <div style={{ width: `${totalTimelineWidth}px`, minWidth: `${totalTimelineWidth}px` }}>
           
-          {/* Timeline Header - Dates */}
-          <div className="border-b border-gray-200 bg-gray-50 flex">
-            {/* Fixed apartment column header */}
-            <div className="w-48 p-3 border-r border-gray-200 text-sm font-medium text-gray-700 bg-white flex-shrink-0">
-              Apartments
-            </div>
-            
-            {/* Dates header - fixed width */}
-            <div className="flex" style={{ width: `${totalTimelineWidth}px` }}>
-              {timelineDates.map((date, index) => {
-                const isToday = date.toDateString() === new Date().toDateString();
-                const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-                
-                return (
-                  <div 
-                    key={index} 
-                    className={`w-12 p-2 text-center text-xs font-medium border-r border-gray-200 flex-shrink-0 ${
-                      isToday ? 'bg-blue-100 text-blue-800' : 
-                      isWeekend ? 'bg-gray-100 text-gray-600' : 'text-gray-600'
-                    }`}
-                  >
-                    <div className="font-semibold">{date.getDate()}</div>
-                    <div className="text-xs opacity-75">
-                      {date.toLocaleDateString('en-US', { weekday: 'short' })}
-                    </div>
-                    {index === 0 || date.getDate() === 1 ? (
-                      <div className="text-xs opacity-60 mt-1">
-                        {date.toLocaleDateString('en-US', { month: 'short' })}
+          {/* Timeline Header */}
+          <div className="sticky top-0 z-10 bg-white border-b border-gray-200">
+            <div className="flex">
+              {/* Apartment Column Header */}
+              <div 
+                className="bg-gray-50 border-r border-gray-200 p-3 text-sm font-medium text-gray-700 flex items-center"
+                style={{ width: `${apartmentColumnWidth}px`, minWidth: `${apartmentColumnWidth}px` }}
+              >
+                Apartments
+              </div>
+              
+              {/* Date Headers */}
+              <div className="flex">
+                {timelineDates.map((date, index) => {
+                  const isToday = date.toDateString() === today.toDateString();
+                  const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+                  
+                  return (
+                    <div 
+                      key={index} 
+                      className={`border-r border-gray-200 p-2 text-center text-xs font-medium ${
+                        isToday ? 'bg-blue-100 text-blue-800' : 
+                        isWeekend ? 'bg-gray-100 text-gray-600' : 'bg-gray-50 text-gray-600'
+                      }`}
+                      style={{ width: `${dayWidth}px`, minWidth: `${dayWidth}px` }}
+                    >
+                      <div className="font-semibold">{date.getDate()}</div>
+                      <div className="text-xs opacity-75">
+                        {date.toLocaleDateString('en-US', { weekday: 'short' })}
                       </div>
-                    ) : null}
-                  </div>
-                );
-              })}
+                      {index === 0 || date.getDate() === 1 ? (
+                        <div className="text-xs opacity-60 mt-1">
+                          {date.toLocaleDateString('en-US', { month: 'short' })}
+                        </div>
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
           
-          {/* Timeline Body - Apartments and Bookings */}
+          {/* Timeline Body */}
           {apartments.length === 0 ? (
             <div className="p-8 text-center text-gray-500">
               <Calendar className="w-8 h-8 mx-auto mb-2 text-gray-400" />
@@ -215,85 +214,91 @@ const BookingTimeline: React.FC<BookingTimelineProps> = ({
               const apartmentBookings = bookings.filter(booking => booking.apartment_id === apartment.id);
               
               return (
-                <div key={apartment.id} className="border-b border-gray-100 hover:bg-gray-50 flex">
-                  {/* Apartment Name - Fixed Left Column */}
-                  <div className="w-48 p-4 border-r border-gray-200 bg-white flex-shrink-0">
-                    <div className="text-sm font-medium text-gray-900 truncate" title={apartment.title}>
-                      {apartment.title}
+                <div key={apartment.id} className="border-b border-gray-100 hover:bg-gray-50">
+                  <div className="flex">
+                    {/* Apartment Name Column */}
+                    <div 
+                      className="border-r border-gray-200 p-4 bg-white flex flex-col justify-center"
+                      style={{ width: `${apartmentColumnWidth}px`, minWidth: `${apartmentColumnWidth}px` }}
+                    >
+                      <div className="text-sm font-medium text-gray-900 truncate" title={apartment.title}>
+                        {apartment.title}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        €{apartment.price}/month
+                      </div>
                     </div>
-                    <div className="text-xs text-gray-500">
-                      €{apartment.price}/month
-                    </div>
-                  </div>
-                  
-                  {/* Timeline Track - Fixed Width */}
-                  <div className="relative h-16 bg-gray-50" style={{ width: `${totalTimelineWidth}px` }}>
-                    {/* Day Grid Background */}
-                    <div className="absolute inset-0 flex">
-                      {timelineDates.map((date, index) => {
-                        const dateString = date.toISOString().split('T')[0];
-                        const isToday = dateString === todayString;
-                        const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+                    
+                    {/* Timeline Track */}
+                    <div className="relative bg-gray-50" style={{ height: '64px' }}>
+                      {/* Day Grid Background */}
+                      <div className="absolute inset-0 flex">
+                        {timelineDates.map((date, index) => {
+                          const dateString = date.toISOString().split('T')[0];
+                          const isToday = dateString === todayString;
+                          const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+                          
+                          return (
+                            <div 
+                              key={index} 
+                              className={`border-r border-gray-200 ${
+                                isToday ? 'bg-blue-100' : 
+                                isWeekend ? 'bg-gray-100' : 'bg-white'
+                              }`}
+                              style={{ width: `${dayWidth}px`, minWidth: `${dayWidth}px` }}
+                            />
+                          );
+                        })}
+                      </div>
+                      
+                      {/* Booking Bars */}
+                      {apartmentBookings.map((booking) => {
+                        const position = calculateBookingPosition(booking, timelineDates);
+                        if (!position) return null;
+                        
+                        const { left, width } = position;
                         
                         return (
-                          <div 
-                            key={index} 
-                            className={`w-12 h-full border-r border-gray-200 flex-shrink-0 ${
-                              isToday ? 'bg-blue-100' : 
-                              isWeekend ? 'bg-gray-100' : 'bg-white'
-                            }`}
-                          />
+                          <div
+                            key={booking.id}
+                            onClick={() => onBookingClick(booking)}
+                            className={`absolute top-2 h-12 rounded-md cursor-pointer transition-all ${getBookingColor(booking.status)} text-xs font-medium flex items-center px-2 shadow-sm hover:shadow-md hover:scale-105 z-20 border-2`}
+                            style={{
+                              left: `${left}px`,
+                              width: `${Math.max(width, 48)}px`
+                            }}
+                            title={`${booking.guest_name} - ${formatDate(booking.check_in_date)} to ${formatDate(booking.check_out_date)} (${booking.status})`}
+                          >
+                            <div className="truncate w-full">
+                              <div className="font-medium truncate">{booking.guest_name}</div>
+                              {width > 120 && (
+                                <div className="text-xs opacity-90 truncate">
+                                  {booking.check_in_date.split('-')[2]}/{booking.check_in_date.split('-')[1]} - {booking.check_out_date.split('-')[2]}/{booking.check_out_date.split('-')[1]}
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         );
                       })}
-                    </div>
-                    
-                    {/* Booking Bars */}
-                    {apartmentBookings.map((booking) => {
-                      const position = calculateBookingPosition(booking, timelineDates);
-                      if (!position) return null;
                       
-                      const { left, width } = position;
-                      
-                      return (
-                        <div
-                          key={booking.id}
-                          onClick={() => onBookingClick(booking)}
-                          className={`absolute top-2 h-12 rounded-md cursor-pointer transition-all ${getBookingColor(booking.status)} text-xs font-medium flex items-center px-2 shadow-sm hover:shadow-md hover:scale-105 z-20 border-2`}
-                          style={{
-                            left: `${left}px`,
-                            width: `${Math.max(width, 48)}px`
-                          }}
-                          title={`${booking.guest_name} - ${formatDate(booking.check_in_date)} to ${formatDate(booking.check_out_date)} (${booking.status})`}
-                        >
-                          <div className="truncate w-full">
-                            <div className="font-medium truncate">{booking.guest_name}</div>
-                            {width > 120 && (
-                              <div className="text-xs opacity-90 truncate">
-                                {booking.check_in_date.split('-')[2]}/{booking.check_in_date.split('-')[1]} - {booking.check_out_date.split('-')[2]}/{booking.check_out_date.split('-')[1]}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                    
-                    {/* Today Indicator Line */}
-                    {(() => {
-                      const todayIndex = timelineDates.findIndex(date => 
-                        date.toISOString().split('T')[0] === todayString
-                      );
-                      
-                      if (todayIndex >= 0) {
-                        const leftPosition = todayIndex * 48 + 24; // Center of the day
-                        return (
-                          <div
-                            className="absolute top-0 bottom-0 w-0.5 bg-red-500 z-40 pointer-events-none"
-                            style={{ left: `${leftPosition}px` }}
-                          />
+                      {/* Today Indicator Line */}
+                      {(() => {
+                        const todayIndex = timelineDates.findIndex(date => 
+                          date.toISOString().split('T')[0] === todayString
                         );
-                      }
-                      return null;
-                    })()}
+                        
+                        if (todayIndex >= 0) {
+                          const leftPosition = todayIndex * dayWidth + (dayWidth / 2); // Center of the day
+                          return (
+                            <div
+                              className="absolute top-0 bottom-0 w-0.5 bg-red-500 z-40 pointer-events-none"
+                              style={{ left: `${leftPosition}px` }}
+                            />
+                          );
+                        }
+                        return null;
+                      })()}
+                    </div>
                   </div>
                 </div>
               );
