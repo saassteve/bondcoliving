@@ -665,12 +665,75 @@ export class ICalService {
   }
 
   static async syncFeed(feedId: string): Promise<{ success: boolean; message: string }> {
-    // This would typically call an edge function to handle iCal parsing
-    // For now, return a mock response
-    return {
-      success: true,
-      message: 'iCal sync functionality requires server-side implementation'
+    try {
+      const { data, error } = await supabase.functions.invoke('ical-sync', {
+        body: { feedId },
+      });
+
+      if (error) {
+        console.error('Supabase Edge Function error:', error);
+        return { success: false, message: `Sync failed: ${error.message}` };
+      }
+
+      return data as { success: boolean; message: string };
+    } catch (error: any) {
+      console.error('Error invoking iCal sync function:', error);
+      return { success: false, message: `An unexpected error occurred during sync: ${error.message}` };
     }
+  }
+
+  static async generateICalFeed(apartmentId: string, apartmentTitle: string): Promise<string> {
+    const { data: availabilityData, error: availabilityError } = await supabase
+      .from('apartment_availability')
+      .select('*')
+      .eq('apartment_id', apartmentId)
+      .neq('status', 'available')
+      .order('date', { ascending: true });
+
+    if (availabilityError) throw availabilityError;
+
+    // Generate iCal header
+    let icalContent = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Bond Coliving//Calendar Export//EN',
+      'CALSCALE:GREGORIAN',
+      'METHOD:PUBLISH',
+      `X-WR-CALNAME:${apartmentTitle} - Bond Coliving`,
+      `X-WR-CALDESC:Availability calendar for ${apartmentTitle} at Bond Coliving`
+    ].join('\r\n') + '\r\n';
+
+    // Add events for each non-available date
+    for (const entry of availabilityData || []) {
+      const startDate = new Date(entry.date);
+      const endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + 1); // Next day (iCal end dates are exclusive)
+
+      const uid = `bond-${entry.apartment_id}-${entry.date}@stayatbond.com`;
+      const summary = `${apartmentTitle} - ${entry.status.toUpperCase()}`;
+      const description = entry.notes || `Status: ${entry.status}`;
+      const timestamp = new Date().toISOString().replace(/[-:]|\.\d{3}/g, '');
+      
+      // Format dates for iCal (YYYYMMDD)
+      const startDateStr = startDate.toISOString().split('T')[0].replace(/-/g, '');
+      const endDateStr = endDate.toISOString().split('T')[0].replace(/-/g, '');
+
+      icalContent += [
+        'BEGIN:VEVENT',
+        `UID:${uid}`,
+        `DTSTAMP:${timestamp}`,
+        `DTSTART;VALUE=DATE:${startDateStr}`,
+        `DTEND;VALUE=DATE:${endDateStr}`,
+        `SUMMARY:${summary}`,
+        `DESCRIPTION:${description}`,
+        `STATUS:${entry.status === 'booked' ? 'CONFIRMED' : 'TENTATIVE'}`,
+        `TRANSP:OPAQUE`,
+        'END:VEVENT'
+      ].join('\r\n') + '\r\n';
+    }
+
+    icalContent += 'END:VCALENDAR\r\n';
+    return icalContent;
   }
 }
 
