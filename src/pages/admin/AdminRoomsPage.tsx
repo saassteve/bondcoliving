@@ -438,33 +438,35 @@ const AdminRoomsPage: React.FC = () => {
                           </div>
                         </td>
                       </tr>
-                      {/* iCal URL Row */}
-                      {showICalUrls[apartment.id] && (
-                        <tr className="bg-blue-50">
-                          <td colSpan={6} className="px-6 py-4">
-                            <div className="flex items-center gap-3">
-                              <div className="flex items-center gap-2 text-blue-700">
-                                <ExternalLink className="w-4 h-4" />
-                                <span className="font-medium text-sm">Public iCal URL:</span>
-                              </div>
-                              <input
-                                type="text"
-                                value={icalService.getExportUrl(apartment.id)}
-                                readOnly
-                                className="flex-1 px-3 py-1 bg-white border border-blue-300 rounded text-sm font-mono"
-                              />
-                              <button
-                                onClick={() => copyICalUrl(apartment.id, apartment.title)}
-                                className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
-                              >
-                                Copy
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      )}
                     );
                   })}
+                  {/* iCal URL Rows */}
+                  {apartments.map((apartment) => (
+                    showICalUrls[apartment.id] && (
+                      <tr key={`ical-${apartment.id}`} className="bg-blue-50">
+                        <td colSpan={6} className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2 text-blue-700">
+                              <ExternalLink className="w-4 h-4" />
+                              <span className="font-medium text-sm">Public iCal URL:</span>
+                            </div>
+                            <input
+                              type="text"
+                              value={icalService.getExportUrl(apartment.id)}
+                              readOnly
+                              className="flex-1 px-3 py-1 bg-white border border-blue-300 rounded text-sm font-mono"
+                            />
+                            <button
+                              onClick={() => copyICalUrl(apartment.id, apartment.title)}
+                              className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+                            >
+                              Copy
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  ))}
                 </tbody>
               </table>
             </div>
