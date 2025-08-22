@@ -1,13 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { Helmet } from 'react-helmet-async';
-import { Plus, Edit, Trash2, Images, Settings, Calendar } from 'lucide-react';
-import { supabase, ApartmentService, apartmentService } from '../../lib/supabase';
-import ApartmentForm from '../../components/admin/ApartmentForm';
-import ImageManager from '../../components/admin/ImageManager';
-import FeatureManager from '../../components/admin/FeatureManager';
-import CalendarManager from '../../components/admin/CalendarManager';
+import { createClient } from '@supabase/supabase-js';
 
-interface Apartment {
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+// Types
+export interface Apartment {
   id: string;
   title: string;
   description: string;
@@ -21,9 +20,12 @@ interface Apartment {
   available_until?: string;
   created_at: string;
   updated_at: string;
+  slug?: string;
+  features?: ApartmentFeature[];
+  images?: ApartmentImage[];
 }
 
-interface ApartmentFeature {
+export interface ApartmentFeature {
   id: string;
   apartment_id: string;
   icon: string;
@@ -31,429 +33,611 @@ interface ApartmentFeature {
   sort_order: number;
 }
 
-const AdminRoomsPage: React.FC = () => {
-  const [apartments, setApartments] = useState<Apartment[]>([]);
-  const [features, setFeatures] = useState<ApartmentFeature[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [editingApartment, setEditingApartment] = useState<Apartment | null>(null);
-  const [showImageManager, setShowImageManager] = useState<string | null>(null);
-  const [showFeatureManager, setShowFeatureManager] = useState<string | null>(null);
-  const [showCalendarManager, setShowCalendarManager] = useState<{ id: string; title: string } | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+export interface ApartmentImage {
+  id: string;
+  apartment_id: string;
+  image_url: string;
+  is_featured: boolean;
+  sort_order: number;
+  created_at: string;
+}
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+export interface Application {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  arrival_date: string;
+  departure_date: string;
+  apartment_preference?: string;
+  about: string;
+  heard_from?: string;
+  status: 'pending' | 'approved' | 'declined';
+  created_at: string;
+  updated_at: string;
+}
 
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      await Promise.all([fetchApartments(), fetchFeatures()]);
-    } catch (err) {
-      console.error('Error fetching data:', err);
-      setError('Failed to load apartments data');
-    } finally {
-      setLoading(false);
-    }
-  };
+export interface Review {
+  id: string;
+  text: string;
+  author: string;
+  rating: number;
+  is_featured: boolean;
+  sort_order: number;
+  created_at: string;
+}
 
-  const fetchApartments = async () => {
-    try {
-      const data = await apartmentService.getAll();
-      setApartments(data);
-      
-      // If we're editing an apartment that no longer exists, reset the form
-      if (editingApartment && !data.find(apt => apt.id === editingApartment.id)) {
-        console.warn('Editing apartment no longer exists, resetting form');
-        resetForm();
-      }
-    } catch (error) {
-      console.error('Error fetching apartments:', error);
+export interface FeatureHighlight {
+  id: string;
+  icon: string;
+  title: string;
+  description: string;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface Booking {
+  id: string;
+  apartment_id: string;
+  guest_name: string;
+  guest_email?: string;
+  guest_phone?: string;
+  check_in_date: string;
+  check_out_date: string;
+  booking_source: 'direct' | 'airbnb' | 'booking.com' | 'vrbo' | 'other';
+  booking_reference?: string;
+  door_code?: string;
+  special_instructions?: string;
+  guest_count: number;
+  total_amount?: number;
+  status: 'confirmed' | 'checked_in' | 'checked_out' | 'cancelled';
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ApartmentAvailability {
+  id: string;
+  apartment_id: string;
+  date: string;
+  status: 'available' | 'booked' | 'blocked';
+  booking_reference?: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ApartmentICalFeed {
+  id: string;
+  apartment_id: string;
+  feed_name: string;
+  ical_url: string;
+  last_sync?: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+// Services
+export class ApartmentService {
+  static async getAll(): Promise<Apartment[]> {
+    const { data, error } = await supabase
+      .from('apartments')
+      .select('*')
+      .order('sort_order', { ascending: true });
+    
+    if (error) throw error;
+    return data || [];
+  }
+
+  static async getById(id: string): Promise<Apartment | null> {
+    const { data, error } = await supabase
+      .from('apartments')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (error) {
+      if (error.code === 'PGRST116') return null; // Not found
       throw error;
     }
-  };
+    return data;
+  }
 
-  const fetchFeatures = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('apartment_features')
+  static async getBySlug(slug: string): Promise<Apartment | null> {
+    // Since we don't have a slug column, we'll need to generate slugs and match
+    const apartments = await this.getAll();
+    return apartments.find(apt => this.generateSlug(apt.title) === slug) || null;
+  }
+
+  static generateSlug(title: string): string {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+
+  static async create(apartment: Omit<Apartment, 'id' | 'created_at' | 'updated_at'>): Promise<Apartment> {
+    const { data, error } = await supabase
+      .from('apartments')
+      .insert(apartment)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  }
+
+  static async update(id: string, apartment: Partial<Apartment>): Promise<Apartment> {
+    const { data, error } = await supabase
+      .from('apartments')
+      .update(apartment)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) {
+      if (error.code === 'PGRST116') {
+        throw new Error('Apartment not found');
+      }
+      throw error;
+    }
+    return data;
+  }
+
+  static async delete(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('apartments')
+      .delete()
+      .eq('id', id);
+    
+    if (error) throw error;
+  }
+
+  static async getFeatures(apartmentId: string): Promise<ApartmentFeature[]> {
+    const { data, error } = await supabase
+      .from('apartment_features')
+      .select('*')
+      .eq('apartment_id', apartmentId)
+      .order('sort_order', { ascending: true });
+    
+    if (error) throw error;
+    return data || [];
+  }
+
+  static async addFeature(feature: Omit<ApartmentFeature, 'id'>): Promise<ApartmentFeature> {
+    const { data, error } = await supabase
+      .from('apartment_features')
+      .insert(feature)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  }
+
+  static async deleteFeature(featureId: string): Promise<void> {
+    const { error } = await supabase
+      .from('apartment_features')
+      .delete()
+      .eq('id', featureId);
+    
+    if (error) throw error;
+  }
+
+  static async getImages(apartmentId: string): Promise<ApartmentImage[]> {
+    const { data, error } = await supabase
+      .from('apartment_images')
+      .select('*')
+      .eq('apartment_id', apartmentId)
+      .order('sort_order', { ascending: true });
+    
+    if (error) throw error;
+    return data || [];
+  }
+
+  static async addImage(image: Omit<ApartmentImage, 'id' | 'created_at'>): Promise<ApartmentImage> {
+    const { data, error } = await supabase
+      .from('apartment_images')
+      .insert(image)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  }
+
+  static async updateImage(imageId: string, updates: Partial<ApartmentImage>): Promise<ApartmentImage> {
+    const { data, error } = await supabase
+      .from('apartment_images')
+      .update(updates)
+      .eq('id', imageId)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  }
+
+  static async setFeaturedImage(apartmentId: string, imageId: string): Promise<void> {
+    // First, unset all featured images for this apartment
+    await supabase
+      .from('apartment_images')
+      .update({ is_featured: false })
+      .eq('apartment_id', apartmentId);
+
+    // Then set the selected image as featured
+    const { error } = await supabase
+      .from('apartment_images')
+      .update({ is_featured: true })
+      .eq('id', imageId);
+    
+    if (error) throw error;
+  }
+
+  static async deleteImage(imageId: string): Promise<void> {
+    const { error } = await supabase
+      .from('apartment_images')
+      .delete()
+      .eq('id', imageId);
+    
+    if (error) throw error;
+  }
+}
+
+export class ApplicationService {
+  static async getAll(): Promise<Application[]> {
+    const { data, error } = await supabase
+      .from('applications')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data || [];
+  }
+
+  static async create(application: Omit<Application, 'id' | 'created_at' | 'updated_at' | 'status'>): Promise<Application> {
+    const { data, error } = await supabase
+      .from('applications')
+      .insert({ ...application, status: 'pending' })
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  }
+
+  static async updateStatus(id: string, status: Application['status']): Promise<Application> {
+    const { data, error } = await supabase
+      .from('applications')
+      .update({ status })
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  }
+
+  static async delete(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('applications')
+      .delete()
+      .eq('id', id);
+    
+    if (error) throw error;
+  }
+}
+
+export class ReviewService {
+  static async getFeatured(): Promise<Review[]> {
+    const { data, error } = await supabase
+      .from('reviews')
+      .select('*')
+      .eq('is_featured', true)
+      .order('sort_order', { ascending: true });
+    
+    if (error) throw error;
+    return data || [];
+  }
+}
+
+export class FeatureHighlightService {
+  static async getActive(): Promise<FeatureHighlight[]> {
+    const { data, error } = await supabase
+      .from('feature_highlights')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true });
+    
+    if (error) throw error;
+    return data || [];
+  }
+}
+
+export class BookingService {
+  static async getAll(): Promise<Booking[]> {
+    const { data, error } = await supabase
+      .from('bookings')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data || [];
+  }
+
+  static async create(booking: Omit<Booking, 'id' | 'created_at' | 'updated_at'>): Promise<Booking> {
+    const { data, error } = await supabase
+      .from('bookings')
+      .insert(booking)
+      .select()
+      .single();
+    
+    if (error) throw error;
+
+    // Update apartment availability for the booking period
+    await this.updateAvailabilityForBooking(booking.apartment_id, booking.check_in_date, booking.check_out_date, 'booked', `Booking: ${booking.guest_name}`);
+    
+    return data;
+  }
+
+  static async update(id: string, booking: Partial<Booking>): Promise<Booking> {
+    const { data, error } = await supabase
+      .from('bookings')
+      .update(booking)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  }
+
+  static async delete(id: string): Promise<void> {
+    // Get booking details before deletion to update availability
+    const { data: booking } = await supabase
+      .from('bookings')
+      .select('apartment_id, check_in_date, check_out_date')
+      .eq('id', id)
+      .single();
+
+    const { error } = await supabase
+      .from('bookings')
+      .delete()
+      .eq('id', id);
+    
+    if (error) throw error;
+
+    // Clear availability for the booking period
+    if (booking) {
+      await this.updateAvailabilityForBooking(booking.apartment_id, booking.check_in_date, booking.check_out_date, 'available');
+    }
+  }
+
+  static async getBookingsWithAvailability(year: number, month: number): Promise<{ bookings: Booking[], availability: Record<string, any[]> }> {
+    const startDate = new Date(year, month, 1).toISOString().split('T')[0];
+    const endDate = new Date(year, month + 1, 0).toISOString().split('T')[0];
+
+    const [bookingsResult, availabilityResult] = await Promise.all([
+      supabase
+        .from('bookings')
         .select('*')
-        .order('sort_order', { ascending: true });
+        .gte('check_in_date', startDate)
+        .lte('check_out_date', endDate),
+      supabase
+        .from('apartment_availability')
+        .select('*')
+        .gte('date', startDate)
+        .lte('date', endDate)
+    ]);
 
+    if (bookingsResult.error) throw bookingsResult.error;
+    if (availabilityResult.error) throw availabilityResult.error;
+
+    // Group availability by apartment_id
+    const availability: Record<string, any[]> = {};
+    (availabilityResult.data || []).forEach(avail => {
+      if (!availability[avail.apartment_id]) {
+        availability[avail.apartment_id] = [];
+      }
+      availability[avail.apartment_id].push(avail);
+    });
+
+    return {
+      bookings: bookingsResult.data || [],
+      availability
+    };
+  }
+
+  private static async updateAvailabilityForBooking(
+    apartmentId: string, 
+    checkInDate: string, 
+    checkOutDate: string, 
+    status: 'available' | 'booked' | 'blocked',
+    notes?: string
+  ): Promise<void> {
+    const dates = [];
+    const current = new Date(checkInDate);
+    const end = new Date(checkOutDate);
+    
+    while (current < end) {
+      dates.push(current.toISOString().split('T')[0]);
+      current.setDate(current.getDate() + 1);
+    }
+
+    if (status === 'available') {
+      // Remove availability records (set back to default available)
+      await supabase
+        .from('apartment_availability')
+        .delete()
+        .eq('apartment_id', apartmentId)
+        .in('date', dates);
+    } else {
+      // Create or update availability records
+      const records = dates.map(date => ({
+        apartment_id: apartmentId,
+        date,
+        status,
+        notes
+      }));
+
+      await supabase
+        .from('apartment_availability')
+        .upsert(records, { onConflict: 'apartment_id,date' });
+    }
+  }
+}
+
+export class AvailabilityService {
+  static async getCalendar(apartmentId: string, startDate: string, endDate: string): Promise<ApartmentAvailability[]> {
+    const { data, error } = await supabase
+      .from('apartment_availability')
+      .select('*')
+      .eq('apartment_id', apartmentId)
+      .gte('date', startDate)
+      .lte('date', endDate)
+      .order('date', { ascending: true });
+    
+    if (error) throw error;
+    return data || [];
+  }
+
+  static async setBulkAvailability(
+    apartmentId: string, 
+    dates: string[], 
+    status: 'available' | 'booked' | 'blocked',
+    notes?: string
+  ): Promise<void> {
+    if (status === 'available') {
+      // Remove availability records for these dates
+      const { error } = await supabase
+        .from('apartment_availability')
+        .delete()
+        .eq('apartment_id', apartmentId)
+        .in('date', dates);
+      
       if (error) throw error;
-      setFeatures(data || []);
+    } else {
+      // Create or update availability records
+      const records = dates.map(date => ({
+        apartment_id: apartmentId,
+        date,
+        status,
+        notes
+      }));
+
+      const { error } = await supabase
+        .from('apartment_availability')
+        .upsert(records, { onConflict: 'apartment_id,date' });
+      
+      if (error) throw error;
+    }
+  }
+
+  static async checkAvailability(apartmentId: string, startDate: string, endDate: string): Promise<boolean> {
+    const { data, error } = await supabase
+      .from('apartment_availability')
+      .select('date, status')
+      .eq('apartment_id', apartmentId)
+      .gte('date', startDate)
+      .lt('date', endDate)
+      .neq('status', 'available');
+    
+    if (error) throw error;
+    
+    // If there are any non-available dates in the range, apartment is not available
+    return (data || []).length === 0;
+  }
+}
+
+export class ICalService {
+  static async getFeeds(apartmentId: string): Promise<ApartmentICalFeed[]> {
+    const { data, error } = await supabase
+      .from('apartment_ical_feeds')
+      .select('*')
+      .eq('apartment_id', apartmentId)
+      .eq('is_active', true)
+      .order('created_at', { ascending: true });
+    
+    if (error) throw error;
+    return data || [];
+  }
+
+  static async addFeed(feed: Omit<ApartmentICalFeed, 'id' | 'created_at'>): Promise<ApartmentICalFeed> {
+    const { data, error } = await supabase
+      .from('apartment_ical_feeds')
+      .insert(feed)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  }
+
+  static async deleteFeed(feedId: string): Promise<void> {
+    const { error } = await supabase
+      .from('apartment_ical_feeds')
+      .delete()
+      .eq('id', feedId);
+    
+    if (error) throw error;
+  }
+
+  static async syncFeed(feedId: string): Promise<{ success: boolean; message: string; stats?: any }> {
+    try {
+      const { data, error } = await supabase.functions.invoke('ical-sync', {
+        body: { feedId, apartmentId: '' }, // apartmentId will be fetched from the feed record
+      });
+
+      if (error) {
+        console.error('Supabase Edge Function error:', error);
+        return { success: false, message: `Sync failed: ${error.message}` };
+      }
+
+      return data as { success: boolean; message: string; stats?: any };
+
+    } catch (error: any) {
+      console.error('Error invoking iCal sync function:', error);
+      return { success: false, message: `An unexpected error occurred during sync: ${error.message}` };
+    }
+  }
+
+  static getExportUrl(apartmentId: string): string {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    return `${supabaseUrl}/functions/v1/ical-export/${apartmentId}.ics`;
+  }
+
+  static async downloadExport(apartmentId: string, apartmentTitle: string): Promise<void> {
+    try {
+      const exportUrl = this.getExportUrl(apartmentId);
+      const response = await fetch(exportUrl);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch iCal: ${response.statusText}`);
+      }
+      
+      const icalContent = await response.text();
+      const blob = new Blob([icalContent], { type: 'text/calendar' });
+      const url = URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${apartmentTitle.replace(/[^a-zA-Z0-9]/g, '-')}-availability.ics`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Error fetching features:', error);
+      console.error('Error downloading iCal export:', error);
       throw error;
     }
-  };
-
-  const handleSubmit = async (formData: any) => {
-    setIsSubmitting(true);
-    try {
-      const apartmentData = {
-        ...formData,
-        sort_order: editingApartment?.sort_order ?? apartments.length,
-      };
-
-      if (editingApartment) {
-        // Update existing apartment
-        const updatedApartment = await apartmentService.update(editingApartment.id, apartmentData);
-        
-        // Update local state immediately
-        setApartments(prev => prev.map(apt => 
-          apt.id === editingApartment.id ? updatedApartment : apt
-        ));
-      } else {
-        // Create new apartment
-        const newApartment = await apartmentService.create(apartmentData);
-
-        // Add the main image to apartment_images table
-        if (formData.image_url) {
-          await supabase
-            .from('apartment_images')
-            .insert({
-              apartment_id: newApartment.id,
-              image_url: formData.image_url,
-              is_featured: true,
-              sort_order: 0
-            });
-        }
-        
-        // Add to local state immediately
-        setApartments(prev => [...prev, newApartment]);
-      }
-
-      resetForm();
-      
-      // Show success message
-      const action = editingApartment ? 'updated' : 'created';
-      alert(`Apartment ${action} successfully!`);
-    } catch (error) {
-      console.error('Error saving apartment:', error);
-      const action = editingApartment ? 'update' : 'create';
-      
-      // Handle specific error cases
-      if (error instanceof Error && (error.message.includes('not found') || error.message.includes('Invalid apartment ID'))) {
-        alert(`Apartment not found. It may have been deleted by another user. Refreshing the list...`);
-        await fetchData();
-        resetForm();
-      } else {
-        alert(`Failed to ${action} apartment: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleEdit = (apartment: Apartment) => {
-    setEditingApartment(apartment);
-    setShowForm(true);
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this apartment? This will also delete all associated images and features.')) return;
-
-    try {
-      await apartmentService.delete(id);
-      await fetchApartments();
-    } catch (error) {
-      console.error('Error deleting apartment:', error);
-      alert('Failed to delete apartment');
-    }
-  };
-
-  const resetForm = () => {
-    setEditingApartment(null);
-    setShowForm(false);
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'available':
-        return 'bg-green-100 text-green-800';
-      case 'occupied':
-        return 'bg-red-100 text-red-800';
-      case 'maintenance':
-        return 'bg-yellow-100 text-yellow-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getApartmentFeatures = (apartmentId: string) => {
-    return features.filter(feature => feature.apartment_id === apartmentId);
-  };
-
-  if (loading) {
-    return (
-      <>
-        <Helmet>
-          <title>Manage Apartments - Bond Admin</title>
-        </Helmet>
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading apartments...</p>
-          </div>
-        </div>
-      </>
-    );
   }
+}
 
-  if (error) {
-    return (
-      <>
-        <Helmet>
-          <title>Manage Apartments - Bond Admin</title>
-        </Helmet>
-        <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Manage Apartments</h1>
-              <p className="text-gray-600">Add, edit, and organize your apartment listings</p>
-            </div>
-            <button
-              onClick={() => setShowForm(true)}
-              className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Add Apartment
-            </button>
-          </div>
-          
-          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-            <div className="flex items-center">
-              <div className="text-red-600 mr-3">⚠️</div>
-              <div>
-                <h3 className="text-red-800 font-medium">Error Loading Data</h3>
-                <p className="text-red-700 mt-1">{error}</p>
-                <button
-                  onClick={fetchData}
-                  className="mt-3 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors"
-                >
-                  Try Again
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </>
-    );
-  }
-
-  return (
-    <>
-      <Helmet>
-        <title>Manage Apartments - Bond Admin</title>
-      </Helmet>
-      
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Manage Apartments</h1>
-            <p className="text-gray-600">Add, edit, and organize your apartment listings</p>
-          </div>
-          <button
-            onClick={() => setShowForm(true)}
-            className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            Add Apartment
-          </button>
-        </div>
-
-        <div className="bg-white rounded-lg shadow">
-          {apartments.length === 0 ? (
-            <div className="p-8 text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-                <Plus className="w-8 h-8 text-gray-400" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No apartments yet</h3>
-              <p className="text-gray-700 mb-4">Get started by adding your first apartment listing.</p>
-              <button
-                onClick={() => setShowForm(true)}
-                className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
-              >
-                Add Apartment
-              </button>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full border border-gray-200">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Apartment
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Details
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Availability
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Features
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-300">
-                  {apartments.map((apartment) => {
-                    const apartmentFeatures = getApartmentFeatures(apartment.id);
-                    
-                    return (
-                      <tr key={apartment.id} className="hover:bg-gray-50 border-b border-gray-200">
-                        <td className="px-6 py-4">
-                          <div className="flex items-center">
-                            <div className="flex-shrink-0 h-16 w-16">
-                              <img
-                                className="h-16 w-16 rounded-lg object-cover"
-                                src={apartment.image_url}
-                                alt={apartment.title}
-                              />
-                            </div>
-                            <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900">
-                                {apartment.title}
-                              </div>
-                              <div className="text-sm text-gray-600 line-clamp-2">
-                                {apartment.description}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="text-sm text-gray-900">
-                            <div>€{apartment.price.toLocaleString()}/month</div>
-                            <div className="text-gray-600">{apartment.size} • {apartment.capacity}</div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(apartment.status)}`}>
-                            {apartment.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="text-sm text-gray-900">
-                            {apartment.available_from && (
-                              <div className="font-medium">From: {new Date(apartment.available_from).toLocaleDateString()}</div>
-                            )}
-                            {apartment.available_until && (
-                              <div className="text-gray-600">Until: {new Date(apartment.available_until).toLocaleDateString()}</div>
-                            )}
-                            {!apartment.available_until && apartment.available_from && (
-                              <div className="text-gray-600">Ongoing</div>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex flex-wrap gap-1">
-                            {apartmentFeatures.slice(0, 3).map((feature) => (
-                              <span
-                                key={feature.id}
-                                className="inline-flex items-center px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded"
-                              >
-                                {feature.icon} {feature.label}
-                              </span>
-                            ))}
-                            {apartmentFeatures.length > 3 && (
-                              <span className="text-xs text-gray-500">
-                                +{apartmentFeatures.length - 3} more
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-right text-sm font-medium">
-                          <div className="flex items-center justify-end gap-2">
-                            <button
-                              onClick={() => setShowImageManager(apartment.id)}
-                              className="text-purple-600 hover:text-purple-900 p-1 font-medium"
-                              title="Manage images"
-                            >
-                              <Images className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => setShowFeatureManager(apartment.id)}
-                              className="text-blue-600 hover:text-blue-900 p-1 font-medium"
-                              title="Manage features"
-                            >
-                              <Settings className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => setShowCalendarManager({ id: apartment.id, title: apartment.title })}
-                              className="text-green-600 hover:text-green-900 p-1 font-medium"
-                              title="Manage calendar"
-                            >
-                              <Calendar className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleEdit(apartment)}
-                              className="text-indigo-600 hover:text-indigo-900 p-1 font-medium"
-                              title="Edit apartment"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDelete(apartment.id)}
-                              className="text-red-600 hover:text-red-900 p-1 font-medium"
-                              title="Delete apartment"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-
-        {/* Modals */}
-        {showForm && (
-          <ApartmentForm
-            apartment={editingApartment}
-            onSubmit={handleSubmit}
-            onCancel={resetForm}
-            isSubmitting={isSubmitting}
-          />
-        )}
-
-        {showImageManager && (
-          <ImageManager
-            apartmentId={showImageManager}
-            onClose={() => setShowImageManager(null)}
-          />
-        )}
-
-        {showFeatureManager && (
-          <FeatureManager
-            apartmentId={showFeatureManager}
-            onClose={() => setShowFeatureManager(null)}
-          />
-        )}
-
-        {showCalendarManager && (
-          <CalendarManager
-            apartmentId={showCalendarManager.id}
-            apartmentTitle={showCalendarManager.title}
-            onClose={() => setShowCalendarManager(null)}
-          />
-        )}
-      </div>
-    </>
-  );
-};
-
-export default AdminRoomsPage;
+// Export service instances
+export const apartmentService = ApartmentService;
+export const applicationService = ApplicationService;
+export const reviewService = ReviewService;
+export const featureHighlightService = FeatureHighlightService;
+export const bookingService = BookingService;
+export const availabilityService = AvailabilityService;
+export const icalService = ICalService;
