@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Plus, Edit, Trash2, Images, Settings, Calendar, Link, Copy } from 'lucide-react';
+import { Plus, Edit, Trash2, Images, Settings, Calendar, Link, Copy, ExternalLink } from 'lucide-react';
 import { supabase, ApartmentService, apartmentService } from '../../lib/supabase';
 import { icalService } from '../../lib/supabase';
 import ApartmentForm from '../../components/admin/ApartmentForm';
@@ -43,6 +43,7 @@ const AdminRoomsPage: React.FC = () => {
   const [showCalendarManager, setShowCalendarManager] = useState<{ id: string; title: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showICalUrls, setShowICalUrls] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     fetchData();
@@ -187,6 +188,23 @@ const AdminRoomsPage: React.FC = () => {
 
   const getApartmentFeatures = (apartmentId: string) => {
     return features.filter(feature => feature.apartment_id === apartmentId);
+  };
+
+  const copyICalUrl = async (apartmentId: string, apartmentTitle: string) => {
+    const url = icalService.getExportUrl(apartmentId);
+    try {
+      await navigator.clipboard.writeText(url);
+      alert(`iCal URL copied for ${apartmentTitle}!\n\nShare this URL with booking platforms to sync your availability.`);
+      
+      // Toggle URL display
+      setShowICalUrls(prev => ({
+        ...prev,
+        [apartmentId]: !prev[apartmentId]
+      }));
+    } catch (error) {
+      console.error('Failed to copy URL:', error);
+      alert('Failed to copy URL to clipboard');
+    }
   };
 
   if (loading) {
