@@ -666,8 +666,19 @@ export class ICalService {
 
   static async syncFeed(feedId: string): Promise<{ success: boolean; message: string }> {
     try {
+      // First get the apartment_id from the feed
+      const { data: feedData, error: feedError } = await supabase
+        .from('apartment_ical_feeds')
+        .select('apartment_id')
+        .eq('id', feedId)
+        .single();
+
+      if (feedError || !feedData) {
+        return { success: false, message: 'Feed not found' };
+      }
+
       const { data, error } = await supabase.functions.invoke('ical-sync', {
-        body: { feedId },
+        body: { feedId, apartmentId: feedData.apartment_id },
       });
 
       if (error) {

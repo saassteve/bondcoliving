@@ -92,7 +92,7 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ apartmentId, apartmen
       const result = await icalService.syncFeed(feedId);
       if (result.success) {
         // Show detailed success message
-        const message = result.stats 
+        const message = (result as any).stats 
           ? `Sync successful!\n\nFeed: ${result.stats.feedName}\nEvents processed: ${result.stats.eventsProcessed}\nDates updated: ${result.stats.datesUpdated}`
           : result.message;
         alert(message);
