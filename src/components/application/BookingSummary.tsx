@@ -72,17 +72,6 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
             <span className="font-medium">{formData.apartment_preference}</span>
           </div>
         )}
-        {formData.about && (
-          <div className="border-t border-[#C5C5B5]/20 pt-3">
-            <div className="flex items-start gap-2">
-              <MessageSquare className="w-4 h-4 text-[#C5C5B5] mt-0.5 flex-shrink-0" />
-              <div>
-                <span className="font-medium block mb-1">About:</span>
-                <p className="text-sm text-[#C5C5B5]/70 leading-relaxed">{formData.about}</p>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

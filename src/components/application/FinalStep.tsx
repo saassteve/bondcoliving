@@ -16,24 +16,6 @@ interface FinalStepProps {
   onInputChange: (field: string, value: string) => void;
   calculateStayDuration: () => string;
 }
-
-const FinalStep: React.FC<FinalStepProps> = ({
-  formData,
-  onInputChange,
-  calculateStayDuration
-}) => {
-  return (
-    <div className="space-y-6">
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold mb-4">
-          <span className="bg-gradient-to-r from-[#C5C5B5] via-white to-[#C5C5B5] bg-clip-text text-transparent">
-            Almost Done
-          </span>
-        </h2>
-        <p className="text-[#C5C5B5]/80">Just a few more details</p>
-      </div>
-
-      <div className="relative group">
         <label htmlFor="heard_from" className="block text-sm uppercase tracking-wide mb-3 text-[#C5C5B5]/80">
           How did you hear about us?
         </label>

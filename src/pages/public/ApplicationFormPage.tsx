@@ -25,7 +25,6 @@ const ApplicationFormPage: React.FC = () => {
     departure_date: '',
     apartment_preference: '',
     heard_from: '',
-    about: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -127,7 +126,7 @@ const ApplicationFormPage: React.FC = () => {
         departure_date: formData.departure_date,
         apartment_preference: formData.apartment_preference || null,
         heard_from: formData.heard_from || null,
-        about: formData.about || `Application for stay from ${formData.arrival_date} to ${formData.departure_date}.`
+        about: `Application for stay from ${formData.arrival_date} to ${formData.departure_date}. Apartment preference: ${formData.apartment_preference || 'No preference'}.`
       };
       
       await applicationService.create(applicationData);
