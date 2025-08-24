@@ -220,7 +220,7 @@ const ApplicationFormPage: React.FC = () => {
       
       const applicationData = {
         ...formData,
-        about: 'Booking submitted via website form'
+        about: `Booking submitted via website form. ${formData.special_requests ? `Special requests: ${formData.special_requests}` : ''} ${formData.flexible_dates === 'true' ? 'Flexible with dates. ' : ''}${formData.apartment_switching === 'true' ? 'Open to apartment switching. ' : ''}`.trim()
       };
       
       await applicationService.create(applicationData);
