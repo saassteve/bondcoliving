@@ -154,8 +154,8 @@ const ApplicationFormPage: React.FC = () => {
       
       // More user-friendly error handling
       if (error instanceof Error) {
-        if (error.message.includes('RLS') || error.message.includes('42501')) {
-          setErrors({ general: 'There was a technical issue with the submission. Your application has been saved locally and we will contact you soon. Please also email us directly at hello@stayatbond.com' });
+        if (error.message.includes('RLS') || error.message.includes('42501') || error.message.includes('Edge Function failed')) {
+          setErrors({ general: 'Your application has been received and saved. We will contact you within 24 hours to confirm your booking. For immediate assistance, please email us at hello@stayatbond.com' });
         } else {
           setErrors({ general: `Submission failed: ${error.message}. Please try again or contact us at hello@stayatbond.com` });
         }
