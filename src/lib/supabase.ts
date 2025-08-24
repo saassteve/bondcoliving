@@ -666,12 +666,6 @@ export class AvailabilityService {
     periods.push(currentPeriod);
     return periods;
   }
-    
-    if (error) throw error;
-    
-    // If there are any non-available dates in the range, apartment is not available
-    return (data || []).length === 0;
-  }
 }
 
 export class ICalService {
