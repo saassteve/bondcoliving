@@ -1,11 +1,10 @@
 import React from 'react';
-import { Search, CheckCircle } from 'lucide-react';
+import { Search } from 'lucide-react';
 import BookingSummary from './BookingSummary';
 
 interface FinalStepProps {
   formData: {
     heard_from: string;
-    about: string;
     name: string;
     email: string;
     phone: string;
@@ -16,6 +15,24 @@ interface FinalStepProps {
   onInputChange: (field: string, value: string) => void;
   calculateStayDuration: () => string;
 }
+
+const FinalStep: React.FC<FinalStepProps> = ({
+  formData,
+  onInputChange,
+  calculateStayDuration,
+}) => {
+  return (
+    <div className="space-y-6">
+      <div className="text-center mb-8">
+        <h2 className="text-3xl font-bold mb-4">
+          <span className="bg-gradient-to-r from-[#C5C5B5] via-white to-[#C5C5B5] bg-clip-text text-transparent">
+            Almost Done
+          </span>
+        </h2>
+        <p className="text-[#C5C5B5]/80">Just one more quick question</p>
+      </div>
+
+      <div className="relative group">
         <label htmlFor="heard_from" className="block text-sm uppercase tracking-wide mb-3 text-[#C5C5B5]/80">
           How did you hear about us?
         </label>
@@ -40,23 +57,6 @@ interface FinalStepProps {
         </div>
       </div>
 
-      <div className="relative group">
-        <label htmlFor="about" className="block text-sm uppercase tracking-wide mb-3 text-[#C5C5B5]/80">
-          Tell us about yourself
-        </label>
-        <textarea
-          id="about"
-          value={formData.about}
-          onChange={(e) => onInputChange('about', e.target.value)}
-          rows={4}
-          className="w-full px-4 py-4 bg-[#C5C5B5]/5 border-2 border-[#C5C5B5]/20 rounded-2xl text-[#C5C5B5] placeholder-[#C5C5B5]/40 focus:outline-none focus:border-[#C5C5B5] transition-all resize-none"
-          placeholder="Tell us about your work, why you're interested in Bond, and what you're looking for in your stay..."
-          required
-        />
-        <p className="text-xs text-[#C5C5B5]/60 mt-2">
-          Help us understand what you're looking for so we can provide the best experience.
-        </p>
-      </div>
       <BookingSummary
         formData={formData}
         calculateStayDuration={calculateStayDuration}
