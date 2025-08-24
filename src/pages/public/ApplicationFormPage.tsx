@@ -55,6 +55,7 @@ const ApplicationFormPage: React.FC = () => {
       setApartmentAvailability(defaultAvailability);
     }
   }, [formData.arrival_date, formData.departure_date, apartments]);
+  
   const fetchApartments = async () => {
     try {
       const data = await apartmentService.getAll();
@@ -160,6 +161,7 @@ const ApplicationFormPage: React.FC = () => {
       setCheckingAvailability(false);
     }
   };
+  
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
@@ -220,7 +222,7 @@ const ApplicationFormPage: React.FC = () => {
       
       const applicationData = {
         ...formData,
-        about: `Booking submitted via website form. ${formData.special_requests ? `Special requests: ${formData.special_requests}` : ''} ${formData.flexible_dates === 'true' ? 'Flexible with dates. ' : ''}${formData.apartment_switching === 'true' ? 'Open to apartment switching. ' : ''}`.trim()
+        about: 'Booking submitted via website form'
       };
       
       await applicationService.create(applicationData);
@@ -584,7 +586,7 @@ const ApplicationFormPage: React.FC = () => {
                             <option key={data.apartment.id} value={data.apartment.title} className="bg-[#1E1F1E] text-yellow-400">
                               ⚠ {data.apartment.title} - €{data.apartment.price}/month (Partially Available - {data.availableDays} days)
                             </option>
-                          )}
+                          ))}
                           <option value="flexible" className="bg-[#1E1F1E] text-blue-400">
                             🔄 I'm flexible - help me find the best combination
                           </option>
