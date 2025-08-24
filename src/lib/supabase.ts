@@ -1,132 +1,185 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Debug logging for environment variables
+console.log('Supabase initialization:', {
+  url: supabaseUrl ? `${supabaseUrl.substring(0, 20)}...` : 'MISSING',
+  anonKey: supabaseAnonKey ? `${supabaseAnonKey.substring(0, 20)}...` : 'MISSING'
+});
 
-// Types
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase environment variables')
+}
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
+// Database Types
 export interface Apartment {
-  id: string;
-  title: string;
-  description: string;
-  price: number;
-  size: string;
-  capacity: string;
-  image_url: string;
-  status: 'available' | 'occupied' | 'maintenance';
-  sort_order: number;
-  available_from?: string;
-  available_until?: string;
-  created_at: string;
-  updated_at: string;
-  slug?: string;
-  features?: ApartmentFeature[];
-  images?: ApartmentImage[];
+  id: string
+  slug?: string
+  title: string
+  description: string
+  price: number
+  size: string
+  capacity: string
+  image_url: string
+  status?: 'available' | 'occupied' | 'maintenance'
+  sort_order?: number
+  available_from?: string
+  available_until?: string
+  created_at?: string
+  updated_at?: string
 }
 
 export interface ApartmentFeature {
-  id: string;
-  apartment_id: string;
-  icon: string;
-  label: string;
-  sort_order: number;
+  id: string
+  apartment_id?: string
+  icon: string
+  label: string
+  sort_order?: number
 }
 
 export interface ApartmentImage {
-  id: string;
-  apartment_id: string;
-  image_url: string;
-  is_featured: boolean;
-  sort_order: number;
-  created_at: string;
-}
-
-export interface Application {
-  id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  arrival_date: string;
-  departure_date: string;
-  apartment_preference?: string;
-  about: string;
-  heard_from?: string;
-  status: 'pending' | 'approved' | 'declined';
-  created_at: string;
-  updated_at: string;
+  id: string
+  apartment_id: string
+  image_url: string
+  is_featured?: boolean
+  sort_order?: number
+  created_at?: string
 }
 
 export interface Review {
-  id: string;
-  text: string;
-  author: string;
-  rating: number;
-  is_featured: boolean;
-  sort_order: number;
-  created_at: string;
+  id: string
+  text: string
+  author: string
+  rating?: number
+  is_featured?: boolean
+  sort_order?: number
+  created_at?: string
 }
 
 export interface FeatureHighlight {
-  id: string;
-  icon: string;
-  title: string;
-  description: string;
-  sort_order: number;
-  is_active: boolean;
-  created_at: string;
+  id: string
+  icon: string
+  title: string
+  description: string
+  sort_order?: number
+  is_active?: boolean
+  created_at?: string
 }
 
-export interface Booking {
-  id: string;
-  apartment_id: string;
-  guest_name: string;
-  guest_email?: string;
-  guest_phone?: string;
-  check_in_date: string;
-  check_out_date: string;
-  booking_source: 'direct' | 'airbnb' | 'booking.com' | 'vrbo' | 'other';
-  booking_reference?: string;
-  door_code?: string;
-  special_instructions?: string;
-  guest_count: number;
-  total_amount?: number;
-  status: 'confirmed' | 'checked_in' | 'checked_out' | 'cancelled';
-  created_at: string;
-  updated_at: string;
+export interface Application {
+  id: string
+  name: string
+  email: string
+  phone?: string
+  arrival_date: string
+  departure_date: string
+  apartment_preference?: string
+  about: string
+  heard_from?: string
+  status?: 'pending' | 'approved' | 'declined'
+  created_at?: string
+  updated_at?: string
+}
+
+export interface SiteSetting {
+  id: string
+  key: string
+  value: any
+  updated_at?: string
+}
+
+export interface AdminUser {
+  id: string
+  email: string
+  password_hash: string
+  role?: 'admin' | 'super_admin'
+  is_active?: boolean
+  created_at?: string
+  last_login?: string
 }
 
 export interface ApartmentAvailability {
-  id: string;
-  apartment_id: string;
-  date: string;
-  status: 'available' | 'booked' | 'blocked';
-  booking_reference?: string;
-  notes?: string;
-  created_at: string;
-  updated_at: string;
+  id: string
+  apartment_id: string
+  date: string
+  status: 'available' | 'booked' | 'blocked'
+  booking_reference?: string
+  notes?: string
+  created_at?: string
+  updated_at?: string
 }
 
 export interface ApartmentICalFeed {
-  id: string;
-  apartment_id: string;
-  feed_name: string;
-  ical_url: string;
-  last_sync?: string;
-  is_active: boolean;
-  created_at: string;
+  id: string
+  apartment_id: string
+  feed_name: string
+  ical_url: string
+  last_sync?: string
+  is_active?: boolean
+  created_at?: string
 }
 
-// Services
+// Service Classes
 export class ApartmentService {
+  // Generate URL-friendly slug from apartment title
+  static generateSlug(title: string): string {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/-+/g, '-') // Replace multiple hyphens with single
+      .trim();
+  }
+
+  // Find apartment by slug
+  static async getBySlug(slug: string): Promise<Apartment | null> {
+    const { data, error } = await supabase
+      .from('apartments')
+      .select('*')
+      .ilike('title', `%${slug.replace(/-/g, ' ')}%`)
+      .maybeSingle()
+    
+    if (error) throw error
+    return data
+  }
+
   static async getAll(): Promise<Apartment[]> {
     const { data, error } = await supabase
       .from('apartments')
       .select('*')
-      .order('sort_order', { ascending: true });
+      .order('sort_order', { ascending: true })
     
-    if (error) throw error;
-    return data || [];
+    if (error) throw error
+    
+    // Add slugs to apartments and check availability
+    const apartmentsWithSlugs = await Promise.all((data || []).map(async (apartment) => {
+      // Check if apartment is actually available based on calendar
+      let actualStatus = apartment.status;
+      
+      try {
+        const today = new Date().toISOString().split('T')[0];
+        const isAvailable = await availabilityService.checkAvailability(apartment.id, today, today);
+        
+        // If calendar shows it's not available, override status
+        if (!isAvailable && apartment.status === 'available') {
+          actualStatus = 'occupied';
+        }
+      } catch (error) {
+        console.warn('Could not check availability for apartment:', apartment.id);
+      }
+      
+      return {
+        ...apartment,
+        status: actualStatus,
+        slug: this.generateSlug(apartment.title)
+      };
+    }));
+    
+    return apartmentsWithSlugs;
   }
 
   static async getById(id: string): Promise<Apartment | null> {
@@ -134,26 +187,10 @@ export class ApartmentService {
       .from('apartments')
       .select('*')
       .eq('id', id)
-      .single();
+      .maybeSingle()
     
-    if (error) {
-      if (error.code === 'PGRST116') return null; // Not found
-      throw error;
-    }
-    return data;
-  }
-
-  static async getBySlug(slug: string): Promise<Apartment | null> {
-    // Since we don't have a slug column, we'll need to generate slugs and match
-    const apartments = await this.getAll();
-    return apartments.find(apt => this.generateSlug(apt.title) === slug) || null;
-  }
-
-  static generateSlug(title: string): string {
-    return title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
+    if (error) throw error
+    return data
   }
 
   static async create(apartment: Omit<Apartment, 'id' | 'created_at' | 'updated_at'>): Promise<Apartment> {
@@ -161,36 +198,75 @@ export class ApartmentService {
       .from('apartments')
       .insert(apartment)
       .select()
-      .single();
+      .single()
     
-    if (error) throw error;
-    return data;
+    if (error) throw error
+    return data
   }
 
   static async update(id: string, apartment: Partial<Apartment>): Promise<Apartment> {
+    // First check if the apartment exists
+    const existingApartment = await this.getById(id);
+    if (!existingApartment) {
+      throw new Error(`Apartment with ID ${id} not found`);
+    }
+    
+    // Add updated_at timestamp
+    const updateData = {
+      ...apartment,
+      updated_at: new Date().toISOString()
+    };
+    
     const { data, error } = await supabase
       .from('apartments')
-      .update(apartment)
+      .update(updateData)
       .eq('id', id)
       .select()
-      .single();
+      .maybeSingle()
     
     if (error) {
+      console.error('Error updating apartment:', error);
       if (error.code === 'PGRST116') {
-        throw new Error('Apartment not found');
+        throw new Error(`Apartment with ID ${id} not found`);
       }
-      throw error;
+      throw new Error(`Failed to update apartment: ${error.message}`);
     }
-    return data;
+    
+    if (!data) {
+      throw new Error(`Apartment with ID ${id} not found`);
+    }
+    
+    // If image_url was updated, also update the featured image in apartment_images
+    if (apartment.image_url) {
+      try {
+        const { data: featuredImage } = await supabase
+          .from('apartment_images')
+          .select('id')
+          .eq('apartment_id', id)
+          .eq('is_featured', true)
+          .single();
+          
+        if (featuredImage) {
+          await supabase
+            .from('apartment_images')
+            .update({ image_url: apartment.image_url })
+            .eq('id', featuredImage.id);
+        }
+      } catch (imageError) {
+        console.warn('Could not update featured image:', imageError);
+      }
+    }
+    
+    return data
   }
 
   static async delete(id: string): Promise<void> {
     const { error } = await supabase
       .from('apartments')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
     
-    if (error) throw error;
+    if (error) throw error
   }
 
   static async getFeatures(apartmentId: string): Promise<ApartmentFeature[]> {
@@ -198,10 +274,10 @@ export class ApartmentService {
       .from('apartment_features')
       .select('*')
       .eq('apartment_id', apartmentId)
-      .order('sort_order', { ascending: true });
+      .order('sort_order', { ascending: true })
     
-    if (error) throw error;
-    return data || [];
+    if (error) throw error
+    return data || []
   }
 
   static async addFeature(feature: Omit<ApartmentFeature, 'id'>): Promise<ApartmentFeature> {
@@ -209,19 +285,24 @@ export class ApartmentService {
       .from('apartment_features')
       .insert(feature)
       .select()
-      .single();
+      .single()
     
-    if (error) throw error;
-    return data;
+    if (error) throw error
+    return data
   }
 
-  static async deleteFeature(featureId: string): Promise<void> {
+  static async deleteFeature(id: string): Promise<void> {
+    console.log('Attempting to delete feature with ID:', id);
     const { error } = await supabase
       .from('apartment_features')
       .delete()
-      .eq('id', featureId);
+      .eq('id', id)
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error deleting feature:', error);
+      throw error;
+    }
+    console.log('Feature deleted successfully');
   }
 
   static async getImages(apartmentId: string): Promise<ApartmentImage[]> {
@@ -229,10 +310,10 @@ export class ApartmentService {
       .from('apartment_images')
       .select('*')
       .eq('apartment_id', apartmentId)
-      .order('sort_order', { ascending: true });
+      .order('sort_order', { ascending: true })
     
-    if (error) throw error;
-    return data || [];
+    if (error) throw error
+    return data || []
   }
 
   static async addImage(image: Omit<ApartmentImage, 'id' | 'created_at'>): Promise<ApartmentImage> {
@@ -240,22 +321,31 @@ export class ApartmentService {
       .from('apartment_images')
       .insert(image)
       .select()
-      .single();
+      .single()
     
-    if (error) throw error;
-    return data;
+    if (error) throw error
+    return data
   }
 
-  static async updateImage(imageId: string, updates: Partial<ApartmentImage>): Promise<ApartmentImage> {
+  static async updateImage(id: string, image: Partial<ApartmentImage>): Promise<ApartmentImage> {
     const { data, error } = await supabase
       .from('apartment_images')
-      .update(updates)
-      .eq('id', imageId)
+      .update(image)
+      .eq('id', id)
       .select()
-      .single();
+      .single()
     
-    if (error) throw error;
-    return data;
+    if (error) throw error
+    return data
+  }
+
+  static async deleteImage(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('apartment_images')
+      .delete()
+      .eq('id', id)
+    
+    if (error) throw error
   }
 
   static async setFeaturedImage(apartmentId: string, imageId: string): Promise<void> {
@@ -263,47 +353,58 @@ export class ApartmentService {
     await supabase
       .from('apartment_images')
       .update({ is_featured: false })
-      .eq('apartment_id', apartmentId);
+      .eq('apartment_id', apartmentId)
 
-    // Then set the selected image as featured
+    // Then set the new featured image
     const { error } = await supabase
       .from('apartment_images')
       .update({ is_featured: true })
-      .eq('id', imageId);
+      .eq('id', imageId)
     
-    if (error) throw error;
-  }
-
-  static async deleteImage(imageId: string): Promise<void> {
-    const { error } = await supabase
-      .from('apartment_images')
-      .delete()
-      .eq('id', imageId);
-    
-    if (error) throw error;
+    if (error) throw error
   }
 }
 
 export class ApplicationService {
+  static async create(application: Omit<Application, 'id' | 'created_at' | 'updated_at' | 'status'>): Promise<Application> {
+    console.log('Creating application with data:', application);
+    
+    // Log current session info
+    const { data: session } = await supabase.auth.getSession();
+    console.log('Current session when creating application:', {
+      user: session.session?.user?.id || 'anonymous',
+      role: session.session?.user?.role || 'anon'
+    });
+    
+    const { data, error } = await supabase
+      .from('applications')
+      .insert(application)
+      .select()
+      .single()
+    
+    if (error) {
+      console.error('Detailed Supabase error creating application:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+        fullError: error
+      });
+      throw new Error(`Supabase error: ${error.message} (Code: ${error.code})`);
+    }
+    
+    console.log('Application created successfully:', data);
+    return data
+  }
+
   static async getAll(): Promise<Application[]> {
     const { data, error } = await supabase
       .from('applications')
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
     
-    if (error) throw error;
-    return data || [];
-  }
-
-  static async create(application: Omit<Application, 'id' | 'created_at' | 'updated_at' | 'status'>): Promise<Application> {
-    const { data, error } = await supabase
-      .from('applications')
-      .insert({ ...application, status: 'pending' })
-      .select()
-      .single();
-    
-    if (error) throw error;
-    return data;
+    if (error) throw error
+    return data || []
   }
 
   static async updateStatus(id: string, status: Application['status']): Promise<Application> {
@@ -312,180 +413,181 @@ export class ApplicationService {
       .update({ status })
       .eq('id', id)
       .select()
-      .single();
+      .single()
     
-    if (error) throw error;
-    return data;
+    if (error) throw error
+    return data
   }
 
   static async delete(id: string): Promise<void> {
     const { error } = await supabase
       .from('applications')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
     
-    if (error) throw error;
+    if (error) throw error
   }
 }
 
 export class ReviewService {
   static async getFeatured(): Promise<Review[]> {
+    console.log('ReviewService.getFeatured() called');
     const { data, error } = await supabase
       .from('reviews')
       .select('*')
       .eq('is_featured', true)
-      .order('sort_order', { ascending: true });
+      .order('sort_order', { ascending: true })
     
-    if (error) throw error;
-    return data || [];
+    if (error) {
+      console.error('Error in ReviewService.getFeatured():', error);
+      throw error;
+    }
+    console.log('ReviewService.getFeatured() result:', data);
+    return data || []
+  }
+
+  static async getAll(): Promise<Review[]> {
+    const { data, error } = await supabase
+      .from('reviews')
+      .select('*')
+      .order('sort_order', { ascending: true })
+    
+    if (error) throw error
+    return data || []
+  }
+
+  static async create(review: Omit<Review, 'id' | 'created_at'>): Promise<Review> {
+    const { data, error } = await supabase
+      .from('reviews')
+      .insert(review)
+      .select()
+      .single()
+    
+    if (error) throw error
+    return data
+  }
+
+  static async update(id: string, review: Partial<Review>): Promise<Review> {
+    const { data, error } = await supabase
+      .from('reviews')
+      .update(review)
+      .eq('id', id)
+      .select()
+      .single()
+    
+    if (error) throw error
+    return data
+  }
+
+  static async delete(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('reviews')
+      .delete()
+      .eq('id', id)
+    
+    if (error) throw error
   }
 }
 
 export class FeatureHighlightService {
   static async getActive(): Promise<FeatureHighlight[]> {
+    console.log('FeatureHighlightService.getActive() called');
     const { data, error } = await supabase
       .from('feature_highlights')
       .select('*')
       .eq('is_active', true)
-      .order('sort_order', { ascending: true });
+      .order('sort_order', { ascending: true })
     
-    if (error) throw error;
-    return data || [];
+    if (error) {
+      console.error('Error in FeatureHighlightService.getActive():', error);
+      throw error;
+    }
+    console.log('FeatureHighlightService.getActive() result:', data);
+    return data || []
   }
-}
 
-export class BookingService {
-  static async getAll(): Promise<Booking[]> {
+  static async getAll(): Promise<FeatureHighlight[]> {
     const { data, error } = await supabase
-      .from('bookings')
+      .from('feature_highlights')
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('sort_order', { ascending: true })
     
-    if (error) throw error;
-    return data || [];
+    if (error) throw error
+    return data || []
   }
 
-  static async create(booking: Omit<Booking, 'id' | 'created_at' | 'updated_at'>): Promise<Booking> {
+  static async create(highlight: Omit<FeatureHighlight, 'id' | 'created_at'>): Promise<FeatureHighlight> {
     const { data, error } = await supabase
-      .from('bookings')
-      .insert(booking)
+      .from('feature_highlights')
+      .insert(highlight)
       .select()
-      .single();
+      .single()
     
-    if (error) throw error;
-
-    // Update apartment availability for the booking period
-    await this.updateAvailabilityForBooking(booking.apartment_id, booking.check_in_date, booking.check_out_date, 'booked', `Booking: ${booking.guest_name}`);
-    
-    return data;
+    if (error) throw error
+    return data
   }
 
-  static async update(id: string, booking: Partial<Booking>): Promise<Booking> {
+  static async update(id: string, highlight: Partial<FeatureHighlight>): Promise<FeatureHighlight> {
     const { data, error } = await supabase
-      .from('bookings')
-      .update(booking)
+      .from('feature_highlights')
+      .update(highlight)
       .eq('id', id)
       .select()
-      .single();
+      .single()
     
-    if (error) throw error;
-    return data;
+    if (error) throw error
+    return data
   }
 
   static async delete(id: string): Promise<void> {
-    // Get booking details before deletion to update availability
-    const { data: booking } = await supabase
-      .from('bookings')
-      .select('apartment_id, check_in_date, check_out_date')
-      .eq('id', id)
-      .single();
-
     const { error } = await supabase
-      .from('bookings')
+      .from('feature_highlights')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
     
-    if (error) throw error;
-
-    // Clear availability for the booking period
-    if (booking) {
-      await this.updateAvailabilityForBooking(booking.apartment_id, booking.check_in_date, booking.check_out_date, 'available');
-    }
-  }
-
-  static async getBookingsWithAvailability(year: number, month: number): Promise<{ bookings: Booking[], availability: Record<string, any[]> }> {
-    const startDate = new Date(year, month, 1).toISOString().split('T')[0];
-    const endDate = new Date(year, month + 1, 0).toISOString().split('T')[0];
-
-    const [bookingsResult, availabilityResult] = await Promise.all([
-      supabase
-        .from('bookings')
-        .select('*')
-        .gte('check_in_date', startDate)
-        .lte('check_out_date', endDate),
-      supabase
-        .from('apartment_availability')
-        .select('*')
-        .gte('date', startDate)
-        .lte('date', endDate)
-    ]);
-
-    if (bookingsResult.error) throw bookingsResult.error;
-    if (availabilityResult.error) throw availabilityResult.error;
-
-    // Group availability by apartment_id
-    const availability: Record<string, any[]> = {};
-    (availabilityResult.data || []).forEach(avail => {
-      if (!availability[avail.apartment_id]) {
-        availability[avail.apartment_id] = [];
-      }
-      availability[avail.apartment_id].push(avail);
-    });
-
-    return {
-      bookings: bookingsResult.data || [],
-      availability
-    };
-  }
-
-  private static async updateAvailabilityForBooking(
-    apartmentId: string, 
-    checkInDate: string, 
-    checkOutDate: string, 
-    status: 'available' | 'booked' | 'blocked',
-    notes?: string
-  ): Promise<void> {
-    const dates = [];
-    const current = new Date(checkInDate);
-    const end = new Date(checkOutDate);
-    
-    while (current < end) {
-      dates.push(current.toISOString().split('T')[0]);
-      current.setDate(current.getDate() + 1);
-    }
-
-    if (status === 'available') {
-      // Remove availability records (set back to default available)
-      await supabase
-        .from('apartment_availability')
-        .delete()
-        .eq('apartment_id', apartmentId)
-        .in('date', dates);
-    } else {
-      // Create or update availability records
-      const records = dates.map(date => ({
-        apartment_id: apartmentId,
-        date,
-        status,
-        notes
-      }));
-
-      await supabase
-        .from('apartment_availability')
-        .upsert(records, { onConflict: 'apartment_id,date' });
-    }
+    if (error) throw error
   }
 }
+
+export class SiteSettingService {
+  static async get(key: string): Promise<any> {
+    const { data, error } = await supabase
+      .from('site_settings')
+      .select('value')
+      .eq('key', key)
+      .single()
+    
+    if (error) throw error
+    return data?.value
+  }
+
+  static async set(key: string, value: any): Promise<SiteSetting> {
+    const { data, error } = await supabase
+      .from('site_settings')
+      .upsert({ key, value })
+      .select()
+      .single()
+    
+    if (error) throw error
+    return data
+  }
+
+  static async getAll(): Promise<SiteSetting[]> {
+    const { data, error } = await supabase
+      .from('site_settings')
+      .select('*')
+    
+    if (error) throw error
+    return data || []
+  }
+}
+
+// Convenience exports
+export const apartmentService = ApartmentService
+export const applicationService = ApplicationService
+export const reviewService = ReviewService
+export const featureHighlightService = FeatureHighlightService
+export const siteSettingService = SiteSettingService
 
 export class AvailabilityService {
   static async getCalendar(apartmentId: string, startDate: string, endDate: string): Promise<ApartmentAvailability[]> {
@@ -495,176 +597,37 @@ export class AvailabilityService {
       .eq('apartment_id', apartmentId)
       .gte('date', startDate)
       .lte('date', endDate)
-      .order('date', { ascending: true });
+      .order('date', { ascending: true })
     
-    if (error) throw error;
-    return data || [];
+    if (error) throw error
+    return data || []
   }
 
-  static async setBulkAvailability(
-    apartmentId: string, 
-    dates: string[], 
-    status: 'available' | 'booked' | 'blocked',
-    notes?: string
-  ): Promise<void> {
-    if (status === 'available') {
-      // Remove availability records for these dates
-      const { error } = await supabase
-        .from('apartment_availability')
-        .delete()
-        .eq('apartment_id', apartmentId)
-        .in('date', dates);
-      
-      if (error) throw error;
-    } else {
-      // Create or update availability records
-      const records = dates.map(date => ({
-        apartment_id: apartmentId,
-        date,
-        status,
-        notes
-      }));
+  static async setBulkAvailability(apartmentId: string, dates: string[], status: 'available' | 'booked' | 'blocked'): Promise<void> {
+    const records = dates.map(date => ({
+      apartment_id: apartmentId,
+      date,
+      status
+    }))
 
-      const { error } = await supabase
-        .from('apartment_availability')
-        .upsert(records, { onConflict: 'apartment_id,date' });
-      
-      if (error) throw error;
-    }
+    const { error } = await supabase
+      .from('apartment_availability')
+      .upsert(records, { onConflict: 'apartment_id,date' })
+    
+    if (error) throw error
   }
 
   static async checkAvailability(apartmentId: string, startDate: string, endDate: string): Promise<boolean> {
-    try {
-      const { data, error } = await supabase
-        .from('apartment_availability')
-        .select('date, status')
-        .eq('apartment_id', apartmentId)
-        .gte('date', startDate)
-        .lt('date', endDate)
-        .in('status', ['booked', 'blocked']); // Only check for actually unavailable statuses
-      
-      if (error) {
-        console.error('Error checking availability:', error);
-        throw error;
-      }
-      
-      // If there are any booked or blocked dates in the range, apartment is not available
-      return (data || []).length === 0;
-    } catch (error) {
-      console.error('Error in checkAvailability:', error);
-      // On error, assume available to avoid blocking legitimate bookings
-      return true;
-    }
-  }
-
-  static async getDetailedAvailability(apartmentId: string, startDate: string, endDate: string): Promise<{
-    isFullyAvailable: boolean;
-    availableDays: number;
-    totalDays: number;
-    unavailablePeriods: Array<{ start: string; end: string; reason: string; status: string }>;
-  }> {
-    try {
-      // Get all availability records for the date range
-      const { data: availabilityData, error } = await supabase
-        .from('apartment_availability')
-        .select('date, status, notes, booking_reference')
-        .eq('apartment_id', apartmentId)
-        .gte('date', startDate)
-        .lt('date', endDate)
-        .order('date', { ascending: true });
-      
-      if (error) {
-        console.error('Error fetching detailed availability:', error);
-        throw error;
-      }
-      
-      // Generate all dates in the range
-      const allDates = this.generateDateRange(startDate, endDate);
-      const totalDays = allDates.length;
-      
-      // Create a map of unavailable dates
-      const unavailableDatesMap = new Map();
-      (availabilityData || []).forEach(record => {
-        if (record.status === 'booked' || record.status === 'blocked') {
-          unavailableDatesMap.set(record.date, record);
-        }
-      });
-      
-      const availableDays = totalDays - unavailableDatesMap.size;
-      const isFullyAvailable = unavailableDatesMap.size === 0;
-      
-      // Group consecutive unavailable dates into periods
-      const unavailablePeriods = this.groupConsecutiveUnavailableDates(
-        Array.from(unavailableDatesMap.values())
-      );
-      
-      return {
-        isFullyAvailable,
-        availableDays,
-        totalDays,
-        unavailablePeriods
-      };
-    } catch (error) {
-      console.error('Error in getDetailedAvailability:', error);
-      // On error, assume fully available
-      const allDates = this.generateDateRange(startDate, endDate);
-      return {
-        isFullyAvailable: true,
-        availableDays: allDates.length,
-        totalDays: allDates.length,
-        unavailablePeriods: []
-      };
-    }
-  }
-
-  private static generateDateRange(startDate: string, endDate: string): string[] {
-    const dates: string[] = [];
-    const current = new Date(startDate);
-    const end = new Date(endDate);
+    const { data, error } = await supabase
+      .from('apartment_availability')
+      .select('status')
+      .eq('apartment_id', apartmentId)
+      .gte('date', startDate)
+      .lte('date', endDate)
+      .neq('status', 'available')
     
-    while (current < end) {
-      dates.push(current.toISOString().split('T')[0]);
-      current.setDate(current.getDate() + 1);
-    }
-    
-    return dates;
-  }
-
-  private static groupConsecutiveUnavailableDates(unavailableRecords: any[]): Array<{ start: string; end: string; reason: string; status: string }> {
-    if (unavailableRecords.length === 0) return [];
-    
-    const sorted = unavailableRecords.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    const periods: Array<{ start: string; end: string; reason: string; status: string }> = [];
-    
-    let currentPeriod = {
-      start: sorted[0].date,
-      end: sorted[0].date,
-      reason: sorted[0].notes || `${sorted[0].status} period`,
-      status: sorted[0].status
-    };
-    
-    for (let i = 1; i < sorted.length; i++) {
-      const currentDate = new Date(sorted[i].date);
-      const previousDate = new Date(sorted[i - 1].date);
-      const dayDiff = (currentDate.getTime() - previousDate.getTime()) / (1000 * 60 * 60 * 24);
-      
-      if (dayDiff === 1 && sorted[i].status === sorted[i - 1].status) {
-        // Consecutive day with same status, extend current period
-        currentPeriod.end = sorted[i].date;
-      } else {
-        // Non-consecutive or different status, start new period
-        periods.push(currentPeriod);
-        currentPeriod = {
-          start: sorted[i].date,
-          end: sorted[i].date,
-          reason: sorted[i].notes || `${sorted[i].status} period`,
-          status: sorted[i].status
-        };
-      }
-    }
-    
-    periods.push(currentPeriod);
-    return periods;
+    if (error) throw error
+    return (data || []).length === 0
   }
 }
 
@@ -675,10 +638,10 @@ export class ICalService {
       .select('*')
       .eq('apartment_id', apartmentId)
       .eq('is_active', true)
-      .order('created_at', { ascending: true });
+      .order('created_at', { ascending: true })
     
-    if (error) throw error;
-    return data || [];
+    if (error) throw error
+    return data || []
   }
 
   static async addFeed(feed: Omit<ApartmentICalFeed, 'id' | 'created_at'>): Promise<ApartmentICalFeed> {
@@ -686,25 +649,36 @@ export class ICalService {
       .from('apartment_ical_feeds')
       .insert(feed)
       .select()
-      .single();
+      .single()
     
-    if (error) throw error;
-    return data;
+    if (error) throw error
+    return data
   }
 
   static async deleteFeed(feedId: string): Promise<void> {
     const { error } = await supabase
       .from('apartment_ical_feeds')
       .delete()
-      .eq('id', feedId);
+      .eq('id', feedId)
     
-    if (error) throw error;
+    if (error) throw error
   }
 
-  static async syncFeed(feedId: string): Promise<{ success: boolean; message: string; stats?: any }> {
+  static async syncFeed(feedId: string): Promise<{ success: boolean; message: string }> {
     try {
+      // First get the apartment_id from the feed
+      const { data: feedData, error: feedError } = await supabase
+        .from('apartment_ical_feeds')
+        .select('apartment_id')
+        .eq('id', feedId)
+        .single();
+
+      if (feedError || !feedData) {
+        return { success: false, message: 'Feed not found' };
+      }
+
       const { data, error } = await supabase.functions.invoke('ical-sync', {
-        body: { feedId, apartmentId: '' }, // apartmentId will be fetched from the feed record
+        body: { feedId, apartmentId: feedData.apartment_id },
       });
 
       if (error) {
@@ -712,51 +686,300 @@ export class ICalService {
         return { success: false, message: `Sync failed: ${error.message}` };
       }
 
-      return data as { success: boolean; message: string; stats?: any };
-
+      return data as { success: boolean; message: string };
     } catch (error: any) {
       console.error('Error invoking iCal sync function:', error);
       return { success: false, message: `An unexpected error occurred during sync: ${error.message}` };
     }
   }
 
-  static getExportUrl(apartmentId: string): string {
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    return `${supabaseUrl}/functions/v1/ical-export/${apartmentId}.ics`;
-  }
+  static async generateICalFeed(apartmentId: string, apartmentTitle: string): Promise<string> {
+    const { data: availabilityData, error: availabilityError } = await supabase
+      .from('apartment_availability')
+      .select('*')
+      .eq('apartment_id', apartmentId)
+      .neq('status', 'available')
+      .order('date', { ascending: true });
 
-  static async downloadExport(apartmentId: string, apartmentTitle: string): Promise<void> {
-    try {
-      const exportUrl = this.getExportUrl(apartmentId);
-      const response = await fetch(exportUrl);
+    if (availabilityError) throw availabilityError;
+
+    // Generate iCal header
+    let icalContent = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Bond Coliving//Calendar Export//EN',
+      'CALSCALE:GREGORIAN',
+      'METHOD:PUBLISH',
+      `X-WR-CALNAME:${apartmentTitle} - Bond Coliving`,
+      `X-WR-CALDESC:Availability calendar for ${apartmentTitle} at Bond Coliving`
+    ].join('\r\n') + '\r\n';
+
+    // Add events for each non-available date
+    for (const entry of availabilityData || []) {
+      const startDate = new Date(entry.date);
+      const endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + 1); // Next day (iCal end dates are exclusive)
+
+      const uid = `bond-${entry.apartment_id}-${entry.date}@stayatbond.com`;
+      const summary = `${apartmentTitle} - ${entry.status.toUpperCase()}`;
+      const description = entry.notes || `Status: ${entry.status}`;
+      const timestamp = new Date().toISOString().replace(/[-:]|\.\d{3}/g, '');
       
-      if (!response.ok) {
-        throw new Error(`Failed to fetch iCal: ${response.statusText}`);
-      }
-      
-      const icalContent = await response.text();
-      const blob = new Blob([icalContent], { type: 'text/calendar' });
-      const url = URL.createObjectURL(blob);
-      
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${apartmentTitle.replace(/[^a-zA-Z0-9]/g, '-')}-availability.ics`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Error downloading iCal export:', error);
-      throw error;
+      // Format dates for iCal (YYYYMMDD)
+      const startDateStr = startDate.toISOString().split('T')[0].replace(/-/g, '');
+      const endDateStr = endDate.toISOString().split('T')[0].replace(/-/g, '');
+
+      icalContent += [
+        'BEGIN:VEVENT',
+        `UID:${uid}`,
+        `DTSTAMP:${timestamp}`,
+        `DTSTART;VALUE=DATE:${startDateStr}`,
+        `DTEND;VALUE=DATE:${endDateStr}`,
+        `SUMMARY:${summary}`,
+        `DESCRIPTION:${description}`,
+        `STATUS:${entry.status === 'booked' ? 'CONFIRMED' : 'TENTATIVE'}`,
+        `TRANSP:OPAQUE`,
+        'END:VEVENT'
+      ].join('\r\n') + '\r\n';
     }
+
+    icalContent += 'END:VCALENDAR\r\n';
+    return icalContent;
   }
 }
 
-// Export service instances
-export const apartmentService = ApartmentService;
-export const applicationService = ApplicationService;
-export const reviewService = ReviewService;
-export const featureHighlightService = FeatureHighlightService;
-export const bookingService = BookingService;
-export const availabilityService = AvailabilityService;
-export const icalService = ICalService;
+// Export availability and ical services after class definitions
+export const availabilityService = AvailabilityService
+export const icalService = ICalService
+
+export interface Booking {
+  id: string
+  apartment_id: string
+  guest_name: string
+  guest_email?: string
+  guest_phone?: string
+  check_in_date: string
+  check_out_date: string
+  booking_source: 'direct' | 'airbnb' | 'booking.com' | 'vrbo' | 'other'
+  booking_reference?: string
+  door_code?: string
+  special_instructions?: string
+  guest_count: number
+  total_amount?: number
+  status: 'confirmed' | 'checked_in' | 'checked_out' | 'cancelled'
+  created_at?: string
+  updated_at?: string
+  apartment?: {
+    title: string
+  }
+}
+
+export class BookingService {
+  static async getAll(): Promise<Booking[]> {
+    const { data, error } = await supabase
+      .from('bookings')
+      .select(`
+        *,
+        apartment:apartments(title)
+      `)
+      .order('check_in_date', { ascending: false })
+    
+    if (error) throw error
+    return data || []
+  }
+
+  static async getById(id: string): Promise<Booking | null> {
+    const { data, error } = await supabase
+      .from('bookings')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle()
+    
+    if (error) throw error
+    return data
+  }
+
+  static async getByApartment(apartmentId: string, startDate?: string, endDate?: string): Promise<Booking[]> {
+    let query = supabase
+      .from('bookings')
+      .select('*')
+      .eq('apartment_id', apartmentId)
+      .order('check_in_date', { ascending: true })
+    
+    if (startDate) {
+      query = query.gte('check_out_date', startDate)
+    }
+    if (endDate) {
+      query = query.lte('check_in_date', endDate)
+    }
+    
+    const { data, error } = await query
+    if (error) throw error
+    return data || []
+  }
+
+  static async create(booking: Omit<Booking, 'id' | 'created_at' | 'updated_at'>): Promise<Booking> {
+    const { data, error } = await supabase
+      .from('bookings')
+      .insert(booking)
+      .select()
+      .single()
+    
+    if (error) throw error
+    
+    // Update apartment availability for the booking period
+    if (booking.status === 'confirmed' || booking.status === 'checked_in') {
+      await this.updateAvailabilityForBooking(data.id, booking.apartment_id, booking.check_in_date, booking.check_out_date, 'booked')
+    }
+    
+    return data
+  }
+
+  static async update(id: string, booking: Partial<Booking>): Promise<Booking> {
+    // Get the existing booking to compare dates and status
+    const existingBooking = await this.getById(id)
+    if (!existingBooking) {
+      throw new Error(`Booking with ID ${id} not found`)
+    }
+    
+    const { data, error } = await supabase
+      .from('bookings')
+      .update(booking)
+      .eq('id', id)
+      .select()
+      .single()
+    
+    if (error) throw error
+    
+    // Handle availability updates if dates or status changed
+    const datesChanged = booking.check_in_date !== undefined || booking.check_out_date !== undefined
+    const statusChanged = booking.status !== undefined && booking.status !== existingBooking.status
+    
+    if (datesChanged || statusChanged) {
+      // Clear old availability if dates changed or status changed to cancelled
+      if (datesChanged || booking.status === 'cancelled') {
+        await this.updateAvailabilityForBooking(
+          id, 
+          existingBooking.apartment_id, 
+          existingBooking.check_in_date, 
+          existingBooking.check_out_date, 
+          'available'
+        )
+      }
+      
+      // Set new availability if booking is active
+      if (data.status === 'confirmed' || data.status === 'checked_in') {
+        await this.updateAvailabilityForBooking(
+          data.id, 
+          data.apartment_id, 
+          data.check_in_date, 
+          data.check_out_date, 
+          'booked'
+        )
+      }
+    }
+    
+    return data
+  }
+
+  static async delete(id: string): Promise<void> {
+    // Get the booking details before deletion
+    const booking = await this.getById(id)
+    if (!booking) {
+      throw new Error(`Booking with ID ${id} not found`)
+    }
+    
+    const { error } = await supabase
+      .from('bookings')
+      .delete()
+      .eq('id', id)
+    
+    if (error) throw error
+    
+    // Clear availability for the deleted booking period
+    await this.updateAvailabilityForBooking(
+      id, 
+      booking.apartment_id, 
+      booking.check_in_date, 
+      booking.check_out_date, 
+      'available'
+    )
+  }
+
+  private static async updateAvailabilityForBooking(
+    bookingId: string, 
+    apartmentId: string, 
+    checkInDate: string, 
+    checkOutDate: string, 
+    status: 'available' | 'booked'
+  ): Promise<void> {
+    try {
+      // Generate array of dates between check-in and check-out (inclusive of check-in, exclusive of check-out)
+      const dates: string[] = []
+      const currentDate = new Date(checkInDate)
+      const endDate = new Date(checkOutDate)
+      
+      while (currentDate < endDate) {
+        dates.push(currentDate.toISOString().split('T')[0])
+        currentDate.setDate(currentDate.getDate() + 1)
+      }
+      
+      if (dates.length > 0) {
+        await availabilityService.setBulkAvailability(apartmentId, dates, status)
+      }
+    } catch (error) {
+      console.error('Error updating availability for booking:', error)
+      // Don't throw here to avoid breaking the main booking operation
+    }
+  }
+
+  static async getBookingsForMonth(year: number, month: number): Promise<Booking[]> {
+    const startDate = new Date(year, month, 1).toISOString().split('T')[0]
+    const endDate = new Date(year, month + 1, 0).toISOString().split('T')[0]
+    
+    const { data, error } = await supabase
+      .from('bookings')
+      .select(`
+        *,
+        apartment:apartments(title)
+      `)
+      .or(`and(check_in_date.lte.${endDate},check_out_date.gte.${startDate})`)
+      .order('check_in_date', { ascending: true })
+    
+    if (error) throw error
+    return data || []
+  }
+
+  static async getBookingsWithAvailability(year: number, month: number): Promise<{
+    bookings: Booking[];
+    availability: Record<string, ApartmentAvailability[]>;
+  }> {
+    const startDate = new Date(year, month, 1).toISOString().split('T')[0]
+    const endDate = new Date(year, month + 1, 0).toISOString().split('T')[0]
+    
+    // Get all bookings for the month
+    const bookings = await this.getBookingsForMonth(year, month)
+    
+    // Get all apartments
+    const apartments = await apartmentService.getAll()
+    
+    // Get availability data for all apartments for this month
+    const availability: Record<string, ApartmentAvailability[]> = {}
+    
+    await Promise.all(
+      apartments.map(async (apartment) => {
+        try {
+          const aptAvailability = await availabilityService.getCalendar(apartment.id, startDate, endDate)
+          availability[apartment.id] = aptAvailability
+        } catch (error) {
+          console.error(`Error fetching availability for apartment ${apartment.id}:`, error)
+          availability[apartment.id] = []
+        }
+      })
+    )
+    
+    return { bookings, availability }
+  }
+}
+
+export const bookingService = BookingService

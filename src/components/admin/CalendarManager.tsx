@@ -18,7 +18,7 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ apartmentId, apartmen
   const [newFeed, setNewFeed] = useState({ name: '', url: '' });
   const [syncingFeed, setSyncingFeed] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
-  const [showExportUrl, setShowExportUrl] = useState(false);
+  const [exportUrl, setExportUrl] = useState<string | null>(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   useEffect(() => {
@@ -355,36 +355,14 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ apartmentId, apartmen
               <div className="flex items-start gap-2">
                 <AlertCircle className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />
                 <div className="text-xs text-yellow-800">
-                  <p className="font-medium mb-1">iCal Integration Guide:</p>
+                  <p className="font-medium mb-1">iCal Sync Info:</p>
                   <ul className="space-y-1 text-xs">
-                    <li><strong>📥 Import:</strong> Add external platform iCal URLs and sync to pull in their bookings</li>
-                    <li><strong>📤 Export:</strong> Share your public iCal URL with platforms so they see your availability</li>
-                    <li><strong>🔄 Bidirectional:</strong> Changes in admin update external platforms, external bookings sync to admin</li>
-                    <li><strong>⚡ Real-time:</strong> Export feed updates automatically, import syncs on demand</li>
+                    <li>• Synced events will be marked as "booked"</li>
+                    <li>• Manual changes may be overwritten on sync</li>
+                    <li>• Sync regularly to keep calendar updated</li>
                   </ul>
                 </div>
               </div>
-            </div>
-            
-            {/* Quick Actions */}
-            <div className="mt-4 flex gap-2">
-              <button
-                onClick={() => {
-                  Promise.all(icalFeeds.map(feed => handleSyncFeed(feed.id)));
-                }}
-                disabled={syncingFeed !== null}
-                className="flex-1 px-3 py-2 bg-indigo-600 text-white rounded text-sm hover:bg-indigo-700 disabled:opacity-50 flex items-center justify-center gap-1"
-              >
-                <RefreshCw className={`w-4 h-4 ${syncingFeed ? 'animate-spin' : ''}`} />
-                Sync All Feeds
-              </button>
-              <button
-                onClick={() => setShowExportUrl(!showExportUrl)}
-                className="flex-1 px-3 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 flex items-center justify-center gap-1"
-              >
-                <Link className="w-4 h-4" />
-                Get Export URL
-              </button>
             </div>
           </div>
         </div>

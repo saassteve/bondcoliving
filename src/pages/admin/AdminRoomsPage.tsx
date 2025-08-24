@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Plus, Edit, Trash2, Images, Settings, Calendar, Link, Copy, ExternalLink } from 'lucide-react';
+import { Plus, Edit, Trash2, Images, Settings, Calendar } from 'lucide-react';
 import { supabase, ApartmentService, apartmentService } from '../../lib/supabase';
-import { icalService } from '../../lib/supabase';
 import ApartmentForm from '../../components/admin/ApartmentForm';
 import ImageManager from '../../components/admin/ImageManager';
 import FeatureManager from '../../components/admin/FeatureManager';
@@ -43,7 +42,6 @@ const AdminRoomsPage: React.FC = () => {
   const [showCalendarManager, setShowCalendarManager] = useState<{ id: string; title: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showICalUrls, setShowICalUrls] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     fetchData();
@@ -188,23 +186,6 @@ const AdminRoomsPage: React.FC = () => {
 
   const getApartmentFeatures = (apartmentId: string) => {
     return features.filter(feature => feature.apartment_id === apartmentId);
-  };
-
-  const copyICalUrl = async (apartmentId: string, apartmentTitle: string) => {
-    const url = icalService.getExportUrl(apartmentId);
-    try {
-      await navigator.clipboard.writeText(url);
-      alert(`iCal URL copied for ${apartmentTitle}!\n\nShare this URL with booking platforms to sync your availability.`);
-      
-      // Toggle URL display
-      setShowICalUrls(prev => ({
-        ...prev,
-        [apartmentId]: !prev[apartmentId]
-      }));
-    } catch (error) {
-      console.error('Failed to copy URL:', error);
-      alert('Failed to copy URL to clipboard');
-    }
   };
 
   if (loading) {
@@ -394,13 +375,6 @@ const AdminRoomsPage: React.FC = () => {
                         <td className="px-6 py-4 text-right text-sm font-medium">
                           <div className="flex items-center justify-end gap-2">
                             <button
-                              onClick={() => copyICalUrl(apartment.id, apartment.title)}
-                              className="text-blue-600 hover:text-blue-900 p-1 font-medium"
-                              title="Copy iCal export URL"
-                            >
-                              <Link className="w-4 h-4" />
-                            </button>
-                            <button
                               onClick={() => setShowImageManager(apartment.id)}
                               className="text-purple-600 hover:text-purple-900 p-1 font-medium"
                               title="Manage images"
@@ -440,33 +414,6 @@ const AdminRoomsPage: React.FC = () => {
                       </tr>
                     );
                   })}
-                  {/* iCal URL Rows */}
-                  {apartments.map((apartment) => (
-                    showICalUrls[apartment.id] && (
-                      <tr key={`ical-${apartment.id}`} className="bg-blue-50">
-                        <td colSpan={6} className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-2 text-blue-700">
-                              <ExternalLink className="w-4 h-4" />
-                              <span className="font-medium text-sm">Public iCal URL:</span>
-                            </div>
-                            <input
-                              type="text"
-                              value={icalService.getExportUrl(apartment.id)}
-                              readOnly
-                              className="flex-1 px-3 py-1 bg-white border border-blue-300 rounded text-sm font-mono"
-                            />
-                            <button
-                              onClick={() => copyICalUrl(apartment.id, apartment.title)}
-                              className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
-                            >
-                              Copy
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  ))}
                 </tbody>
               </table>
             </div>
