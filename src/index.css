@@ -162,7 +162,7 @@
   }
 
   .react-datepicker__day {
-    color: #C5C5B5 !important;
+    color: #1E1F1E !important;
     width: 2.5rem !important;
     height: 2.5rem !important;
     line-height: 2.5rem !important;
@@ -174,8 +174,8 @@
   }
 
   .react-datepicker__day:hover {
-    background-color: rgba(197, 197, 181, 0.2) !important;
-    color: #C5C5B5 !important;
+    background-color: #C5C5B5 !important;
+    color: #1E1F1E !important;
     transform: scale(1.05) !important;
   }
 
@@ -192,13 +192,13 @@
   }
 
   .react-datepicker__day--keyboard-selected {
-    background-color: rgba(197, 197, 181, 0.2) !important;
-    color: #C5C5B5 !important;
+    background-color: rgba(197, 197, 181, 0.3) !important;
+    color: #1E1F1E !important;
   }
 
   .react-datepicker__day--in-range {
-    background-color: rgba(197, 197, 181, 0.1) !important;
-    color: #C5C5B5 !important;
+    background-color: rgba(197, 197, 181, 0.2) !important;
+    color: #1E1F1E !important;
   }
 
   .react-datepicker__day--range-start,
@@ -208,22 +208,22 @@
   }
 
   .react-datepicker__day--disabled {
-    color: rgba(197, 197, 181, 0.3) !important;
+    color: rgba(30, 31, 30, 0.3) !important;
     cursor: not-allowed !important;
   }
 
   .react-datepicker__day--outside-month {
-    color: rgba(197, 197, 181, 0.6) !important;
+    color: rgba(30, 31, 30, 0.4) !important;
   }
 
   .react-datepicker__day--outside-month:hover {
-    color: #C5C5B5 !important;
-    background-color: rgba(197, 197, 181, 0.1) !important;
+    color: #1E1F1E !important;
+    background-color: rgba(197, 197, 181, 0.2) !important;
   }
 
   .react-datepicker__day--today {
     background-color: transparent !important;
-    color: #C5C5B5 !important;
+    color: #1E1F1E !important;
     font-weight: 500 !important;
     border: none !important;
     position: relative !important;
@@ -242,8 +242,8 @@
   }
 
   .react-datepicker__day--today:hover {
-    background-color: rgba(197, 197, 181, 0.2) !important;
-    color: #C5C5B5 !important;
+    background-color: #C5C5B5 !important;
+    color: #1E1F1E !important;
     transform: scale(1.05) !important;
   }
 
