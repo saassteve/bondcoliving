@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Mail, Phone, User, Home, MessageSquare, Search, ArrowRight, CheckCircle } from 'lucide-react';
+import { Calendar, Mail, Phone, User, Home, MessageSquare, Search, ArrowRight, CheckCircle, AlertCircle, Clock, Shuffle } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { applicationService, apartmentService, availabilityService, type Apartment } from '../../lib/supabase';
@@ -9,7 +9,14 @@ import { applicationService, apartmentService, availabilityService, type Apartme
 const ApplicationFormPage: React.FC = () => {
   const navigate = useNavigate();
   const [apartments, setApartments] = useState<Apartment[]>([]);
-  const [availableApartments, setAvailableApartments] = useState<Apartment[]>([]);
+  const [apartmentAvailability, setApartmentAvailability] = useState<Record<string, {
+    apartment: Apartment;
+    isFullyAvailable: boolean;
+    availableDays: number;
+    unavailablePeriods: Array<{ start: string; end: string; reason: string }>;
+    suggestions?: string;
+  }>>({});
+  const [showFlexibleOptions, setShowFlexibleOptions] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [checkingAvailability, setCheckingAvailability] = useState(false);
@@ -20,6 +27,9 @@ const ApplicationFormPage: React.FC = () => {
     arrival_date: '',
     departure_date: '',
     apartment_preference: '',
+    flexible_dates: false,
+    apartment_switching: false,
+    special_requests: '',
     heard_from: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -32,14 +42,35 @@ const ApplicationFormPage: React.FC = () => {
     if (formData.arrival_date && formData.departure_date) {
       checkApartmentAvailability();
     } else {
-      setAvailableApartments(apartments);
+      // Reset availability data when dates are cleared
+      const defaultAvailability: Record<string, any> = {};
+      apartments.forEach(apt => {
+        defaultAvailability[apt.id] = {
+          apartment: apt,
+          isFullyAvailable: true,
+          availableDays: 0,
+          unavailablePeriods: []
+        };
+      });
+      setApartmentAvailability(defaultAvailability);
     }
   }, [formData.arrival_date, formData.departure_date, apartments]);
   const fetchApartments = async () => {
     try {
       const data = await apartmentService.getAll();
       setApartments(data);
-      setAvailableApartments(data);
+      
+      // Initialize availability data
+      const defaultAvailability: Record<string, any> = {};
+      data.forEach(apt => {
+        defaultAvailability[apt.id] = {
+          apartment: apt,
+          isFullyAvailable: true,
+          availableDays: 0,
+          unavailablePeriods: []
+        };
+      });
+      setApartmentAvailability(defaultAvailability);
     } catch (error) {
       console.error('Error fetching apartments:', error);
     }
@@ -47,36 +78,84 @@ const ApplicationFormPage: React.FC = () => {
 
   const checkApartmentAvailability = async () => {
     if (!formData.arrival_date || !formData.departure_date) {
-      setAvailableApartments(apartments);
       return;
     }
 
     setCheckingAvailability(true);
     try {
-      const available = await Promise.all(
+      const availabilityData: Record<string, any> = {};
+      
+      await Promise.all(
         apartments.map(async (apartment) => {
           try {
-            const isAvailable = await availabilityService.checkAvailability(
+            // Get detailed availability for the requested period
+            const availability = await availabilityService.getCalendar(
               apartment.id,
               formData.arrival_date,
               formData.departure_date
             );
-            return { apartment, isAvailable };
+            
+            // Calculate available and unavailable periods
+            const requestedDates = getDateRange(formData.arrival_date, formData.departure_date);
+            const unavailableDates = availability.filter(a => a.status !== 'available');
+            const availableDays = requestedDates.length - unavailableDates.length;
+            const isFullyAvailable = unavailableDates.length === 0;
+            
+            // Group consecutive unavailable dates into periods
+            const unavailablePeriods = groupConsecutiveDates(unavailableDates);
+            
+            // Generate suggestions for partial availability
+            let suggestions = '';
+            if (!isFullyAvailable && availableDays > 0) {
+              if (availableDays >= 30) {
+                suggestions = `Available for ${availableDays} days of your ${requestedDates.length}-day stay. Consider splitting your stay or adjusting dates.`;
+              } else if (availableDays >= 14) {
+                suggestions = `Available for ${availableDays} days. Perfect for a shorter stay or combine with another apartment.`;
+              } else {
+                suggestions = `Limited availability (${availableDays} days). Consider alternative dates or apartments.`;
+              }
+            }
+            
+            availabilityData[apartment.id] = {
+              apartment,
+              isFullyAvailable,
+              availableDays,
+              unavailablePeriods,
+              suggestions
+            };
           } catch (error) {
             console.error(`Error checking availability for ${apartment.title}:`, error);
-            return { apartment, isAvailable: true }; // Default to available if check fails
+            // Default to available if check fails
+            availabilityData[apartment.id] = {
+              apartment,
+              isFullyAvailable: true,
+              availableDays: getDateRange(formData.arrival_date, formData.departure_date).length,
+              unavailablePeriods: []
+            };
           }
         })
       );
 
-      const availableApts = available
-        .filter(({ isAvailable }) => isAvailable)
-        .map(({ apartment }) => apartment);
-
-      setAvailableApartments(availableApts);
+      setApartmentAvailability(availabilityData);
+      
+      // Show flexible options if no apartments are fully available
+      const hasFullyAvailable = Object.values(availabilityData).some((data: any) => data.isFullyAvailable);
+      const hasPartiallyAvailable = Object.values(availabilityData).some((data: any) => !data.isFullyAvailable && data.availableDays >= 14);
+      setShowFlexibleOptions(!hasFullyAvailable && hasPartiallyAvailable);
+      
     } catch (error) {
       console.error('Error checking apartment availability:', error);
-      setAvailableApartments(apartments); // Fallback to all apartments
+      // Fallback to all apartments available
+      const fallbackAvailability: Record<string, any> = {};
+      apartments.forEach(apt => {
+        fallbackAvailability[apt.id] = {
+          apartment: apt,
+          isFullyAvailable: true,
+          availableDays: getDateRange(formData.arrival_date, formData.departure_date).length,
+          unavailablePeriods: []
+        };
+      });
+      setApartmentAvailability(fallbackAvailability);
     } finally {
       setCheckingAvailability(false);
     }
@@ -205,6 +284,66 @@ const ApplicationFormPage: React.FC = () => {
       return days > 0 ? `${months} month${months > 1 ? 's' : ''}, ${days} day${days > 1 ? 's' : ''}` : `${months} month${months > 1 ? 's' : ''}`;
     }
     return `${diffDays} day${diffDays > 1 ? 's' : ''}`;
+  };
+
+  const getDateRange = (startDate: string, endDate: string): string[] => {
+    const dates: string[] = [];
+    const current = new Date(startDate);
+    const end = new Date(endDate);
+    
+    while (current < end) {
+      dates.push(current.toISOString().split('T')[0]);
+      current.setDate(current.getDate() + 1);
+    }
+    
+    return dates;
+  };
+
+  const groupConsecutiveDates = (unavailableDates: any[]): Array<{ start: string; end: string; reason: string }> => {
+    if (unavailableDates.length === 0) return [];
+    
+    const sorted = unavailableDates.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    const periods: Array<{ start: string; end: string; reason: string }> = [];
+    
+    let currentPeriod = {
+      start: sorted[0].date,
+      end: sorted[0].date,
+      reason: sorted[0].notes || `${sorted[0].status} period`
+    };
+    
+    for (let i = 1; i < sorted.length; i++) {
+      const currentDate = new Date(sorted[i].date);
+      const previousDate = new Date(sorted[i - 1].date);
+      const dayDiff = (currentDate.getTime() - previousDate.getTime()) / (1000 * 60 * 60 * 24);
+      
+      if (dayDiff === 1) {
+        // Consecutive date, extend current period
+        currentPeriod.end = sorted[i].date;
+      } else {
+        // Gap found, start new period
+        periods.push(currentPeriod);
+        currentPeriod = {
+          start: sorted[i].date,
+          end: sorted[i].date,
+          reason: sorted[i].notes || `${sorted[i].status} period`
+        };
+      }
+    }
+    
+    periods.push(currentPeriod);
+    return periods;
+  };
+
+  const getAvailableApartments = () => {
+    return Object.values(apartmentAvailability)
+      .filter((data: any) => data.isFullyAvailable)
+      .map((data: any) => data.apartment);
+  };
+
+  const getPartiallyAvailableApartments = () => {
+    return Object.values(apartmentAvailability)
+      .filter((data: any) => !data.isFullyAvailable && data.availableDays >= 14)
+      .map((data: any) => data);
   };
 
   return (
@@ -422,7 +561,7 @@ const ApplicationFormPage: React.FC = () => {
 
                     <div className="relative group">
                       <label htmlFor="apartment_preference" className="block text-sm uppercase tracking-wide mb-3 text-[#C5C5B5]/80">
-                        Apartment Preference {checkingAvailability && <span className="text-xs">(Checking availability...)</span>}
+                        Apartment Preference {checkingAvailability && <span className="text-xs animate-pulse">(Checking live availability...)</span>}
                       </label>
                       <div className="relative">
                         <Home className="absolute left-4 top-4 w-5 h-5 text-[#C5C5B5]/60" />
@@ -436,33 +575,139 @@ const ApplicationFormPage: React.FC = () => {
                           disabled={checkingAvailability}
                         >
                           <option value="" className="bg-[#1E1F1E] text-[#C5C5B5]">No preference</option>
-                          {availableApartments.map((apartment) => (
-                            <option key={apartment.id} value={apartment.title} className="bg-[#1E1F1E] text-[#C5C5B5]">
-                              {apartment.title} - €{apartment.price}/month
+                          {getAvailableApartments().map((apartment) => (
+                            <option key={apartment.id} value={apartment.title} className="bg-[#1E1F1E] text-green-400">
+                              ✓ {apartment.title} - €{apartment.price}/month (Fully Available)
                             </option>
                           ))}
-                          {formData.arrival_date && formData.departure_date && availableApartments.length === 0 && (
-                            <option value="" className="bg-[#1E1F1E] text-red-400" disabled>
-                              No apartments available for selected dates
+                          {getPartiallyAvailableApartments().map((data: any) => (
+                            <option key={data.apartment.id} value={data.apartment.title} className="bg-[#1E1F1E] text-yellow-400">
+                              ⚠ {data.apartment.title} - €{data.apartment.price}/month (Partially Available - {data.availableDays} days)
                             </option>
                           )}
+                          <option value="flexible" className="bg-[#1E1F1E] text-blue-400">
+                            🔄 I'm flexible - help me find the best combination
+                          </option>
                         </select>
                       </div>
-                      {formData.arrival_date && formData.departure_date && (
-                        <div className="mt-3 text-sm">
-                          {availableApartments.length > 0 ? (
-                            <p className="text-green-400">
-                              ✓ {availableApartments.length} apartment{availableApartments.length !== 1 ? 's' : ''} available for your dates
-                            </p>
-                          ) : checkingAvailability ? (
-                            <p className="text-[#C5C5B5]/60">
-                              Checking availability...
-                            </p>
-                          ) : (
-                            <p className="text-red-400">
-                              ✗ No apartments available for selected dates. Please try different dates.
-                            </p>
+                      
+                      {/* Live Availability Display */}
+                      {formData.arrival_date && formData.departure_date && !checkingAvailability && (
+                        <div className="mt-4 space-y-3">
+                          {Object.values(apartmentAvailability).map((data: any) => {
+                            const { apartment, isFullyAvailable, availableDays, unavailablePeriods, suggestions } = data;
+                            const totalDays = getDateRange(formData.arrival_date, formData.departure_date).length;
+                            
+                            return (
+                              <div key={apartment.id} className={`p-4 rounded-xl border transition-all ${
+                                isFullyAvailable 
+                                  ? 'bg-green-500/10 border-green-500/30' 
+                                  : availableDays >= 14
+                                    ? 'bg-yellow-500/10 border-yellow-500/30'
+                                    : 'bg-red-500/10 border-red-500/30'
+                              }`}>
+                                <div className="flex items-start justify-between">
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <h4 className="font-bold text-[#C5C5B5]">{apartment.title}</h4>
+                                      <span className="text-sm text-[#C5C5B5]/60">€{apartment.price}/month</span>
+                                    </div>
+                                    
+                                    {isFullyAvailable ? (
+                                      <div className="flex items-center text-green-400 text-sm">
+                                        <CheckCircle className="w-4 h-4 mr-2" />
+                                        Fully available for your entire stay ({totalDays} days)
+                                      </div>
+                                    ) : (
+                                      <div className="space-y-2">
+                                        <div className="flex items-center text-yellow-400 text-sm">
+                                          <AlertCircle className="w-4 h-4 mr-2" />
+                                          Available for {availableDays} of {totalDays} days
+                                        </div>
+                                        
+                                        {unavailablePeriods.length > 0 && (
+                                          <div className="text-xs text-[#C5C5B5]/60">
+                                            <strong>Unavailable periods:</strong>
+                                            {unavailablePeriods.map((period, idx) => (
+                                              <div key={idx} className="ml-2">
+                                                • {new Date(period.start).toLocaleDateString()} - {new Date(period.end).toLocaleDateString()} ({period.reason})
+                                              </div>
+                                            ))}
+                                          </div>
+                                        )}
+                                        
+                                        {suggestions && (
+                                          <div className="text-xs text-blue-400 bg-blue-500/10 p-2 rounded">
+                                            💡 {suggestions}
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                          
+                          {/* Flexible Options */}
+                          {showFlexibleOptions && (
+                            <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-xl">
+                              <div className="flex items-start gap-3">
+                                <Shuffle className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
+                                <div>
+                                  <h4 className="font-bold text-blue-400 mb-2">Flexible Stay Options</h4>
+                                  <p className="text-sm text-[#C5C5B5]/80 mb-3">
+                                    We can help you create a custom stay by combining apartments or adjusting dates. 
+                                    Many guests enjoy experiencing different spaces during their time with us.
+                                  </p>
+                                  
+                                  <div className="space-y-2">
+                                    <label className="flex items-center text-sm text-[#C5C5B5]/80">
+                                      <input
+                                        type="checkbox"
+                                        checked={formData.flexible_dates}
+                                        onChange={(e) => handleInputChange('flexible_dates', e.target.checked.toString())}
+                                        className="mr-2 rounded"
+                                      />
+                                      I'm flexible with my dates (±1-2 weeks)
+                                    </label>
+                                    
+                                    <label className="flex items-center text-sm text-[#C5C5B5]/80">
+                                      <input
+                                        type="checkbox"
+                                        checked={formData.apartment_switching}
+                                        onChange={(e) => handleInputChange('apartment_switching', e.target.checked.toString())}
+                                        className="mr-2 rounded"
+                                      />
+                                      I'm open to switching apartments during my stay
+                                    </label>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
                           )}
+                          
+                          {/* Summary */}
+                          <div className="p-4 bg-[#C5C5B5]/10 border border-[#C5C5B5]/20 rounded-xl">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Clock className="w-4 h-4 text-[#C5C5B5]" />
+                              <span className="font-medium text-[#C5C5B5]">Availability Summary</span>
+                            </div>
+                            <div className="text-sm text-[#C5C5B5]/80">
+                              {(() => {
+                                const fullyAvailable = getAvailableApartments().length;
+                                const partiallyAvailable = getPartiallyAvailableApartments().length;
+                                
+                                if (fullyAvailable > 0) {
+                                  return `✓ ${fullyAvailable} apartment${fullyAvailable !== 1 ? 's' : ''} fully available for your dates`;
+                                } else if (partiallyAvailable > 0) {
+                                  return `⚠ ${partiallyAvailable} apartment${partiallyAvailable !== 1 ? 's' : ''} partially available - we can work with you to create a custom stay`;
+                                } else {
+                                  return `No apartments available for these exact dates, but we may be able to accommodate you with flexible arrangements`;
+                                }
+                              })()}
+                            </div>
+                          </div>
                         </div>
                       )}
                     </div>
