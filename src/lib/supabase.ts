@@ -534,13 +534,138 @@ export class AvailabilityService {
   }
 
   static async checkAvailability(apartmentId: string, startDate: string, endDate: string): Promise<boolean> {
-    const { data, error } = await supabase
-      .from('apartment_availability')
-      .select('date, status')
-      .eq('apartment_id', apartmentId)
-      .gte('date', startDate)
-      .lt('date', endDate)
-      .neq('status', 'available');
+    try {
+      const { data, error } = await supabase
+        .from('apartment_availability')
+        .select('date, status')
+        .eq('apartment_id', apartmentId)
+        .gte('date', startDate)
+        .lt('date', endDate)
+        .in('status', ['booked', 'blocked']); // Only check for actually unavailable statuses
+      
+      if (error) {
+        console.error('Error checking availability:', error);
+        throw error;
+      }
+      
+      // If there are any booked or blocked dates in the range, apartment is not available
+      return (data || []).length === 0;
+    } catch (error) {
+      console.error('Error in checkAvailability:', error);
+      // On error, assume available to avoid blocking legitimate bookings
+      return true;
+    }
+  }
+
+  static async getDetailedAvailability(apartmentId: string, startDate: string, endDate: string): Promise<{
+    isFullyAvailable: boolean;
+    availableDays: number;
+    totalDays: number;
+    unavailablePeriods: Array<{ start: string; end: string; reason: string; status: string }>;
+  }> {
+    try {
+      // Get all availability records for the date range
+      const { data: availabilityData, error } = await supabase
+        .from('apartment_availability')
+        .select('date, status, notes, booking_reference')
+        .eq('apartment_id', apartmentId)
+        .gte('date', startDate)
+        .lt('date', endDate)
+        .order('date', { ascending: true });
+      
+      if (error) {
+        console.error('Error fetching detailed availability:', error);
+        throw error;
+      }
+      
+      // Generate all dates in the range
+      const allDates = this.generateDateRange(startDate, endDate);
+      const totalDays = allDates.length;
+      
+      // Create a map of unavailable dates
+      const unavailableDatesMap = new Map();
+      (availabilityData || []).forEach(record => {
+        if (record.status === 'booked' || record.status === 'blocked') {
+          unavailableDatesMap.set(record.date, record);
+        }
+      });
+      
+      const availableDays = totalDays - unavailableDatesMap.size;
+      const isFullyAvailable = unavailableDatesMap.size === 0;
+      
+      // Group consecutive unavailable dates into periods
+      const unavailablePeriods = this.groupConsecutiveUnavailableDates(
+        Array.from(unavailableDatesMap.values())
+      );
+      
+      return {
+        isFullyAvailable,
+        availableDays,
+        totalDays,
+        unavailablePeriods
+      };
+    } catch (error) {
+      console.error('Error in getDetailedAvailability:', error);
+      // On error, assume fully available
+      const allDates = this.generateDateRange(startDate, endDate);
+      return {
+        isFullyAvailable: true,
+        availableDays: allDates.length,
+        totalDays: allDates.length,
+        unavailablePeriods: []
+      };
+    }
+  }
+
+  private static generateDateRange(startDate: string, endDate: string): string[] {
+    const dates: string[] = [];
+    const current = new Date(startDate);
+    const end = new Date(endDate);
+    
+    while (current < end) {
+      dates.push(current.toISOString().split('T')[0]);
+      current.setDate(current.getDate() + 1);
+    }
+    
+    return dates;
+  }
+
+  private static groupConsecutiveUnavailableDates(unavailableRecords: any[]): Array<{ start: string; end: string; reason: string; status: string }> {
+    if (unavailableRecords.length === 0) return [];
+    
+    const sorted = unavailableRecords.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    const periods: Array<{ start: string; end: string; reason: string; status: string }> = [];
+    
+    let currentPeriod = {
+      start: sorted[0].date,
+      end: sorted[0].date,
+      reason: sorted[0].notes || `${sorted[0].status} period`,
+      status: sorted[0].status
+    };
+    
+    for (let i = 1; i < sorted.length; i++) {
+      const currentDate = new Date(sorted[i].date);
+      const previousDate = new Date(sorted[i - 1].date);
+      const dayDiff = (currentDate.getTime() - previousDate.getTime()) / (1000 * 60 * 60 * 24);
+      
+      if (dayDiff === 1 && sorted[i].status === sorted[i - 1].status) {
+        // Consecutive day with same status, extend current period
+        currentPeriod.end = sorted[i].date;
+      } else {
+        // Non-consecutive or different status, start new period
+        periods.push(currentPeriod);
+        currentPeriod = {
+          start: sorted[i].date,
+          end: sorted[i].date,
+          reason: sorted[i].notes || `${sorted[i].status} period`,
+          status: sorted[i].status
+        };
+      }
+    }
+    
+    periods.push(currentPeriod);
+    return periods;
+  }
     
     if (error) throw error;
     

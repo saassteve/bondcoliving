@@ -12,25 +12,14 @@ const AvailabilityDisplay: React.FC<AvailabilityDisplayProps> = ({
   arrivalDate,
   departureDate
 }) => {
-  const getDateRange = (startDate: string, endDate: string): string[] => {
-    const dates: string[] = [];
-    const current = new Date(startDate);
-    const end = new Date(endDate);
-    
-    while (current < end) {
-      dates.push(current.toISOString().split('T')[0]);
-      current.setDate(current.getDate() + 1);
-    }
-    
-    return dates;
-  };
-
-  const totalDays = getDateRange(arrivalDate, departureDate).length;
+  // Calculate total days from the first apartment's data (they should all be the same)
+  const firstApartmentData = Object.values(apartmentAvailability)[0] as any;
+  const totalDays = firstApartmentData?.totalDays || 0;
 
   return (
     <div className="space-y-3">
       {Object.values(apartmentAvailability).map((data: any) => {
-        const { apartment, isFullyAvailable, availableDays, unavailablePeriods, suggestions } = data;
+        const { apartment, isFullyAvailable, availableDays, totalDays: apartmentTotalDays, unavailablePeriods, suggestions } = data;
         
         return (
           <div key={apartment.id} className={`p-4 rounded-xl border transition-all ${
@@ -51,13 +40,13 @@ const AvailabilityDisplay: React.FC<AvailabilityDisplayProps> = ({
                 {isFullyAvailable ? (
                   <div className="flex items-center text-green-400 text-sm">
                     <CheckCircle className="w-4 h-4 mr-2" />
-                    Fully available for your entire stay ({totalDays} days)
+                    Fully available for your entire stay ({apartmentTotalDays || totalDays} days)
                   </div>
                 ) : (
                   <div className="space-y-2">
                     <div className="flex items-center text-yellow-400 text-sm">
                       <AlertCircle className="w-4 h-4 mr-2" />
-                      Available for {availableDays} of {totalDays} days
+                      Available for {availableDays} of {apartmentTotalDays || totalDays} days
                     </div>
                     
                     {unavailablePeriods.length > 0 && (
@@ -65,7 +54,8 @@ const AvailabilityDisplay: React.FC<AvailabilityDisplayProps> = ({
                         <strong>Unavailable periods:</strong>
                         {unavailablePeriods.map((period: any, idx: number) => (
                           <div key={idx} className="ml-2">
-                            • {new Date(period.start).toLocaleDateString()} - {new Date(period.end).toLocaleDateString()} ({period.reason})
+                            • {new Date(period.start).toLocaleDateString()} - {new Date(period.end).toLocaleDateString()} 
+                            ({period.status}: {period.reason})
                           </div>
                         ))}
                       </div>

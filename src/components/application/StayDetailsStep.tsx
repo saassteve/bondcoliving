@@ -128,13 +128,16 @@ const StayDetailsStep: React.FC<StayDetailsStepProps> = ({
             {(() => {
               const fullyAvailable = Object.values(apartmentAvailability).filter((data: any) => data.isFullyAvailable).length;
               const partiallyAvailable = Object.values(apartmentAvailability).filter((data: any) => !data.isFullyAvailable && data.availableDays >= 14).length;
+              const totalApartments = Object.keys(apartmentAvailability).length;
+              
+              console.log('Availability summary:', { fullyAvailable, partiallyAvailable, totalApartments });
               
               if (fullyAvailable > 0) {
                 return `✓ ${fullyAvailable} apartment${fullyAvailable !== 1 ? 's' : ''} fully available for your dates`;
               } else if (partiallyAvailable > 0) {
                 return `⚠ ${partiallyAvailable} apartment${partiallyAvailable !== 1 ? 's' : ''} partially available - we can work with you to create a custom stay`;
               } else {
-                return `No apartments available for these exact dates, but we may be able to accommodate you with flexible arrangements`;
+                return `${totalApartments > 0 ? 'Checking availability...' : 'No apartments available for these exact dates, but we may be able to accommodate you with flexible arrangements'}`;
               }
             })()}
           </div>

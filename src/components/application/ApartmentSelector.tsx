@@ -20,22 +20,32 @@ const ApartmentSelector: React.FC<ApartmentSelectorProps> = ({
   onInputChange
 }) => {
   const getAvailableApartments = () => {
-    return Object.values(apartmentAvailability)
+    const available = Object.values(apartmentAvailability)
       .filter((data: any) => data.isFullyAvailable)
       .map((data: any) => data.apartment);
+    
+    console.log('Fully available apartments:', available.map(apt => apt.title));
+    return available;
   };
 
   const getPartiallyAvailableApartments = () => {
-    return Object.values(apartmentAvailability)
+    const partial = Object.values(apartmentAvailability)
       .filter((data: any) => !data.isFullyAvailable && data.availableDays >= 14)
       .map((data: any) => data);
+    
+    console.log('Partially available apartments:', partial.map(data => `${data.apartment.title}: ${data.availableDays} days`));
+    return partial;
   };
+
+  // Debug logging
+  console.log('ApartmentSelector - apartmentAvailability:', apartmentAvailability);
+  console.log('ApartmentSelector - checkingAvailability:', checkingAvailability);
 
   return (
     <div className="space-y-6">
       <div className="relative group">
         <label htmlFor="apartment_preference" className="block text-sm uppercase tracking-wide mb-3 text-[#C5C5B5]/80">
-          Apartment Preference {checkingAvailability && <span className="text-xs animate-pulse">(Checking live availability...)</span>}
+          Apartment Preference {checkingAvailability && <span className="text-xs animate-pulse text-blue-400">(Checking live availability...)</span>}
         </label>
         <div className="relative">
           <Home className="absolute left-4 top-4 w-5 h-5 text-[#C5C5B5]/60" />
@@ -73,6 +83,22 @@ const ApartmentSelector: React.FC<ApartmentSelectorProps> = ({
           arrivalDate={formData.arrival_date}
           departureDate={formData.departure_date}
         />
+      )}
+      
+      {/* Debug Information (remove in production) */}
+      {process.env.NODE_ENV === 'development' && formData.arrival_date && formData.departure_date && (
+        <div className="p-3 bg-gray-800 rounded text-xs text-gray-300 font-mono">
+          <div>Debug Info:</div>
+          <div>Dates: {formData.arrival_date} to {formData.departure_date}</div>
+          <div>Checking: {checkingAvailability ? 'Yes' : 'No'}</div>
+          <div>Apartments loaded: {Object.keys(apartmentAvailability).length}</div>
+          {Object.entries(apartmentAvailability).map(([id, data]: [string, any]) => (
+            <div key={id}>
+              {data.apartment.title}: {data.isFullyAvailable ? 'FULLY' : 'PARTIALLY'} available 
+              ({data.availableDays}/{data.totalDays} days)
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );

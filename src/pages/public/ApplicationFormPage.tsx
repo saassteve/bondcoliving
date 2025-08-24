@@ -59,12 +59,14 @@ const ApplicationFormPage: React.FC = () => {
   };
 
   const resetAvailabilityData = (apartmentData = apartments) => {
+    console.log('Resetting availability data for apartments:', apartmentData.map(apt => apt.title));
     const defaultAvailability: Record<string, any> = {};
     apartmentData.forEach(apt => {
       defaultAvailability[apt.id] = {
         apartment: apt,
         isFullyAvailable: true,
         availableDays: 0,
+        totalDays: 0,
         unavailablePeriods: []
       };
     });
@@ -75,49 +77,51 @@ const ApplicationFormPage: React.FC = () => {
     if (!formData.arrival_date || !formData.departure_date) return;
 
     setCheckingAvailability(true);
+    console.log('Checking availability for dates:', formData.arrival_date, 'to', formData.departure_date);
+    
     try {
       const availabilityData: Record<string, any> = {};
       
       await Promise.all(
         apartments.map(async (apartment) => {
           try {
-            const availability = await availabilityService.getCalendar(
+            console.log(`Checking availability for ${apartment.title} (${apartment.id})`);
+            
+            // Use the new detailed availability method
+            const detailedAvailability = await availabilityService.getDetailedAvailability(
               apartment.id,
               formData.arrival_date,
               formData.departure_date
             );
             
-            const requestedDates = getDateRange(formData.arrival_date, formData.departure_date);
-            const unavailableDates = availability.filter(a => a.status !== 'available');
-            const availableDays = requestedDates.length - unavailableDates.length;
-            const isFullyAvailable = unavailableDates.length === 0;
-            
-            const unavailablePeriods = groupConsecutiveDates(unavailableDates);
+            console.log(`${apartment.title} availability:`, detailedAvailability);
             
             let suggestions = '';
-            if (!isFullyAvailable && availableDays > 0) {
-              if (availableDays >= 30) {
-                suggestions = `Available for ${availableDays} days of your ${requestedDates.length}-day stay. Consider splitting your stay or adjusting dates.`;
-              } else if (availableDays >= 14) {
-                suggestions = `Available for ${availableDays} days. Perfect for a shorter stay or combine with another apartment.`;
+            if (!detailedAvailability.isFullyAvailable && detailedAvailability.availableDays > 0) {
+              if (detailedAvailability.availableDays >= 30) {
+                suggestions = `Available for ${detailedAvailability.availableDays} days of your ${detailedAvailability.totalDays}-day stay. Consider splitting your stay or adjusting dates.`;
+              } else if (detailedAvailability.availableDays >= 14) {
+                suggestions = `Available for ${detailedAvailability.availableDays} days. Perfect for a shorter stay or combine with another apartment.`;
               } else {
-                suggestions = `Limited availability (${availableDays} days). Consider alternative dates or apartments.`;
+                suggestions = `Limited availability (${detailedAvailability.availableDays} days). Consider alternative dates or apartments.`;
               }
             }
             
             availabilityData[apartment.id] = {
               apartment,
-              isFullyAvailable,
-              availableDays,
-              unavailablePeriods,
+              ...detailedAvailability,
               suggestions
             };
           } catch (error) {
-            console.error(`Error checking availability for ${apartment.title}:`, error);
+            console.error(`Error checking availability for ${apartment.title} (${apartment.id}):`, error);
+            
+            // On error, assume fully available to avoid blocking legitimate bookings
+            const totalDays = getDateRange(formData.arrival_date, formData.departure_date).length;
             availabilityData[apartment.id] = {
               apartment,
               isFullyAvailable: true,
-              availableDays: getDateRange(formData.arrival_date, formData.departure_date).length,
+              availableDays: totalDays,
+              totalDays,
               unavailablePeriods: []
             };
           }
@@ -125,6 +129,8 @@ const ApplicationFormPage: React.FC = () => {
       );
 
       setApartmentAvailability(availabilityData);
+      
+      console.log('Final availability data:', availabilityData);
       
       const hasFullyAvailable = Object.values(availabilityData).some((data: any) => data.isFullyAvailable);
       const hasPartiallyAvailable = Object.values(availabilityData).some((data: any) => !data.isFullyAvailable && data.availableDays >= 14);
