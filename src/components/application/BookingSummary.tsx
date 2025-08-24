@@ -9,9 +9,7 @@ interface BookingSummaryProps {
     arrival_date: string;
     departure_date: string;
     apartment_preference: string;
-    flexible_dates: boolean;
-    apartment_switching: boolean;
-    special_requests: string;
+    about: string;
   };
   calculateStayDuration: () => string;
 }
@@ -74,38 +72,13 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
             <span className="font-medium">{formData.apartment_preference}</span>
           </div>
         )}
-        
-        {/* Flexible Options Summary */}
-        {(formData.flexible_dates || formData.apartment_switching) && (
-          <div className="border-t border-[#C5C5B5]/20 pt-3">
-            <div className="flex items-center gap-2 mb-2">
-              <Shuffle className="w-4 h-4 text-blue-400" />
-              <span className="font-medium text-blue-400">Flexible Options:</span>
-            </div>
-            <div className="space-y-1 text-sm">
-              {formData.flexible_dates && (
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-3 h-3 text-blue-400" />
-                  <span>Flexible with dates (±1-2 weeks)</span>
-                </div>
-              )}
-              {formData.apartment_switching && (
-                <div className="flex items-center gap-2">
-                  <Home className="w-3 h-3 text-blue-400" />
-                  <span>Open to switching apartments</span>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-        
-        {formData.special_requests && (
+        {formData.about && (
           <div className="border-t border-[#C5C5B5]/20 pt-3">
             <div className="flex items-start gap-2">
               <MessageSquare className="w-4 h-4 text-[#C5C5B5] mt-0.5 flex-shrink-0" />
               <div>
-                <span className="font-medium block mb-1">Special Requests:</span>
-                <p className="text-sm text-[#C5C5B5]/70 leading-relaxed">{formData.special_requests}</p>
+                <span className="font-medium block mb-1">About:</span>
+                <p className="text-sm text-[#C5C5B5]/70 leading-relaxed">{formData.about}</p>
               </div>
             </div>
           </div>

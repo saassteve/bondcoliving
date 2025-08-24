@@ -5,15 +5,13 @@ import BookingSummary from './BookingSummary';
 interface FinalStepProps {
   formData: {
     heard_from: string;
+    about: string;
     name: string;
     email: string;
     phone: string;
     arrival_date: string;
     departure_date: string;
     apartment_preference: string;
-    flexible_dates: boolean;
-    apartment_switching: boolean;
-    special_requests: string;
   };
   onInputChange: (field: string, value: string) => void;
   calculateStayDuration: () => string;
@@ -60,6 +58,23 @@ const FinalStep: React.FC<FinalStepProps> = ({
         </div>
       </div>
 
+      <div className="relative group">
+        <label htmlFor="about" className="block text-sm uppercase tracking-wide mb-3 text-[#C5C5B5]/80">
+          Tell us about yourself
+        </label>
+        <textarea
+          id="about"
+          value={formData.about}
+          onChange={(e) => onInputChange('about', e.target.value)}
+          rows={4}
+          className="w-full px-4 py-4 bg-[#C5C5B5]/5 border-2 border-[#C5C5B5]/20 rounded-2xl text-[#C5C5B5] placeholder-[#C5C5B5]/40 focus:outline-none focus:border-[#C5C5B5] transition-all resize-none"
+          placeholder="Tell us about your work, why you're interested in Bond, and what you're looking for in your stay..."
+          required
+        />
+        <p className="text-xs text-[#C5C5B5]/60 mt-2">
+          Help us understand what you're looking for so we can provide the best experience.
+        </p>
+      </div>
       <BookingSummary
         formData={formData}
         calculateStayDuration={calculateStayDuration}

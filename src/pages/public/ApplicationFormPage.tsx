@@ -13,12 +13,7 @@ const ApplicationFormPage: React.FC = () => {
   const [apartments, setApartments] = useState<Apartment[]>([]);
   const [apartmentAvailability, setApartmentAvailability] = useState<Record<string, {
     apartment: Apartment;
-    isFullyAvailable: boolean;
-    availableDays: number;
-    unavailablePeriods: Array<{ start: string; end: string; reason: string }>;
-    suggestions?: string;
   }>>({});
-  const [showFlexibleOptions, setShowFlexibleOptions] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [checkingAvailability, setCheckingAvailability] = useState(false);
@@ -29,10 +24,8 @@ const ApplicationFormPage: React.FC = () => {
     arrival_date: '',
     departure_date: '',
     apartment_preference: '',
-    flexible_dates: false,
-    apartment_switching: false,
-    special_requests: '',
     heard_from: '',
+    about: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -42,9 +35,10 @@ const ApplicationFormPage: React.FC = () => {
 
   useEffect(() => {
     if (formData.arrival_date && formData.departure_date) {
-      checkApartmentAvailability();
+      // Just load apartments for selection, don't check detailed availability
+      loadApartmentsForSelection();
     } else {
-      resetAvailabilityData();
+      resetApartmentData();
     }
   }, [formData.arrival_date, formData.departure_date, apartments]);
   
@@ -52,103 +46,31 @@ const ApplicationFormPage: React.FC = () => {
     try {
       const data = await apartmentService.getAll();
       setApartments(data);
-      resetAvailabilityData(data);
+      resetApartmentData(data);
     } catch (error) {
       console.error('Error fetching apartments:', error);
     }
   };
 
-  const resetAvailabilityData = (apartmentData = apartments) => {
-    console.log('Resetting availability data for apartments:', apartmentData.map(apt => apt.title));
-    const defaultAvailability: Record<string, any> = {};
+  const resetApartmentData = (apartmentData = apartments) => {
+    const apartmentMap: Record<string, any> = {};
     apartmentData.forEach(apt => {
-      defaultAvailability[apt.id] = {
-        apartment: apt,
-        isFullyAvailable: true,
-        availableDays: 0,
-        totalDays: 0,
-        unavailablePeriods: []
+      apartmentMap[apt.id] = {
+        apartment: apt
       };
     });
-    setApartmentAvailability(defaultAvailability);
+    setApartmentAvailability(apartmentMap);
   };
 
-  const checkApartmentAvailability = async () => {
-    if (!formData.arrival_date || !formData.departure_date) return;
-
-    setCheckingAvailability(true);
-    console.log('Checking availability for dates:', formData.arrival_date, 'to', formData.departure_date);
-    
-    try {
-      const availabilityData: Record<string, any> = {};
-      
-      await Promise.all(
-        apartments.map(async (apartment) => {
-          try {
-            console.log(`Checking availability for ${apartment.title} (${apartment.id})`);
-            
-            // Use the new detailed availability method
-            const detailedAvailability = await availabilityService.getDetailedAvailability(
-              apartment.id,
-              formData.arrival_date,
-              formData.departure_date
-            );
-            
-            console.log(`${apartment.title} availability:`, detailedAvailability);
-            
-            let suggestions = '';
-            if (!detailedAvailability.isFullyAvailable && detailedAvailability.availableDays > 0) {
-              if (detailedAvailability.availableDays >= 30) {
-                suggestions = `Available for ${detailedAvailability.availableDays} days of your ${detailedAvailability.totalDays}-day stay. Consider splitting your stay or adjusting dates.`;
-              } else if (detailedAvailability.availableDays >= 14) {
-                suggestions = `Available for ${detailedAvailability.availableDays} days. Perfect for a shorter stay or combine with another apartment.`;
-              } else {
-                suggestions = `Limited availability (${detailedAvailability.availableDays} days). Consider alternative dates or apartments.`;
-              }
-            }
-            
-            availabilityData[apartment.id] = {
-              apartment,
-              ...detailedAvailability,
-              suggestions
-            };
-          } catch (error) {
-            console.error(`Error checking availability for ${apartment.title} (${apartment.id}):`, error);
-            
-            // On error, assume fully available to avoid blocking legitimate bookings
-            const totalDays = getDateRange(formData.arrival_date, formData.departure_date).length;
-            availabilityData[apartment.id] = {
-              apartment,
-              isFullyAvailable: true,
-              availableDays: totalDays,
-              totalDays,
-              unavailablePeriods: []
-            };
-          }
-        })
-      );
-
-      setApartmentAvailability(availabilityData);
-      
-      console.log('Final availability data:', availabilityData);
-      
-      const hasFullyAvailable = Object.values(availabilityData).some((data: any) => data.isFullyAvailable);
-      const hasPartiallyAvailable = Object.values(availabilityData).some((data: any) => !data.isFullyAvailable && data.availableDays >= 14);
-      setShowFlexibleOptions(!hasFullyAvailable && hasPartiallyAvailable);
-      
-    } catch (error) {
-      console.error('Error checking apartment availability:', error);
-      resetAvailabilityData();
-    } finally {
-      setCheckingAvailability(false);
-    }
-  };
-  
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
+  const loadApartmentsForSelection = () => {
+    // Simply load apartments for selection without complex availability checking
+    const apartmentMap: Record<string, any> = {};
+    apartments.forEach(apt => {
+      apartmentMap[apt.id] = {
+        apartment: apt
+      };
+    });
+    setApartmentAvailability(apartmentMap);
   };
 
   const validateStep = (step: number): boolean => {
@@ -205,7 +127,7 @@ const ApplicationFormPage: React.FC = () => {
         departure_date: formData.departure_date,
         apartment_preference: formData.apartment_preference || null,
         heard_from: formData.heard_from || null,
-        about: generateAboutText()
+        about: formData.about || `Application for stay from ${formData.arrival_date} to ${formData.departure_date}.`
       };
       
       await applicationService.create(applicationData);
@@ -217,25 +139,12 @@ const ApplicationFormPage: React.FC = () => {
       setIsSubmitting(false);
     }
   };
-
-  const generateAboutText = (): string => {
-    let about = 'Application submitted via website booking form.';
-    
-    if (formData.flexible_dates || formData.apartment_switching) {
-      about += '\n\nFlexible Options:';
-      if (formData.flexible_dates) {
-        about += '\n- Open to adjusting dates by ±1-2 weeks';
-      }
-      if (formData.apartment_switching) {
-        about += '\n- Willing to switch apartments during stay';
-      }
+  
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
     }
-    
-    if (formData.special_requests) {
-      about += `\n\nSpecial Requests: ${formData.special_requests}`;
-    }
-    
-    return about;
   };
 
   const formatDateForInput = (date: Date | null) => {
@@ -251,7 +160,6 @@ const ApplicationFormPage: React.FC = () => {
         const minDeparture = new Date(date.getTime() + (30 * 24 * 60 * 60 * 1000));
         if (departureDate < minDeparture) {
           handleInputChange('departure_date', '');
-          handleInputChange('apartment_preference', '');
         }
       }
     }
@@ -260,9 +168,6 @@ const ApplicationFormPage: React.FC = () => {
   const handleDepartureDateChange = (date: Date | null) => {
     if (date) {
       handleInputChange('departure_date', formatDateForInput(date));
-      if (formData.apartment_preference) {
-        handleInputChange('apartment_preference', '');
-      }
     }
   };
 
@@ -287,52 +192,6 @@ const ApplicationFormPage: React.FC = () => {
       return days > 0 ? `${months} month${months > 1 ? 's' : ''}, ${days} day${days > 1 ? 's' : ''}` : `${months} month${months > 1 ? 's' : ''}`;
     }
     return `${diffDays} day${diffDays > 1 ? 's' : ''}`;
-  };
-
-  const getDateRange = (startDate: string, endDate: string): string[] => {
-    const dates: string[] = [];
-    const current = new Date(startDate);
-    const end = new Date(endDate);
-    
-    while (current < end) {
-      dates.push(current.toISOString().split('T')[0]);
-      current.setDate(current.getDate() + 1);
-    }
-    
-    return dates;
-  };
-
-  const groupConsecutiveDates = (unavailableDates: any[]): Array<{ start: string; end: string; reason: string }> => {
-    if (unavailableDates.length === 0) return [];
-    
-    const sorted = unavailableDates.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    const periods: Array<{ start: string; end: string; reason: string }> = [];
-    
-    let currentPeriod = {
-      start: sorted[0].date,
-      end: sorted[0].date,
-      reason: sorted[0].notes || `${sorted[0].status} period`
-    };
-    
-    for (let i = 1; i < sorted.length; i++) {
-      const currentDate = new Date(sorted[i].date);
-      const previousDate = new Date(sorted[i - 1].date);
-      const dayDiff = (currentDate.getTime() - previousDate.getTime()) / (1000 * 60 * 60 * 24);
-      
-      if (dayDiff === 1) {
-        currentPeriod.end = sorted[i].date;
-      } else {
-        periods.push(currentPeriod);
-        currentPeriod = {
-          start: sorted[i].date,
-          end: sorted[i].date,
-          reason: sorted[i].notes || `${sorted[i].status} period`
-        };
-      }
-    }
-    
-    periods.push(currentPeriod);
-    return periods;
   };
 
   return (
@@ -395,13 +254,11 @@ const ApplicationFormPage: React.FC = () => {
                     errors={errors}
                     apartmentAvailability={apartmentAvailability}
                     checkingAvailability={checkingAvailability}
-                    showFlexibleOptions={showFlexibleOptions}
                     onInputChange={handleInputChange}
                     onArrivalDateChange={handleArrivalDateChange}
                     onDepartureDateChange={handleDepartureDateChange}
                     getMinDepartureDate={getMinDepartureDate}
                     calculateStayDuration={calculateStayDuration}
-                    getDateRange={getDateRange}
                   />
                 )}
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, Clock, CheckCircle, AlertCircle, Shuffle } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import ApartmentSelector from './ApartmentSelector';
@@ -10,19 +10,15 @@ interface StayDetailsStepProps {
     arrival_date: string;
     departure_date: string;
     apartment_preference: string;
-    flexible_dates: boolean;
-    apartment_switching: boolean;
   };
   errors: Record<string, string>;
   apartmentAvailability: Record<string, any>;
   checkingAvailability: boolean;
-  showFlexibleOptions: boolean;
   onInputChange: (field: string, value: string) => void;
   onArrivalDateChange: (date: Date | null) => void;
   onDepartureDateChange: (date: Date | null) => void;
   getMinDepartureDate: () => Date;
   calculateStayDuration: () => string;
-  getDateRange: (startDate: string, endDate: string) => string[];
 }
 
 const StayDetailsStep: React.FC<StayDetailsStepProps> = ({
@@ -30,13 +26,11 @@ const StayDetailsStep: React.FC<StayDetailsStepProps> = ({
   errors,
   apartmentAvailability,
   checkingAvailability,
-  showFlexibleOptions,
   onInputChange,
   onArrivalDateChange,
   onDepartureDateChange,
   getMinDepartureDate,
   calculateStayDuration,
-  getDateRange
 }) => {
   return (
     <div className="space-y-6">
@@ -104,43 +98,18 @@ const StayDetailsStep: React.FC<StayDetailsStepProps> = ({
       </div>
 
       <ApartmentSelector
-        formData={formData}
+        formData={{ apartment_preference: formData.apartment_preference }}
         apartmentAvailability={apartmentAvailability}
         checkingAvailability={checkingAvailability}
         onInputChange={onInputChange}
       />
 
-      {showFlexibleOptions && (
-        <FlexibleOptions
-          formData={formData}
-          onInputChange={onInputChange}
-        />
-      )}
-
-      {/* Live Availability Summary */}
-      {formData.arrival_date && formData.departure_date && !checkingAvailability && (
+      {/* Simple availability note */}
+      {formData.arrival_date && formData.departure_date && (
         <div className="p-4 bg-[#C5C5B5]/10 border border-[#C5C5B5]/20 rounded-xl">
-          <div className="flex items-center gap-2 mb-2">
-            <Clock className="w-4 h-4 text-[#C5C5B5]" />
-            <span className="font-medium text-[#C5C5B5]">Availability Summary</span>
-          </div>
-          <div className="text-sm text-[#C5C5B5]/80">
-            {(() => {
-              const fullyAvailable = Object.values(apartmentAvailability).filter((data: any) => data.isFullyAvailable).length;
-              const partiallyAvailable = Object.values(apartmentAvailability).filter((data: any) => !data.isFullyAvailable && data.availableDays >= 14).length;
-              const totalApartments = Object.keys(apartmentAvailability).length;
-              
-              console.log('Availability summary:', { fullyAvailable, partiallyAvailable, totalApartments });
-              
-              if (fullyAvailable > 0) {
-                return `✓ ${fullyAvailable} apartment${fullyAvailable !== 1 ? 's' : ''} fully available for your dates`;
-              } else if (partiallyAvailable > 0) {
-                return `⚠ ${partiallyAvailable} apartment${partiallyAvailable !== 1 ? 's' : ''} partially available - we can work with you to create a custom stay`;
-              } else {
-                return `${totalApartments > 0 ? 'Checking availability...' : 'No apartments available for these exact dates, but we may be able to accommodate you with flexible arrangements'}`;
-              }
-            })()}
-          </div>
+          <p className="text-sm text-[#C5C5B5]/80">
+            We'll check availability for your selected dates and confirm the best apartment option within 48 hours.
+          </p>
         </div>
       )}
     </div>
