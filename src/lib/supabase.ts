@@ -369,13 +369,7 @@ export class ApplicationService {
   static async create(application: Omit<Application, 'id' | 'created_at' | 'updated_at' | 'status'>): Promise<Application> {
     console.log('Creating application with data:', application);
     
-    // Log current session info
-    const { data: session } = await supabase.auth.getSession();
-    console.log('Current session when creating application:', {
-      user: session.session?.user?.id || 'anonymous',
-      role: session.session?.user?.role || 'anon'
-    });
-    
+    // No authentication required for application submission
     const { data, error } = await supabase
       .from('applications')
       .insert(application)
@@ -383,14 +377,8 @@ export class ApplicationService {
       .single()
     
     if (error) {
-      console.error('Detailed Supabase error creating application:', {
-        message: error.message,
-        code: error.code,
-        details: error.details,
-        hint: error.hint,
-        fullError: error
-      });
-      throw new Error(`Supabase error: ${error.message} (Code: ${error.code})`);
+      console.error('Error creating application:', error);
+      throw new Error(`Failed to submit application: ${error.message}`);
     }
     
     console.log('Application created successfully:', data);
