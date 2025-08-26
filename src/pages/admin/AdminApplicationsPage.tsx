@@ -347,41 +347,41 @@ const AdminApplicationsPage: React.FC = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-1">Applicant</h3>
+                  <h3 className="text-sm font-medium text-gray-700 mb-1">Applicant</h3>
                   <p className="font-medium">{selectedApplication.name}</p>
-                  <p className="text-gray-600">{selectedApplication.email}</p>
+                  <p className="text-gray-800">{selectedApplication.email}</p>
                   {selectedApplication.phone && (
-                    <p className="text-gray-600">{selectedApplication.phone}</p>
+                    <p className="text-gray-800">{selectedApplication.phone}</p>
                   )}
                 </div>
                 
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-1">Submission Date</h3>
+                  <h3 className="text-sm font-medium text-gray-700 mb-1">Submission Date</h3>
                   <p>{formatDate(selectedApplication.created_at)}</p>
                 </div>
                 
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-1">Room Preference</h3>
+                  <h3 className="text-sm font-medium text-gray-700 mb-1">Room Preference</h3>
                   <p>{selectedApplication.apartment_preference || 'No preference'}</p>
                 </div>
                 
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-1">Stay Period</h3>
+                  <h3 className="text-sm font-medium text-gray-700 mb-1">Stay Period</h3>
                   <p>{formatDate(selectedApplication.arrival_date)} to {formatDate(selectedApplication.departure_date)}</p>
                 </div>
 
                 {selectedApplication.heard_from && (
                   <div>
-                    <h3 className="text-sm font-medium text-gray-500 mb-1">Heard From</h3>
+                    <h3 className="text-sm font-medium text-gray-700 mb-1">Heard From</h3>
                     <p>{selectedApplication.heard_from}</p>
                   </div>
                 )}
               </div>
               
               <div className="mb-6">
-                <h3 className="text-sm font-medium text-gray-500 mb-2">About</h3>
+                <h3 className="text-sm font-medium text-gray-700 mb-2">About</h3>
                 <div className="bg-gray-50 p-3 rounded-md">
-                  <p className="text-gray-700">{selectedApplication.about}</p>
+                  <p className="text-gray-900">{selectedApplication.about}</p>
                 </div>
               </div>
               
