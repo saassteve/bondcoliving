@@ -23,11 +23,11 @@ const ThankYouPage: React.FC = () => {
           
           <div className="bg-white p-8 rounded-lg shadow-sm mb-8">
             <p className="text-lg mb-6">
-              Your application has been successfully submitted. We'll review it and get back to you within 48 hours.
+              Your request has been successfully submitted. We'll review it and get back to you within 48 hours with available options.
             </p>
             
             <p className="text-gray-600 mb-6">
-              In the meantime, feel free to explore more about our space and what Funchal has to offer.
+              We'll work with you to find the perfect apartment that matches your needs and dates. In the meantime, feel free to explore more about our space.
             </p>
             
             <div className="flex flex-col space-y-4">

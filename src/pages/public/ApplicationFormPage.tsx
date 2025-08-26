@@ -422,7 +422,7 @@ const ApplicationFormPage: React.FC = () => {
 
                     <div className="relative group">
                       <label htmlFor="apartment_preference" className="block text-sm uppercase tracking-wide mb-3 text-[#C5C5B5]/80">
-                        Apartment Preference {checkingAvailability && <span className="text-xs">(Checking availability...)</span>}
+                        Apartment Preference (Optional) {checkingAvailability && <span className="text-xs">(Checking availability...)</span>}
                       </label>
                       <div className="relative">
                         <Home className="absolute left-4 top-4 w-5 h-5 text-[#C5C5B5]/60" />
@@ -435,17 +435,12 @@ const ApplicationFormPage: React.FC = () => {
                           }`}
                           disabled={checkingAvailability}
                         >
-                          <option value="" className="bg-[#1E1F1E] text-[#C5C5B5]">No preference</option>
+                          <option value="" className="bg-[#1E1F1E] text-[#C5C5B5]">No preference - we'll find the perfect match</option>
                           {availableApartments.map((apartment) => (
                             <option key={apartment.id} value={apartment.title} className="bg-[#1E1F1E] text-[#C5C5B5]">
                               {apartment.title} - €{apartment.price}/month
                             </option>
                           ))}
-                          {formData.arrival_date && formData.departure_date && availableApartments.length === 0 && (
-                            <option value="" className="bg-[#1E1F1E] text-red-400" disabled>
-                              No apartments available for selected dates
-                            </option>
-                          )}
                         </select>
                       </div>
                       {formData.arrival_date && formData.departure_date && (
@@ -459,12 +454,15 @@ const ApplicationFormPage: React.FC = () => {
                               Checking availability...
                             </p>
                           ) : (
-                            <p className="text-red-400">
-                              ✗ No apartments available for selected dates. Please try different dates.
+                            <p className="text-yellow-400">
+                              ⚠ No apartments currently available for selected dates, but we can work with you to find alternatives or adjust timing.
                             </p>
                           )}
                         </div>
                       )}
+                      <p className="mt-2 text-xs text-[#C5C5B5]/60">
+                        Don't worry if no apartments show as available - we can often accommodate requests by adjusting dates or finding alternative solutions.
+                      </p>
                     </div>
                   </div>
                 )}
@@ -478,7 +476,7 @@ const ApplicationFormPage: React.FC = () => {
                           Almost Done
                         </span>
                       </h2>
-                      <p className="text-[#C5C5B5]/80">Just a few more details</p>
+                      <p className="text-[#C5C5B5]/80">We'll review your request and get back to you within 48 hours</p>
                     </div>
 
                     <div className="relative group">
@@ -505,7 +503,7 @@ const ApplicationFormPage: React.FC = () => {
 
                     {/* Booking Summary */}
                     <div className="mt-8 p-6 bg-[#C5C5B5]/10 rounded-2xl border border-[#C5C5B5]/20">
-                      <h3 className="text-lg font-bold text-[#C5C5B5] mb-4">Booking Summary</h3>
+                      <h3 className="text-lg font-bold text-[#C5C5B5] mb-4">Request Summary</h3>
                       <div className="space-y-3 text-[#C5C5B5]/80">
                         <div className="flex justify-between">
                           <span>Name:</span>
@@ -553,6 +551,17 @@ const ApplicationFormPage: React.FC = () => {
                             <span className="font-medium">{formData.apartment_preference}</span>
                           </div>
                         )}
+                        {!formData.apartment_preference && (
+                          <div className="flex justify-between">
+                            <span>Preference:</span>
+                            <span className="font-medium text-[#C5C5B5]/60">We'll find the best match</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="mt-4 p-3 bg-[#C5C5B5]/5 rounded-xl border border-[#C5C5B5]/10">
+                        <p className="text-[#C5C5B5]/80 text-sm">
+                          <strong>Next steps:</strong> We'll review your request and get back to you within 48 hours with available options and next steps.
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -589,11 +598,11 @@ const ApplicationFormPage: React.FC = () => {
                         {isSubmitting ? (
                           <>
                             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[#1E1F1E] mr-3"></div>
-                            Booking...
+                            Submitting...
                           </>
                         ) : (
                           <>
-                            Complete Booking
+                            Submit Request
                             <CheckCircle className="ml-2 h-5 w-5" />
                           </>
                         )}
@@ -607,7 +616,7 @@ const ApplicationFormPage: React.FC = () => {
             {/* Additional Information */}
             <div className="mt-12 text-center">
               <p className="text-[#C5C5B5]/60 text-sm mb-4">
-                We'll confirm your booking within 48 hours and send you all the details.
+                We'll review your request within 48 hours and send you available options and next steps.
               </p>
               <p className="text-[#C5C5B5]/40 text-xs">
                 Questions? Email us at{' '}
