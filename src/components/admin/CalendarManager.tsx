@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, Plus, Trash2, RefreshCw, ExternalLink, AlertCircle, Check, Download, Upload, Copy } from 'lucide-react';
+import { X, Calendar, Plus, Trash2, RefreshCw, ExternalLink, AlertCircle, Check } from 'lucide-react';
 import { availabilityService, icalService, type ApartmentAvailability, type ApartmentICalFeed } from '../../lib/supabase';
 
 interface CalendarManagerProps {
@@ -17,8 +17,6 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ apartmentId, apartmen
   const [showAddFeed, setShowAddFeed] = useState(false);
   const [newFeed, setNewFeed] = useState({ name: '', url: '' });
   const [syncingFeed, setSyncingFeed] = useState<string | null>(null);
-  const [exporting, setExporting] = useState(false);
-  const [exportUrl, setExportUrl] = useState<string | null>(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   useEffect(() => {
@@ -91,11 +89,7 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ apartmentId, apartmen
     try {
       const result = await icalService.syncFeed(feedId);
       if (result.success) {
-        // Show detailed success message
-        const message = (result as any).stats 
-          ? `Sync successful!\n\nFeed: ${result.stats.feedName}\nEvents processed: ${result.stats.eventsProcessed}\nDates updated: ${result.stats.datesUpdated}`
-          : result.message;
-        alert(message);
+        alert(`Sync successful: ${result.message}`);
         await fetchData();
       } else {
         alert(`Sync failed: ${result.message}`);

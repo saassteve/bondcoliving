@@ -369,69 +369,32 @@ export class ApplicationService {
   static async create(application: Omit<Application, 'id' | 'created_at' | 'updated_at' | 'status'>): Promise<Application> {
     console.log('Creating application with data:', application);
     
-    try {
-      // Try with the regular client (should work with proper RLS policy)
-      const { data, error } = await supabase
-        .from('applications')
-        .insert(application)
-        .select()
-        .single()
-      
-      if (error) {
-        console.error('Detailed Supabase error creating application:', {
-          message: error.message,
-          code: error.code,
-          details: error.details,
-          hint: error.hint,
-          fullError: error
-        });
-        
-        // For RLS errors, use Edge Function to submit application
-        if (error.code === '42501') {
-          console.log('RLS error detected, using Edge Function submission...');
-          
-          try {
-            const { data: edgeData, error: edgeError } = await supabase.functions.invoke('submit-application', {
-              body: application
-            });
-            
-            if (edgeError) {
-              console.error('Edge Function error:', edgeError);
-              throw new Error(`Edge Function failed: ${edgeError.message}`);
-            }
-            
-            console.log('Application created successfully via Edge Function:', edgeData);
-            return edgeData;
-          } catch (edgeError) {
-            console.error('Edge Function submission failed:', edgeError);
-            
-            // Final fallback: Store locally and provide contact info
-            const mockApplication = {
-              id: `temp-${Date.now()}`,
-              ...application,
-              status: 'pending' as const,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            };
-            
-            const existingApplications = JSON.parse(localStorage.getItem('bond_applications') || '[]');
-            existingApplications.push(mockApplication);
-            localStorage.setItem('bond_applications', JSON.stringify(existingApplications));
-            
-            console.log('Application stored locally as final fallback:', mockApplication);
-            return mockApplication;
-          }
-        } else {
-          throw new Error(`Supabase error: ${error.message} (Code: ${error.code})`);
-        }
-      }
-      
-      console.log('Application created successfully:', data);
-      return data;
-    } catch (error) {
-      console.error('Error in ApplicationService.create:', error);
-      throw error;
+    // Log current session info
+    const { data: session } = await supabase.auth.getSession();
+    console.log('Current session when creating application:', {
+      user: session.session?.user?.id || 'anonymous',
+      role: session.session?.user?.role || 'anon'
+    });
+    
+    const { data, error } = await supabase
+      .from('applications')
+      .insert(application)
+      .select()
+      .single()
+    
+    if (error) {
+      console.error('Detailed Supabase error creating application:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+        fullError: error
+      });
+      throw new Error(`Supabase error: ${error.message} (Code: ${error.code})`);
     }
+    
+    console.log('Application created successfully:', data);
+    return data
   }
 
   static async getAll(): Promise<Application[]> {
@@ -702,86 +665,12 @@ export class ICalService {
   }
 
   static async syncFeed(feedId: string): Promise<{ success: boolean; message: string }> {
-    try {
-      // First get the apartment_id from the feed
-      const { data: feedData, error: feedError } = await supabase
-        .from('apartment_ical_feeds')
-        .select('apartment_id')
-        .eq('id', feedId)
-        .single();
-
-      if (feedError || !feedData) {
-        return { success: false, message: 'Feed not found' };
-      }
-
-      const { data, error } = await supabase.functions.invoke('ical-sync', {
-        body: { feedId, apartmentId: feedData.apartment_id },
-      });
-
-      if (error) {
-        console.error('Supabase Edge Function error:', error);
-        return { success: false, message: `Sync failed: ${error.message}` };
-      }
-
-      return data as { success: boolean; message: string };
-    } catch (error: any) {
-      console.error('Error invoking iCal sync function:', error);
-      return { success: false, message: `An unexpected error occurred during sync: ${error.message}` };
+    // This would typically call an edge function to handle iCal parsing
+    // For now, return a mock response
+    return {
+      success: true,
+      message: 'iCal sync functionality requires server-side implementation'
     }
-  }
-
-  static async generateICalFeed(apartmentId: string, apartmentTitle: string): Promise<string> {
-    const { data: availabilityData, error: availabilityError } = await supabase
-      .from('apartment_availability')
-      .select('*')
-      .eq('apartment_id', apartmentId)
-      .neq('status', 'available')
-      .order('date', { ascending: true });
-
-    if (availabilityError) throw availabilityError;
-
-    // Generate iCal header
-    let icalContent = [
-      'BEGIN:VCALENDAR',
-      'VERSION:2.0',
-      'PRODID:-//Bond Coliving//Calendar Export//EN',
-      'CALSCALE:GREGORIAN',
-      'METHOD:PUBLISH',
-      `X-WR-CALNAME:${apartmentTitle} - Bond Coliving`,
-      `X-WR-CALDESC:Availability calendar for ${apartmentTitle} at Bond Coliving`
-    ].join('\r\n') + '\r\n';
-
-    // Add events for each non-available date
-    for (const entry of availabilityData || []) {
-      const startDate = new Date(entry.date);
-      const endDate = new Date(startDate);
-      endDate.setDate(startDate.getDate() + 1); // Next day (iCal end dates are exclusive)
-
-      const uid = `bond-${entry.apartment_id}-${entry.date}@stayatbond.com`;
-      const summary = `${apartmentTitle} - ${entry.status.toUpperCase()}`;
-      const description = entry.notes || `Status: ${entry.status}`;
-      const timestamp = new Date().toISOString().replace(/[-:]|\.\d{3}/g, '');
-      
-      // Format dates for iCal (YYYYMMDD)
-      const startDateStr = startDate.toISOString().split('T')[0].replace(/-/g, '');
-      const endDateStr = endDate.toISOString().split('T')[0].replace(/-/g, '');
-
-      icalContent += [
-        'BEGIN:VEVENT',
-        `UID:${uid}`,
-        `DTSTAMP:${timestamp}`,
-        `DTSTART;VALUE=DATE:${startDateStr}`,
-        `DTEND;VALUE=DATE:${endDateStr}`,
-        `SUMMARY:${summary}`,
-        `DESCRIPTION:${description}`,
-        `STATUS:${entry.status === 'booked' ? 'CONFIRMED' : 'TENTATIVE'}`,
-        `TRANSP:OPAQUE`,
-        'END:VEVENT'
-      ].join('\r\n') + '\r\n';
-    }
-
-    icalContent += 'END:VCALENDAR\r\n';
-    return icalContent;
   }
 }
 

@@ -144,24 +144,11 @@ const ApplicationFormPage: React.FC = () => {
         about: 'Booking submitted via website form'
       };
       
-      const result = await applicationService.create(applicationData);
-      console.log('Application submission result:', result);
-      
-      // Always navigate to thank you page, even with fallback storage
+      await applicationService.create(applicationData);
       navigate('/thank-you');
     } catch (error) {
       console.error('Error submitting application:', error);
-      
-      // More user-friendly error handling
-      if (error instanceof Error) {
-        if (error.message.includes('RLS') || error.message.includes('42501') || error.message.includes('Edge Function failed')) {
-          setErrors({ general: 'Your application has been received and saved. We will contact you within 24 hours to confirm your booking. For immediate assistance, please email us at hello@stayatbond.com' });
-        } else {
-          setErrors({ general: `Submission failed: ${error.message}. Please try again or contact us at hello@stayatbond.com` });
-        }
-      } else {
-        setErrors({ general: 'An unexpected error occurred. Please try again or contact us at hello@stayatbond.com' });
-      }
+      setErrors({ general: 'Failed to submit booking. Please try again.' });
     } finally {
       setIsSubmitting(false);
     }
