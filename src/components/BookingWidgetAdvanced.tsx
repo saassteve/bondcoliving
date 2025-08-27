@@ -32,6 +32,7 @@ const BookingWidgetAdvanced: React.FC<BookingWidgetAdvancedProps> = ({
     script.src = 'https://www.mangobeds.com/booking-widget.js';
     script.async = true;
     script.defer = true;
+    script.crossOrigin = 'anonymous';
 
     // Set up event listeners
     script.onload = () => {
