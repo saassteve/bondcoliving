@@ -29,7 +29,7 @@ const BookingWidgetAdvanced: React.FC<BookingWidgetAdvancedProps> = ({
 
     // Create new script element
     const script = document.createElement('script');
-    script.src = 'https://www.mangobeds.com/booking-widget.js';
+    script.src = 'https://mangobeds.com/js/widget/booking-form.js';
     script.async = true;
     script.defer = true;
 
