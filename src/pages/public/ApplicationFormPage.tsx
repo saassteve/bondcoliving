@@ -1,9 +1,46 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Calendar, MapPin, Users } from 'lucide-react';
 
 const ApplicationFormPage: React.FC = () => {
+  const [scriptLoaded, setScriptLoaded] = useState(false);
+  const [scriptError, setScriptError] = useState(false);
+
+  useEffect(() => {
+    // Check if script is already loaded
+    const existingScript = document.querySelector('script[src="https://mangobeds.com/js/widget/booking-form.js"]');
+    if (existingScript) {
+      setScriptLoaded(true);
+      return;
+    }
+
+    // Create and load the script
+    const script = document.createElement('script');
+    script.src = 'https://mangobeds.com/js/widget/booking-form.js';
+    script.async = true;
+    script.setAttribute('data-form-id', 'cmeud47d50005uqf7idelfqhq');
+    
+    script.onload = () => {
+      setScriptLoaded(true);
+      setScriptError(false);
+    };
+    
+    script.onerror = () => {
+      setScriptError(true);
+      setScriptLoaded(false);
+    };
+    
+    document.head.appendChild(script);
+    
+    // Cleanup function
+    return () => {
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+    };
+  }, []);
+
   return (
     <>
       <Helmet>
@@ -86,17 +123,32 @@ const ApplicationFormPage: React.FC = () => {
               </div>
               
               {/* Mangobeds Booking Widget */}
-              <div className="min-h-[400px] flex items-center justify-center">
-                <script 
-                  async 
-                  data-form-id="cmeud47d50005uqf7idelfqhq" 
-                  src="https://mangobeds.com/js/widget/booking-form.js"
-                ></script>
+              <div className="min-h-[500px] flex items-center justify-center">
+                {!scriptLoaded && !scriptError && (
+                  <div className="text-center text-[#C5C5B5]/60">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#C5C5B5] mx-auto mb-4"></div>
+                    <p>Loading booking system...</p>
+                  </div>
+                )}
                 
-                {/* Fallback content while widget loads */}
-                <div className="text-center text-[#C5C5B5]/60">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#C5C5B5] mx-auto mb-4"></div>
-                  <p>Loading booking system...</p>
+                {scriptError && (
+                  <div className="text-center text-[#C5C5B5]/60">
+                    <p className="mb-4">Unable to load booking system</p>
+                    <button 
+                      onClick={() => window.location.reload()}
+                      className="px-4 py-2 bg-[#C5C5B5] text-[#1E1F1E] rounded-lg hover:bg-white transition-colors"
+                    >
+                      Retry
+                    </button>
+                  </div>
+                )}
+                
+                {/* Widget container - Mangobeds will inject content here */}
+                <div 
+                  id="mangobeds-booking-widget" 
+                  className="w-full"
+                  style={{ minHeight: scriptLoaded ? 'auto' : '400px' }}
+                >
                 </div>
               </div>
             </div>
