@@ -27,7 +27,7 @@ const ApplicationFormPage: React.FC = () => {
       </Helmet>
       
       {/* Hero */}
-      <section className="relative py-32">
+      <section className="relative py-16">
         <div className="absolute inset-0 bg-black/60 z-10"></div>
         <div className="absolute inset-0 bg-[url('https://images.pexels.com/photos/6164986/pexels-photo-6164986.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1')] bg-cover bg-center"></div>
         <div className="container relative z-20">
@@ -36,8 +36,8 @@ const ApplicationFormPage: React.FC = () => {
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Home
             </Link>
-            <h1 className="text-5xl md:text-7xl font-bold mb-8">Book Your Stay</h1>
-            <p className="text-xl md:text-2xl text-[#C5C5B5]">
+            <h1 className="text-4xl md:text-5xl font-bold mb-6">Book Your Stay</h1>
+            <p className="text-lg md:text-xl text-[#C5C5B5]">
               Search available apartments and book your stay with Bond.
             </p>
             <p className="text-[#C5C5B5]/80 mt-4">
@@ -48,7 +48,7 @@ const ApplicationFormPage: React.FC = () => {
       </section>
 
       {/* Booking Section */}
-      <section className="py-16 bg-[#1E1F1E]">
+      <section className="py-8 bg-[#1E1F1E]">
         <div className="container">
           <div className="max-w-4xl mx-auto">
             {/* Booking Widget Container */}
