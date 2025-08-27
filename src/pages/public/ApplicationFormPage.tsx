@@ -87,6 +87,7 @@ const ApplicationFormPage: React.FC = () => {
                     title="Bond Coliving Booking System"
                   />
                 </div>
+              </div>
             </div>
 
             {/* Additional Information */}
