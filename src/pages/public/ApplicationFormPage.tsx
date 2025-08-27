@@ -4,40 +4,33 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, Calendar, MapPin, Users } from 'lucide-react';
 
 const ApplicationFormPage: React.FC = () => {
-  const [scriptLoaded, setScriptLoaded] = useState(false);
-  const [scriptError, setScriptError] = useState(false);
+  const [widgetReady, setWidgetReady] = useState(false);
 
   useEffect(() => {
-    // Check if script is already loaded
-    const existingScript = document.querySelector('script[src="https://mangobeds.com/js/widget/booking-form.js"]');
-    if (existingScript) {
-      setScriptLoaded(true);
-      return;
-    }
-
-    // Create and load the script
-    const script = document.createElement('script');
-    script.src = 'https://mangobeds.com/js/widget/booking-form.js';
-    script.async = true;
-    script.setAttribute('data-form-id', 'cmeud47d50005uqf7idelfqhq');
-    
-    script.onload = () => {
-      setScriptLoaded(true);
-      setScriptError(false);
-    };
-    
-    script.onerror = () => {
-      setScriptError(true);
-      setScriptLoaded(false);
-    };
-    
-    document.head.appendChild(script);
-    
-    // Cleanup function
-    return () => {
-      if (script.parentNode) {
-        script.parentNode.removeChild(script);
+    // Check if the widget is available and initialize
+    const checkWidget = () => {
+      // Look for the widget container or any indication the script has loaded
+      const widgetContainer = document.getElementById('mangobeds-widget');
+      if (widgetContainer || window.MangobedsWidget) {
+        setWidgetReady(true);
       }
+    };
+
+    // Check immediately
+    checkWidget();
+
+    // Set up interval to check for widget availability
+    const interval = setInterval(checkWidget, 500);
+    
+    // Clean up after 10 seconds
+    const timeout = setTimeout(() => {
+      clearInterval(interval);
+      setWidgetReady(true); // Show the container even if we can't detect the widget
+    }, 10000);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
     };
   }, []);
 
@@ -124,31 +117,34 @@ const ApplicationFormPage: React.FC = () => {
               
               {/* Mangobeds Booking Widget */}
               <div className="min-h-[500px] flex items-center justify-center">
-                {!scriptLoaded && !scriptError && (
+                {!widgetReady && (
                   <div className="text-center text-[#C5C5B5]/60">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#C5C5B5] mx-auto mb-4"></div>
                     <p>Loading booking system...</p>
                   </div>
                 )}
                 
-                {scriptError && (
-                  <div className="text-center text-[#C5C5B5]/60">
-                    <p className="mb-4">Unable to load booking system</p>
-                    <button 
-                      onClick={() => window.location.reload()}
-                      className="px-4 py-2 bg-[#C5C5B5] text-[#1E1F1E] rounded-lg hover:bg-white transition-colors"
-                    >
-                      Retry
-                    </button>
-                  </div>
-                )}
-                
-                {/* Widget container - Mangobeds will inject content here */}
+                {/* Widget container - Mangobeds will automatically find and use this */}
                 <div 
-                  id="mangobeds-booking-widget" 
+                  id="mangobeds-widget"
+                  data-form-id="cmeud47d50005uqf7idelfqhq"
                   className="w-full"
-                  style={{ minHeight: scriptLoaded ? 'auto' : '400px' }}
+                  style={{ minHeight: widgetReady ? 'auto' : '400px' }}
                 >
+                  {/* Fallback content if widget doesn't load */}
+                  {widgetReady && (
+                    <div className="text-center py-8">
+                      <p className="text-[#C5C5B5]/80 mb-4">
+                        If the booking system doesn't appear, please contact us directly.
+                      </p>
+                      <a 
+                        href="mailto:hello@stayatbond.com?subject=Booking Inquiry"
+                        className="inline-flex items-center px-6 py-3 bg-[#C5C5B5] text-[#1E1F1E] rounded-full hover:bg-white transition-all font-semibold text-sm uppercase tracking-wide"
+                      >
+                        Email Us to Book
+                      </a>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
