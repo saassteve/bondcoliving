@@ -4,35 +4,7 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, Calendar, MapPin, Users } from 'lucide-react';
 
 const ApplicationFormPage: React.FC = () => {
-  const [widgetReady, setWidgetReady] = useState(false);
-
-  useEffect(() => {
-    // Check if the widget is available and initialize
-    const checkWidget = () => {
-      // Look for the widget container or any indication the script has loaded
-      const widgetContainer = document.getElementById('mangobeds-widget');
-      if (widgetContainer || window.MangobedsWidget) {
-        setWidgetReady(true);
-      }
-    };
-
-    // Check immediately
-    checkWidget();
-
-    // Set up interval to check for widget availability
-    const interval = setInterval(checkWidget, 500);
-    
-    // Clean up after 10 seconds
-    const timeout = setTimeout(() => {
-      clearInterval(interval);
-      setWidgetReady(true); // Show the container even if we can't detect the widget
-    }, 10000);
-
-    return () => {
-      clearInterval(interval);
-      clearTimeout(timeout);
-    };
-  }, []);
+  const [iframeLoaded, setIframeLoaded] = useState(false);
 
   return (
     <>
@@ -67,38 +39,29 @@ const ApplicationFormPage: React.FC = () => {
             <h1 className="text-5xl md:text-7xl font-bold mb-8">Book Your Stay</h1>
             <p className="text-xl md:text-2xl text-[#C5C5B5]">
               Search available apartments and book your stay with Bond.
-            </p>
-          </div>
-        </div>
-      </section>
-      
-      {/* Booking Widget Section */}
-      <section className="py-24 bg-[#1E1F1E]">
-        <div className="container">
-          <div className="max-w-4xl mx-auto">
-            {/* Introduction */}
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                <span className="bg-gradient-to-r from-[#C5C5B5] via-white to-[#C5C5B5] bg-clip-text text-transparent">
-                  Find Your Perfect Space
-                </span>
-              </h2>
-              <p className="text-xl text-[#C5C5B5]/80 mb-8">
-                Search real-time availability and book your apartment instantly.
-              </p>
-              
-              {/* Key Features */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-                <div className="flex items-center justify-center md:justify-start">
-                  <Calendar className="w-5 h-5 text-[#C5C5B5] mr-3" />
-                  <span className="text-[#C5C5B5]/80">Real-time availability</span>
+                {/* Mangobeds Booking Widget - Using iframe approach */}
+                <div className="relative min-h-[600px] bg-white rounded-2xl overflow-hidden">
+                  {!iframeLoaded && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-white">
+                      <div className="text-center text-gray-600">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+                        <p>Loading booking system...</p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <iframe
+                    src="https://mangobeds.com/widget/booking-form?form_id=cmeud47d50005uqf7idelfqhq"
+                    width="100%"
+                    height="600"
+                    frameBorder="0"
+                    scrolling="auto"
+                    onLoad={() => setIframeLoaded(true)}
+                    onError={() => setIframeLoaded(true)}
+                    className="w-full h-full min-h-[600px]"
+                    title="Bond Coliving Booking System"
+                  />
                 </div>
-                <div className="flex items-center justify-center md:justify-start">
-                  <MapPin className="w-5 h-5 text-[#C5C5B5] mr-3" />
-                  <span className="text-[#C5C5B5]/80">Central Funchal location</span>
-                </div>
-                <div className="flex items-center justify-center md:justify-start">
-                  <Users className="w-5 h-5 text-[#C5C5B5] mr-3" />
                   <span className="text-[#C5C5B5]/80">Minimum 30-day stays</span>
                 </div>
               </div>
