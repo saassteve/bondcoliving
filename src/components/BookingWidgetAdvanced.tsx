@@ -32,7 +32,6 @@ const BookingWidgetAdvanced: React.FC<BookingWidgetAdvancedProps> = ({
     script.src = 'https://www.mangobeds.com/booking-widget.js';
     script.async = true;
     script.defer = true;
-    script.crossOrigin = 'anonymous';
 
     // Set up event listeners
     script.onload = () => {
@@ -53,7 +52,7 @@ const BookingWidgetAdvanced: React.FC<BookingWidgetAdvancedProps> = ({
     script.onerror = (e) => {
       console.error('Failed to load Mangobeds script:', e);
       setLoading(false);
-      setError('Booking system is temporarily unavailable. Please try again or contact us directly.');
+      setError('External booking system is blocked by browser security. Please contact us directly to make a reservation.');
     };
 
     // Add script to document
