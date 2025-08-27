@@ -76,7 +76,7 @@ const ApplicationFormPage: React.FC = () => {
                   )}
                   
                   <iframe
-                    src="https://mangobeds.com/widget/booking-form?form_id=cmeud47d50005uqf7idelfqhq"
+                    src="https://www.mangobeds.com/booking-forms/cmeud47d50005uqf7idelfqhq"
                     width="100%"
                     height="600"
                     frameBorder="0"
