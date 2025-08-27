@@ -21,12 +21,6 @@ const BookingWidgetAdvanced: React.FC<BookingWidgetAdvancedProps> = ({
     setLoading(true);
     setError(null);
 
-    // Clean up any existing script
-    if (scriptRef.current) {
-      document.body.removeChild(scriptRef.current);
-      scriptRef.current = null;
-    }
-
     // Clear any existing timeout
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -58,7 +52,7 @@ const BookingWidgetAdvanced: React.FC<BookingWidgetAdvancedProps> = ({
     script.onerror = (e) => {
       console.error('Failed to load Mangobeds script:', e);
       setLoading(false);
-      setError('Failed to load booking system');
+      setError('Booking system is temporarily unavailable. Please try again or contact us directly.');
     };
 
     // Add script to document
