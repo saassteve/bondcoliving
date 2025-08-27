@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { RefreshCw, AlertCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { RefreshCw, AlertCircle, ExternalLink } from 'lucide-react';
 
 interface BookingWidgetAdvancedProps {
   formId?: string;
@@ -12,93 +12,18 @@ const BookingWidgetAdvanced: React.FC<BookingWidgetAdvancedProps> = ({
 }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
-  const scriptRef = useRef<HTMLScriptElement | null>(null);
-  const widgetRef = useRef<HTMLDivElement | null>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const loadScript = () => {
-    setLoading(true);
+  const handleIframeLoad = () => {
+    setLoading(false);
     setError(null);
-
-    // Clear any existing timeout
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-
-    // Create new script element
-    const script = document.createElement('script');
-    script.src = 'https://mangobeds.com/js/widget/booking-form.js';
-    script.async = true;
-    script.defer = true;
-
-    // Set up event listeners
-    script.onload = () => {
-      console.log('Mangobeds script loaded successfully');
-      
-      // Give the script time to initialize
-      timeoutRef.current = setTimeout(() => {
-        setLoading(false);
-        
-        // Check if the widget was actually rendered
-        if (widgetRef.current && widgetRef.current.children.length === 0) {
-          console.warn('Widget container is empty after script load');
-          setError('Booking widget failed to initialize');
-        }
-      }, 2000); // Wait 2 seconds for widget to render
-    };
-
-    script.onerror = (e) => {
-      console.error('Failed to load Mangobeds script:', e);
-      setLoading(false);
-      setError('External booking system is blocked by browser security. Please contact us directly to make a reservation.');
-    };
-
-    // Add script to document
-    document.body.appendChild(script);
-    scriptRef.current = script;
-
-    // Fallback timeout in case onload never fires
-    const fallbackTimeout = setTimeout(() => {
-      if (loading) {
-        console.warn('Script loading timeout');
-        setLoading(false);
-        setError('Booking system is taking too long to load');
-      }
-    }, 10000); // 10 second timeout
-
-    return () => {
-      clearTimeout(fallbackTimeout);
-    };
   };
 
-  const handleRetry = () => {
-    setRetryCount(prev => prev + 1);
-    loadScript();
+  const handleIframeError = () => {
+    setLoading(false);
+    setError('Unable to load booking system. Please try opening it in a new tab or contact us directly.');
   };
 
-  useEffect(() => {
-    // Initial load
-    const cleanup = loadScript();
-
-    // Cleanup function
-    return () => {
-      if (cleanup) cleanup();
-      
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-      
-      if (scriptRef.current && document.body.contains(scriptRef.current)) {
-        try {
-          document.body.removeChild(scriptRef.current);
-        } catch (e) {
-          console.warn('Script already removed:', e);
-        }
-      }
-    };
-  }, [retryCount]); // Re-run when retry count changes
+  const bookingUrl = `https://www.mangobeds.com/booking-forms/${formId}`;
 
   return (
     <div className={`relative min-h-[600px] bg-white rounded-2xl overflow-hidden ${className}`}>
@@ -119,13 +44,15 @@ const BookingWidgetAdvanced: React.FC<BookingWidgetAdvancedProps> = ({
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Booking System Unavailable</h3>
             <p className="text-gray-600 mb-4">{error}</p>
             <div className="space-y-3">
-              <button
-                onClick={handleRetry}
+              <a
+                href={bookingUrl}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
               >
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Try Again
-              </button>
+                <ExternalLink className="w-4 h-4 mr-2" />
+                Open in New Tab
+              </a>
               <div className="text-sm text-gray-500">
                 <p>You can also contact us directly:</p>
                 <a 
@@ -140,12 +67,15 @@ const BookingWidgetAdvanced: React.FC<BookingWidgetAdvancedProps> = ({
         </div>
       )}
 
-      {/* Mangobeds Widget Container */}
-      <div 
-        ref={widgetRef}
-        id="mangobeds-booking-widget"
-        data-form-id={formId}
-        className="w-full h-full min-h-[600px]"
+      {/* Mangobeds Booking Form iframe */}
+      <iframe
+        src={bookingUrl}
+        className="w-full h-full min-h-[600px] border-0"
+        title="Bond Coliving Booking Form"
+        onLoad={handleIframeLoad}
+        onError={handleIframeError}
+        allow="payment; geolocation"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation"
       />
     </div>
   );
