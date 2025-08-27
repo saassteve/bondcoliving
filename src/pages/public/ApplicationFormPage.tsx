@@ -39,6 +39,31 @@ const ApplicationFormPage: React.FC = () => {
             <h1 className="text-5xl md:text-7xl font-bold mb-8">Book Your Stay</h1>
             <p className="text-xl md:text-2xl text-[#C5C5B5]">
               Search available apartments and book your stay with Bond.
+            </p>
+            <p className="text-[#C5C5B5]/80 mt-4">
+              Minimum 30-day stays
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Booking Section */}
+      <section className="py-16 bg-[#1E1F1E]">
+        <div className="container">
+          <div className="max-w-4xl mx-auto">
+            {/* Booking Widget Container */}
+            <div className="bg-[#C5C5B5]/5 backdrop-blur-sm rounded-3xl p-8 md:p-12 border border-[#C5C5B5]/10">
+              <div className="text-center mb-8">
+                <h3 className="text-2xl font-bold text-[#C5C5B5] mb-4">
+                  Search & Book
+                </h3>
+                <p className="text-[#C5C5B5]/80">
+                  Use the booking system below to check availability and reserve your apartment.
+                </p>
+              </div>
+              
+              {/* Mangobeds Booking Widget - Using iframe approach */}
+              <div className="relative min-h-[600px] bg-white rounded-2xl overflow-hidden">
                 {/* Mangobeds Booking Widget - Using iframe approach */}
                 <div className="relative min-h-[600px] bg-white rounded-2xl overflow-hidden">
                   {!iframeLoaded && (
@@ -62,54 +87,6 @@ const ApplicationFormPage: React.FC = () => {
                     title="Bond Coliving Booking System"
                   />
                 </div>
-                  <span className="text-[#C5C5B5]/80">Minimum 30-day stays</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Booking Widget Container */}
-            <div className="bg-[#C5C5B5]/5 backdrop-blur-sm rounded-3xl p-8 md:p-12 border border-[#C5C5B5]/10">
-              <div className="text-center mb-8">
-                <h3 className="text-2xl font-bold text-[#C5C5B5] mb-4">
-                  Search & Book
-                </h3>
-                <p className="text-[#C5C5B5]/80">
-                  Use the booking system below to check availability and reserve your apartment.
-                </p>
-              </div>
-              
-              {/* Mangobeds Booking Widget */}
-              <div className="min-h-[500px] flex items-center justify-center">
-                {!widgetReady && (
-                  <div className="text-center text-[#C5C5B5]/60">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#C5C5B5] mx-auto mb-4"></div>
-                    <p>Loading booking system...</p>
-                  </div>
-                )}
-                
-                {/* Widget container - Mangobeds will automatically find and use this */}
-                <div 
-                  id="mangobeds-widget"
-                  data-form-id="cmeud47d50005uqf7idelfqhq"
-                  className="w-full"
-                  style={{ minHeight: widgetReady ? 'auto' : '400px' }}
-                >
-                  {/* Fallback content if widget doesn't load */}
-                  {widgetReady && (
-                    <div className="text-center py-8">
-                      <p className="text-[#C5C5B5]/80 mb-4">
-                        If the booking system doesn't appear, please contact us directly.
-                      </p>
-                      <a 
-                        href="mailto:hello@stayatbond.com?subject=Booking Inquiry"
-                        className="inline-flex items-center px-6 py-3 bg-[#C5C5B5] text-[#1E1F1E] rounded-full hover:bg-white transition-all font-semibold text-sm uppercase tracking-wide"
-                      >
-                        Email Us to Book
-                      </a>
-                    </div>
-                  )}
-                </div>
-              </div>
             </div>
 
             {/* Additional Information */}
