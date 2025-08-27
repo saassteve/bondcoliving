@@ -2,10 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Calendar, MapPin, Users } from 'lucide-react';
+import BookingWidgetAdvanced from '../../components/BookingWidgetAdvanced';
 
 const ApplicationFormPage: React.FC = () => {
-  const [iframeLoaded, setIframeLoaded] = useState(false);
-
   return (
     <>
       <Helmet>
@@ -62,32 +61,8 @@ const ApplicationFormPage: React.FC = () => {
                 </p>
               </div>
               
-              {/* Mangobeds Booking Widget - Using iframe approach */}
-              <div className="relative min-h-[600px] bg-white rounded-2xl overflow-hidden">
-                {/* Mangobeds Booking Widget - Using iframe approach */}
-                <div className="relative min-h-[600px] bg-white rounded-2xl overflow-hidden">
-                  {!iframeLoaded && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-white">
-                      <div className="text-center text-gray-600">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-                        <p>Loading booking system...</p>
-                      </div>
-                    </div>
-                  )}
-                  
-                  <iframe
-                    src="https://www.mangobeds.com/booking-forms/cmeud47d50005uqf7idelfqhq"
-                    width="100%"
-                    height="600"
-                    frameBorder="0"
-                    scrolling="auto"
-                    onLoad={() => setIframeLoaded(true)}
-                    onError={() => setIframeLoaded(true)}
-                    className="w-full h-full min-h-[600px]"
-                    title="Bond Coliving Booking System"
-                  />
-                </div>
-              </div>
+              {/* Advanced Booking Widget */}
+              <BookingWidgetAdvanced />
             </div>
 
             {/* Additional Information */}
