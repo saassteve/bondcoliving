@@ -2,7 +2,7 @@ import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Check, Wifi, Coffee, Users, Calendar, MapPin, Moon, Clock, ArrowRight, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import AnimatedSection from '../AnimatedSection';
+import AnimatedSection from '../../components/AnimatedSection';
 
 const pricingPlans = [
   {
