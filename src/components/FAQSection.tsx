@@ -30,7 +30,7 @@ const faqData: FAQItem[] = [
   },
   {
     question: "What's included in the coworking space?",
-    answer: "Our coworking space (opening August 2025) features ergonomic workstations, high-speed WiFi, printing facilities, meeting rooms, and a coffee station. It's designed specifically for digital nomads and remote workers, with 24/7 access for monthly members. Day, weekly, and monthly passes will be available."
+    answer: "Our coworking space (opening September 2025) features ergonomic workstations, high-speed WiFi, printing facilities, meeting rooms, and a coffee station. It's designed specifically for digital nomads and remote workers, with 24/7 access for monthly members. Day passes (€15), weekly passes (€68), monthly hot desks (€149), and dedicated desks (€199) will be available."
   },
   {
     question: "Are there any additional fees?",

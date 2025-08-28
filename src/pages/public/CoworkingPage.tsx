@@ -206,7 +206,7 @@ const CoworkingPage: React.FC = () => {
         <div className="container text-center">
           <h2 className="text-4xl font-bold text-[#1E1F1E] mb-8">Ready to Join?</h2>
           <p className="text-xl text-[#1E1F1E]/80 mb-12 max-w-2xl mx-auto">
-            Be among the first to experience our coworking space when we open in August 2025. 
+            Be among the first to experience our coworking space when we open in September 2025. 
             Contact us to learn more about early access and founding member benefits.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -214,7 +214,7 @@ const CoworkingPage: React.FC = () => {
               disabled
               className="px-8 py-4 bg-[#1E1F1E]/20 text-[#1E1F1E]/50 rounded-full cursor-not-allowed font-medium uppercase tracking-wide"
             >
-              Available August 2025
+              Available September 2025
             </button>
             <a 
               href="mailto:hello@stayatbond.com?subject=Coworking Interest"
