@@ -25,7 +25,6 @@ const pricingPlans = [
     features: [
       'All Day Pass features',
       'Hot desk access',
-      'Community events access',
       'Priority support',
     ],
     highlight: false,
@@ -37,9 +36,8 @@ const pricingPlans = [
     duration: 'per month',
     features: [
       'All Weekly Pass features',
-      'Hot desk reservation system',
+      'Hot desk access (sit anywhere)',
       '24/7 access to the space',
-      'Meeting room access',
       'Community events access',
     ],
     highlight: true,
@@ -54,7 +52,6 @@ const pricingPlans = [
       'Personal storage locker',
       'Business address service',
       '24/7 access to the space',
-      'Priority meeting room booking',
       'Community events access',
     ],
     highlight: false,
@@ -64,7 +61,7 @@ const pricingPlans = [
 
 const amenities = [
   { icon: Wifi, name: 'Enterprise WiFi', description: 'Fiber internet with 1Gbps speeds for seamless video calls' },
-  { icon: Coffee, name: 'Premium Coffee', description: 'Artisanal coffee and organic teas available throughout the day' },
+  { icon: Coffee, name: 'Specialty Coffee', description: 'Premium specialty coffee and organic teas available throughout the day' },
   { icon: Users, name: 'Curated Community', description: 'Connect with vetted remote workers and digital nomads' },
   { icon: Calendar, name: 'Regular Events', description: 'Weekly skill shares, networking, and island adventures' },
   { icon: MapPin, name: 'Central Location', description: '5 minutes to ocean, cafes, restaurants, and transport' },
