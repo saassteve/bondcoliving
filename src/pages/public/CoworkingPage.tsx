@@ -5,7 +5,7 @@ import { Check, Wifi, Coffee, Users, Calendar, MapPin, Moon, Clock } from 'lucid
 const pricingPlans = [
   {
     name: 'Day Pass',
-    price: '10',
+    price: '15',
     duration: 'per day',
     features: [
       'Full access to coworking space',
@@ -16,8 +16,8 @@ const pricingPlans = [
     highlight: false,
   },
   {
-    name: 'Weekly Pass',
-    price: '40',
+    name: '1 Week Pass',
+    price: '68',
     duration: 'per week',
     features: [
       'All Day Pass features',
@@ -25,17 +25,31 @@ const pricingPlans = [
       'Community events access',
       'Priority booking',
     ],
-    highlight: true,
+    highlight: false,
   },
   {
-    name: 'Monthly Pass',
-    price: '120',
+    name: 'Monthly Hot Desk',
+    price: '149',
     duration: 'per month',
     features: [
       'All Weekly Pass features',
       'Priority desk reservation',
+      '24/7 access to the coworking space',
+      'Community events access',
+    ],
+    highlight: true,
+  },
+  {
+    name: 'Dedicated Desk',
+    price: '199',
+    duration: 'per month',
+    features: [
+      'Your own dedicated workspace',
+      'Personal storage locker',
       'Business address service',
       '24/7 access to the coworking space',
+      'Priority meeting room booking',
+      'Community events access',
     ],
     highlight: false,
   },
