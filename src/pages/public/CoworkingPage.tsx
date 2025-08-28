@@ -352,8 +352,8 @@ const CoworkingPage: React.FC = () => {
             <AnimatedSection animation="fadeInRight" delay={200}>
               <div className="aspect-square bg-[#1E1F1E]/5 rounded-3xl overflow-hidden">
                 <img 
-                  src="https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
-                  alt="Digital nomads working together in a modern coworking space"
+                  src="https://iili.io/Fcjd2jf.png"
+                  alt="Steve and Rui - founders of Bond coliving space in Funchal, Madeira, father and son team creating community for digital nomads"
                   className="w-full h-full object-cover"
                   loading="lazy"
                 />
