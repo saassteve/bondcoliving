@@ -67,7 +67,7 @@ const AboutPage: React.FC = () => {
             
             <div className="aspect-square bg-[#C5C5B5]/5 rounded-3xl overflow-hidden">
               <img 
-                src="https://ucarecdn.com/958a4400-0486-4ba2-8e75-484d692d7df9/foundersbond.png"
+                src="/Find your Why (5).png"
                 alt="Steve and Rui - founders of Bond coliving space in Funchal, Madeira, father and son team creating community for digital nomads"
                 className="w-full h-full object-cover"
                 loading="lazy"
