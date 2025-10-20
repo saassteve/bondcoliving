@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useSearchParams, Link } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Calendar, Users, MapPin, Filter } from 'lucide-react';
-import { apartmentService, type Apartment } from '../../lib/supabase';
+import { apartmentService, availabilityService, type Apartment } from '../../lib/supabase';
 import { getIconComponent } from '../../lib/iconUtils';
 
 const SearchResultsPage: React.FC = () => {
@@ -32,22 +32,23 @@ const SearchResultsPage: React.FC = () => {
     try {
       setLoading(true);
       const apartments = await apartmentService.getAll();
-      
-      // Fetch additional data for each apartment
+
       const apartmentsWithData = await Promise.all(
         apartments.map(async (apartment) => {
           try {
-            const [images, features] = await Promise.all([
+            const [images, features, nextAvailableDate] = await Promise.all([
               apartmentService.getImages(apartment.id),
-              apartmentService.getFeatures(apartment.id)
+              apartmentService.getFeatures(apartment.id),
+              availabilityService.getNextAvailableDate(apartment.id)
             ]);
-            
+
             const featuredImage = images.find(img => img.is_featured);
-            
+
             return {
               ...apartment,
               image_url: featuredImage?.image_url || apartment.image_url,
-              features
+              features,
+              available_from: nextAvailableDate || apartment.available_from
             };
           } catch (error) {
             console.error(`Error fetching data for apartment ${apartment.id}:`, error);
@@ -58,7 +59,7 @@ const SearchResultsPage: React.FC = () => {
           }
         })
       );
-      
+
       setApartments(apartmentsWithData);
     } catch (err) {
       setError('Failed to load apartments');

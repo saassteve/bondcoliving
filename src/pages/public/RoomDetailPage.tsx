@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Users, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
-import { apartmentService, type Apartment } from '../../lib/supabase';
+import { apartmentService, availabilityService, type Apartment } from '../../lib/supabase';
 import { getIconComponent } from '../../lib/iconUtils';
 import CalendarAvailability from '../../components/CalendarAvailability';
 
@@ -32,25 +32,25 @@ const RoomDetailPage: React.FC = () => {
         }
         
         if (apartmentData) {
-          // Fetch features and images
-          const [features, images] = await Promise.all([
+          const [features, images, nextAvailableDate] = await Promise.all([
             apartmentService.getFeatures(apartmentData.id),
-            apartmentService.getImages(apartmentData.id)
+            apartmentService.getImages(apartmentData.id),
+            availabilityService.getNextAvailableDate(apartmentData.id)
           ]);
-          
-          // Sort images with featured image first
+
           const sortedImages = images.sort((a, b) => {
             if (a.is_featured && !b.is_featured) return -1;
             if (!a.is_featured && b.is_featured) return 1;
             return (a.sort_order || 0) - (b.sort_order || 0);
           });
-          
+
           setApartment({
             ...apartmentData,
             slug: apartmentService.generateSlug(apartmentData.title),
             features,
             images: sortedImages,
-            image_url: sortedImages[0]?.image_url || apartmentData.image_url
+            image_url: sortedImages[0]?.image_url || apartmentData.image_url,
+            available_from: nextAvailableDate || apartmentData.available_from
           });
           setLastFetch(Date.now());
         } else {

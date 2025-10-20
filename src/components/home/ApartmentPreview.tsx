@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
-import { apartmentService, type Apartment } from '../../lib/supabase';
+import { apartmentService, availabilityService, type Apartment } from '../../lib/supabase';
 import { getIconComponent } from '../../lib/iconUtils';
 import AnimatedSection from '../AnimatedSection';
 
@@ -17,24 +17,24 @@ const ApartmentPreview: React.FC = () => {
   const fetchApartments = useCallback(async () => {
     try {
       setLoading(true);
-      // Fetch apartments with their images
       const apartments = await apartmentService.getAll();
-      
-      // For each apartment, get its featured image or use the main image_url
+
       const apartmentsWithImages = await Promise.all(
         apartments.map(async (apartment) => {
           try {
-            const [images, features] = await Promise.all([
+            const [images, features, nextAvailableDate] = await Promise.all([
               apartmentService.getImages(apartment.id),
-              apartmentService.getFeatures(apartment.id)
+              apartmentService.getFeatures(apartment.id),
+              availabilityService.getNextAvailableDate(apartment.id)
             ]);
-            
+
             const featuredImage = images.find(img => img.is_featured);
-            
+
             return {
               ...apartment,
               image_url: featuredImage?.image_url || apartment.image_url,
-              features
+              features,
+              available_from: nextAvailableDate || apartment.available_from
             };
           } catch (error) {
             console.error(`Error fetching data for apartment ${apartment.id}:`, error);
@@ -45,7 +45,7 @@ const ApartmentPreview: React.FC = () => {
           }
         })
       );
-      
+
       setApartments(apartmentsWithImages);
       setLastFetch(Date.now());
     } catch (err) {

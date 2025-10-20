@@ -613,9 +613,34 @@ export class AvailabilityService {
       .gte('date', startDate)
       .lte('date', endDate)
       .neq('status', 'available')
-    
+
     if (error) throw error
     return (data || []).length === 0
+  }
+
+  static async getNextAvailableDate(apartmentId: string): Promise<string | null> {
+    const today = new Date().toISOString().split('T')[0]
+    const futureDate = new Date()
+    futureDate.setMonth(futureDate.getMonth() + 6)
+    const sixMonthsOut = futureDate.toISOString().split('T')[0]
+
+    const { data, error } = await supabase
+      .from('apartment_availability')
+      .select('date, status')
+      .eq('apartment_id', apartmentId)
+      .gte('date', today)
+      .lte('date', sixMonthsOut)
+      .eq('status', 'available')
+      .order('date', { ascending: true })
+      .limit(1)
+
+    if (error) throw error
+
+    if (data && data.length > 0) {
+      return data[0].date
+    }
+
+    return today
   }
 }
 
