@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { Menu, X, Home, Users, Building, Coffee, LogOut, LayoutDashboard, Settings, Calendar } from 'lucide-react';
+import { Menu, X, Home, Users, Building, Coffee, LogOut, LayoutDashboard, Settings, Calendar, CalendarCheck } from 'lucide-react';
 import { authService, useAuth } from '../lib/auth';
 
 const AdminLayout: React.FC = () => {
@@ -25,6 +25,7 @@ const AdminLayout: React.FC = () => {
     { name: 'Applications', path: '/admin/applications', icon: Users },
     { name: 'Bookings', path: '/admin/bookings', icon: Calendar },
     { name: 'Rooms', path: '/admin/rooms', icon: Building },
+    { name: 'iCal Sync', path: '/admin/ical', icon: CalendarCheck },
     { name: 'Coworking', path: '/admin/coworking', icon: Coffee },
     { name: 'Account', path: '/admin/account', icon: Settings },
   ];

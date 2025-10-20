@@ -677,13 +677,102 @@ export class ICalService {
     if (error) throw error
   }
 
-  static async syncFeed(feedId: string): Promise<{ success: boolean; message: string }> {
-    // This would typically call an edge function to handle iCal parsing
-    // For now, return a mock response
-    return {
-      success: true,
-      message: 'iCal sync functionality requires server-side implementation'
+  static async syncFeed(feedId: string): Promise<{ success: boolean; message: string; results?: any[] }> {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        throw new Error('Authentication required')
+      }
+
+      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/sync-ical`
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ feedId })
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to sync iCal feed')
+      }
+
+      const result = await response.json()
+      return {
+        success: true,
+        message: result.message || 'Sync completed successfully',
+        results: result.results
+      }
+    } catch (error) {
+      console.error('Error syncing iCal feed:', error)
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Failed to sync iCal feed'
+      }
     }
+  }
+
+  static async syncAllFeeds(apartmentId: string): Promise<{ success: boolean; message: string; results?: any[] }> {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        throw new Error('Authentication required')
+      }
+
+      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/sync-ical`
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ apartmentId })
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to sync iCal feeds')
+      }
+
+      const result = await response.json()
+      return {
+        success: true,
+        message: result.message || 'Sync completed successfully',
+        results: result.results
+      }
+    } catch (error) {
+      console.error('Error syncing iCal feeds:', error)
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Failed to sync iCal feeds'
+      }
+    }
+  }
+
+  static async getAllFeeds(): Promise<ApartmentICalFeed[]> {
+    const { data, error } = await supabase
+      .from('apartment_ical_feeds')
+      .select('*')
+      .order('created_at', { ascending: true })
+
+    if (error) throw error
+    return data || []
+  }
+
+  static async updateFeed(feedId: string, feed: Partial<ApartmentICalFeed>): Promise<ApartmentICalFeed> {
+    const { data, error } = await supabase
+      .from('apartment_ical_feeds')
+      .update(feed)
+      .eq('id', feedId)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
   }
 }
 
