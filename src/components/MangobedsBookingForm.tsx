@@ -36,9 +36,9 @@ const MangobedsBookingForm: React.FC<MangobedsBookingFormProps> = ({
   }, [scriptStatus, formId]);
 
   return (
-    <div className={`relative min-h-[800px] ${className}`}>
+    <div className={`relative ${className}`}>
       {scriptStatus === 'loading' && (
-        <div className="absolute inset-0 flex items-center justify-center bg-transparent z-10">
+        <div className="flex items-center justify-center bg-transparent py-20">
           <div className="text-center text-[#C5C5B5]">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#C5C5B5] mx-auto mb-4"></div>
             <p className="font-medium">Loading booking system...</p>
@@ -48,7 +48,7 @@ const MangobedsBookingForm: React.FC<MangobedsBookingFormProps> = ({
       )}
 
       {scriptStatus === 'error' && (
-        <div className="absolute inset-0 flex items-center justify-center bg-transparent z-10">
+        <div className="flex items-center justify-center bg-transparent py-20">
           <div className="text-center text-[#C5C5B5] max-w-md mx-auto p-6">
             <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-[#C5C5B5] mb-2">Booking System Unavailable</h3>
@@ -77,7 +77,7 @@ const MangobedsBookingForm: React.FC<MangobedsBookingFormProps> = ({
         </div>
       )}
 
-      <div ref={containerRef} className="w-full min-h-[800px]" id="mangobeds-booking-container"></div>
+      <div ref={containerRef} className="w-full" id="mangobeds-booking-container"></div>
     </div>
   );
 };
