@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, Plus, Trash2, RefreshCw, ExternalLink, AlertCircle, Check } from 'lucide-react';
-import { availabilityService, icalService, type ApartmentAvailability, type ApartmentICalFeed } from '../../lib/supabase';
+import { X, Calendar, ExternalLink, Info } from 'lucide-react';
+import { availabilityService, type ApartmentAvailability } from '../../lib/supabase';
+import { useNavigate } from 'react-router-dom';
 
 interface CalendarManagerProps {
   apartmentId: string;
@@ -9,14 +10,11 @@ interface CalendarManagerProps {
 }
 
 const CalendarManager: React.FC<CalendarManagerProps> = ({ apartmentId, apartmentTitle, onClose }) => {
+  const navigate = useNavigate();
   const [availability, setAvailability] = useState<ApartmentAvailability[]>([]);
-  const [icalFeeds, setICalFeeds] = useState<ApartmentICalFeed[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [bulkStatus, setBulkStatus] = useState<'available' | 'booked' | 'blocked'>('blocked');
-  const [showAddFeed, setShowAddFeed] = useState(false);
-  const [newFeed, setNewFeed] = useState({ name: '', url: '' });
-  const [syncingFeed, setSyncingFeed] = useState<string | null>(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   useEffect(() => {
@@ -28,14 +26,9 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ apartmentId, apartmen
       setLoading(true);
       const startDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).toISOString().split('T')[0];
       const endDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).toISOString().split('T')[0];
-      
-      const [availabilityData, feedsData] = await Promise.all([
-        availabilityService.getCalendar(apartmentId, startDate, endDate),
-        icalService.getFeeds(apartmentId)
-      ]);
-      
+
+      const availabilityData = await availabilityService.getCalendar(apartmentId, startDate, endDate);
       setAvailability(availabilityData);
-      setICalFeeds(feedsData);
     } catch (error) {
       console.error('Error fetching calendar data:', error);
     } finally {
@@ -44,8 +37,8 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ apartmentId, apartmen
   };
 
   const handleDateClick = (date: string) => {
-    setSelectedDates(prev => 
-      prev.includes(date) 
+    setSelectedDates(prev =>
+      prev.includes(date)
         ? prev.filter(d => d !== date)
         : [...prev, date]
     );
@@ -53,7 +46,7 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ apartmentId, apartmen
 
   const handleBulkUpdate = async () => {
     if (selectedDates.length === 0) return;
-    
+
     try {
       await availabilityService.setBulkAvailability(apartmentId, selectedDates, bulkStatus);
       setSelectedDates([]);
@@ -64,57 +57,9 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ apartmentId, apartmen
     }
   };
 
-  const handleAddFeed = async () => {
-    if (!newFeed.name.trim() || !newFeed.url.trim()) return;
-    
-    try {
-      await icalService.addFeed({
-        apartment_id: apartmentId,
-        feed_name: newFeed.name.trim(),
-        ical_url: newFeed.url.trim(),
-        is_active: true
-      });
-      
-      setNewFeed({ name: '', url: '' });
-      setShowAddFeed(false);
-      await fetchData();
-    } catch (error) {
-      console.error('Error adding iCal feed:', error);
-      alert('Failed to add iCal feed');
-    }
-  };
-
-  const handleSyncFeed = async (feedId: string) => {
-    setSyncingFeed(feedId);
-    try {
-      const result = await icalService.syncFeed(feedId);
-      if (result.success) {
-        alert(`Sync successful: ${result.message}`);
-        await fetchData();
-      } else {
-        alert(`Sync failed: ${result.message}`);
-      }
-    } catch (error) {
-      console.error('Error syncing feed:', error);
-      alert('Failed to sync iCal feed');
-    } finally {
-      setSyncingFeed(null);
-    }
-  };
-
-  const handleDeleteFeed = async (feedId: string) => {
-    if (!window.confirm('Are you sure you want to delete this iCal feed? This will also remove all associated blocked dates from the calendar.')) return;
-
-    try {
-      const result = await icalService.deleteFeed(feedId);
-      if (result.success) {
-        alert(`Feed deleted successfully. Removed ${result.availability_deleted || 0} blocked dates and ${result.events_deleted || 0} events.`);
-      }
-      await fetchData();
-    } catch (error) {
-      console.error('Error deleting feed:', error);
-      alert('Failed to delete iCal feed');
-    }
+  const handleManageIcal = () => {
+    onClose();
+    navigate('/admin/ical');
   };
 
   const getStatusColor = (status: string) => {
@@ -124,7 +69,7 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ apartmentId, apartmen
       case 'booked':
         return 'bg-red-900/50 text-red-300 border-red-200';
       case 'blocked':
-        return 'bg-gray-700 text-gray-800 border-gray-600';
+        return 'bg-gray-700 text-gray-300 border-gray-600';
       default:
         return 'bg-gray-50 text-gray-300 border-gray-600';
     }
@@ -135,14 +80,14 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ apartmentId, apartmen
     const month = currentMonth.getMonth();
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    
+
     const days = [];
-    
+
     // Empty cells for days before month starts
     for (let i = 0; i < firstDay; i++) {
       days.push(<div key={`empty-${i}`} className="h-12"></div>);
     }
-    
+
     // Days of the month
     for (let day = 1; day <= daysInMonth; day++) {
       const date = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -151,14 +96,14 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ apartmentId, apartmen
       const isSelected = selectedDates.includes(date);
       const todayString = new Date().toISOString().split('T')[0];
       const isPast = date < todayString;
-      
+
       days.push(
         <div
           key={date}
           onClick={() => !isPast && handleDateClick(date)}
           className={`h-12 border rounded cursor-pointer flex items-center justify-center text-sm font-medium transition-all ${
-            isPast 
-              ? 'bg-gray-50 text-gray-400 cursor-not-allowed' 
+            isPast
+              ? 'bg-gray-50 text-gray-400 cursor-not-allowed'
               : isSelected
                 ? 'bg-blue-500 text-white border-blue-500'
                 : `${getStatusColor(status)} hover:scale-105`
@@ -169,7 +114,7 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ apartmentId, apartmen
         </div>
       );
     }
-    
+
     return days;
   };
 
@@ -186,7 +131,7 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ apartmentId, apartmen
   if (loading) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-        <div className="bg-gray-800 rounded-lg p-6 w-full max-w-6xl">
+        <div className="bg-gray-800 rounded-lg p-6 w-full max-w-4xl">
           <div className="flex items-center justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
           </div>
@@ -197,10 +142,10 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ apartmentId, apartmen
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-gray-800 rounded-lg p-6 w-full max-w-6xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-gray-800 rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h2 className="text-xl font-bold">Calendar Management</h2>
+            <h2 className="text-xl font-bold text-white">Calendar Management</h2>
             <p className="text-gray-300">{apartmentTitle}</p>
           </div>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-300">
@@ -208,220 +153,101 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ apartmentId, apartmen
           </button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="space-y-6">
           {/* Calendar */}
-          <div className="lg:col-span-2">
-            <div className="bg-gray-50 rounded-lg p-4">
-              <div className="flex items-center justify-between mb-4">
-                <button onClick={previousMonth} className="p-2 hover:bg-gray-200 rounded">
-                  ←
-                </button>
-                <h3 className="text-lg font-semibold">
-                  {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                </h3>
-                <button onClick={nextMonth} className="p-2 hover:bg-gray-200 rounded">
-                  →
-                </button>
-              </div>
-              
-              <div className="grid grid-cols-7 gap-1 mb-2">
-                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                  <div key={day} className="h-8 flex items-center justify-center text-xs font-medium text-gray-500">
-                    {day}
-                  </div>
-                ))}
-              </div>
-              
-              <div className="grid grid-cols-7 gap-1">
-                {renderCalendar()}
-              </div>
-              
-              <div className="mt-4 flex flex-wrap gap-2 text-xs">
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-green-100 border border-green-200 rounded"></div>
-                  <span>Available</span>
+          <div className="bg-gray-900 rounded-lg p-4 border border-gray-700">
+            <div className="flex items-center justify-between mb-4">
+              <button onClick={previousMonth} className="p-2 hover:bg-gray-700 rounded text-white">
+                ←
+              </button>
+              <h3 className="text-lg font-semibold text-white">
+                {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+              </h3>
+              <button onClick={nextMonth} className="p-2 hover:bg-gray-700 rounded text-white">
+                →
+              </button>
+            </div>
+
+            <div className="grid grid-cols-7 gap-1 mb-2">
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                <div key={day} className="h-8 flex items-center justify-center text-xs font-medium text-gray-400">
+                  {day}
                 </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-red-100 border border-red-200 rounded"></div>
-                  <span>Booked</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-gray-700 border border-gray-600 rounded"></div>
-                  <span>Blocked</span>
-                </div>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-7 gap-1">
+              {renderCalendar()}
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-2 text-xs text-gray-300">
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-green-900/50 border border-green-200 rounded"></div>
+                <span>Available</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-red-900/50 border border-red-200 rounded"></div>
+                <span>Booked</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-gray-700 border border-gray-600 rounded"></div>
+                <span>Blocked</span>
               </div>
             </div>
-            
-            {/* Bulk Actions */}
-            {selectedDates.length > 0 && (
-              <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <h4 className="font-medium mb-2">{selectedDates.length} dates selected</h4>
-                <div className="flex items-center gap-2">
-                  <select
-                    value={bulkStatus}
-                    onChange={(e) => setBulkStatus(e.target.value as any)}
-                    className="px-3 py-1 border border-gray-600 rounded text-sm"
-                  >
-                    <option value="available">Set Available</option>
-                    <option value="booked">Set Booked</option>
-                    <option value="blocked">Set Blocked</option>
-                  </select>
-                  <button
-                    onClick={handleBulkUpdate}
-                    className="px-4 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
-                  >
-                    Update
-                  </button>
-                  <button
-                    onClick={() => setSelectedDates([])}
-                    className="px-4 py-1 bg-gray-300 text-gray-300 rounded text-sm hover:bg-gray-400"
-                  >
-                    Clear
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
 
-          {/* iCal Feeds */}
-          <div>
-            <div className="bg-gray-50 rounded-lg p-4">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">iCal Feeds</h3>
-                <button
-                  onClick={() => setShowAddFeed(true)}
-                  className="p-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
-                  title="Add iCal feed"
+          {/* Bulk Actions */}
+          {selectedDates.length > 0 && (
+            <div className="p-4 bg-blue-900/20 rounded-lg border border-blue-500/30">
+              <h4 className="font-medium mb-2 text-white">{selectedDates.length} dates selected</h4>
+              <div className="flex items-center gap-2">
+                <select
+                  value={bulkStatus}
+                  onChange={(e) => setBulkStatus(e.target.value as any)}
+                  className="px-3 py-1 border border-gray-600 rounded text-sm bg-gray-700 text-white"
                 >
-                  <Plus className="w-4 h-4" />
+                  <option value="available">Set Available</option>
+                  <option value="booked">Set Booked</option>
+                  <option value="blocked">Set Blocked</option>
+                </select>
+                <button
+                  onClick={handleBulkUpdate}
+                  className="px-4 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+                >
+                  Update
+                </button>
+                <button
+                  onClick={() => setSelectedDates([])}
+                  className="px-4 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700"
+                >
+                  Clear
                 </button>
               </div>
-              
-              {icalFeeds.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  <Calendar className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                  <p className="text-sm">No iCal feeds configured</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {icalFeeds.map((feed) => (
-                    <div key={feed.id} className="p-3 bg-gray-800 rounded border">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-sm truncate">{feed.feed_name}</h4>
-                          <p className="text-xs text-gray-500 truncate">{feed.ical_url}</p>
-                          {feed.last_sync && (
-                            <p className="text-xs text-gray-400 mt-1">
-                              Last sync: {new Date(feed.last_sync).toLocaleDateString()}
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-1 ml-2">
-                          <button
-                            onClick={() => handleSyncFeed(feed.id)}
-                            disabled={syncingFeed === feed.id}
-                            className="p-1 text-blue-600 hover:text-blue-800 disabled:opacity-50"
-                            title="Sync feed"
-                          >
-                            <RefreshCw className={`w-4 h-4 ${syncingFeed === feed.id ? 'animate-spin' : ''}`} />
-                          </button>
-                          <a
-                            href={feed.ical_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-1 text-gray-300 hover:text-gray-800"
-                            title="Open feed URL"
-                          >
-                            <ExternalLink className="w-4 h-4" />
-                          </a>
-                          <button
-                            onClick={() => handleDeleteFeed(feed.id)}
-                            className="p-1 text-red-600 hover:text-red-800"
-                            title="Delete feed"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
-            
-            <div className="mt-4 p-3 bg-yellow-50 rounded border border-yellow-200">
-              <div className="flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />
-                <div className="text-xs text-yellow-800">
-                  <p className="font-medium mb-1">iCal Sync Info:</p>
-                  <ul className="space-y-1 text-xs">
-                    <li>• Synced events will be marked as "booked"</li>
-                    <li>• Manual changes may be overwritten on sync</li>
-                    <li>• Sync regularly to keep calendar updated</li>
-                  </ul>
-                </div>
+          )}
+
+          {/* Info Box */}
+          <div className="p-4 bg-blue-900/20 rounded-lg border border-blue-500/30">
+            <div className="flex items-start gap-3">
+              <Info className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
+              <div className="text-sm text-blue-200">
+                <p className="font-medium mb-2">Quick Actions:</p>
+                <ul className="space-y-1 text-xs">
+                  <li>• Click dates to select them for bulk updates</li>
+                  <li>• Use this calendar for manual availability management</li>
+                  <li>• For iCal feed management, use the dedicated iCal page</li>
+                </ul>
+                <button
+                  onClick={handleManageIcal}
+                  className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Manage iCal Feeds
+                </button>
               </div>
             </div>
           </div>
         </div>
-
-        {/* Add Feed Modal */}
-        {showAddFeed && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-60">
-            <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">Add iCal Feed</h3>
-                <button onClick={() => setShowAddFeed(false)} className="text-gray-500 hover:text-gray-300">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
-                    Feed Name
-                  </label>
-                  <input
-                    type="text"
-                    value={newFeed.name}
-                    onChange={(e) => setNewFeed({ ...newFeed, name: e.target.value })}
-                    placeholder="e.g., Airbnb Calendar"
-                    className="w-full px-3 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
-                    iCal URL
-                  </label>
-                  <input
-                    type="url"
-                    value={newFeed.url}
-                    onChange={(e) => setNewFeed({ ...newFeed, url: e.target.value })}
-                    placeholder="https://..."
-                    className="w-full px-3 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-              
-              <div className="flex justify-end gap-3 mt-6">
-                <button
-                  onClick={() => setShowAddFeed(false)}
-                  className="px-4 py-2 text-gray-300 bg-gray-700 rounded-lg hover:bg-gray-200"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleAddFeed}
-                  disabled={!newFeed.name.trim() || !newFeed.url.trim()}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
-                >
-                  Add Feed
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

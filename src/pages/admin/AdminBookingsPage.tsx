@@ -27,7 +27,6 @@ const AdminBookingsPage: React.FC = () => {
     checkedIn: 0,
     checkedOut: 0,
     cancelled: 0,
-    icalBlockouts: 0,
   });
 
   const filteredBookings = bookings.filter(booking => {
@@ -55,22 +54,19 @@ const AdminBookingsPage: React.FC = () => {
       checkedIn: bookings.filter(b => b.status === 'checked_in').length,
       checkedOut: bookings.filter(b => b.status === 'checked_out').length,
       cancelled: bookings.filter(b => b.status === 'cancelled').length,
-      icalBlockouts: blockouts.length,
     });
   };
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [bookingsData, apartmentsData, blockoutsData] = await Promise.all([
+      const [bookingsData, apartmentsData] = await Promise.all([
         bookingService.getAll(),
-        apartmentService.getAll(),
-        availabilityService.getBlockoutRanges()
+        apartmentService.getAll()
       ]);
 
       setBookings(bookingsData);
       setApartments(apartmentsData);
-      setBlockouts(blockoutsData);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -324,7 +320,6 @@ const AdminBookingsPage: React.FC = () => {
         ) : (
           <BookingList
             bookings={bookings}
-            blockouts={blockouts}
             filter={filter}
             onFilterChange={setFilter}
             onEdit={handleEdit}
