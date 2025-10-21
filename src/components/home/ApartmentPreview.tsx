@@ -81,7 +81,7 @@ const ApartmentPreview: React.FC = () => {
     const container = document.getElementById('apartments-scroll');
     if (!container) return;
 
-    const cardWidth = 320; // Approximate card width + gap
+    const cardWidth = 400; // Approximate card width + gap
     const scrollAmount = cardWidth * 2; // Scroll 2 cards at a time
     
     const newScrollLeft = direction === 'left' 
@@ -229,10 +229,10 @@ const ApartmentPreview: React.FC = () => {
               }}
             >
               {apartments.map((apartment) => (
-                <Link 
+                <Link
                   key={apartment.id}
                   to={`/room/${apartmentService.generateSlug(apartment.title)}`}
-                  className="flex-none w-72 md:w-80 bg-[#1E1F1E] group card hover:ring-2 hover:ring-[#C5C5B5]/20 transition-all hover:transform hover:-translate-y-1 shadow-lg apartment-card"
+                  className="flex-none w-80 md:w-96 bg-[#1E1F1E] group card hover:ring-2 hover:ring-[#C5C5B5]/20 transition-all hover:transform hover:-translate-y-1 shadow-lg apartment-card"
                 >
                   <div className="aspect-video overflow-hidden">
                     {/* Availability Pill */}
@@ -296,6 +296,55 @@ const ApartmentPreview: React.FC = () => {
                   </div>
                 </Link>
               ))}
+
+              {/* Coming Soon Teaser Card */}
+              <div className="flex-none w-80 md:w-96 bg-gradient-to-br from-[#1E1F1E]/40 to-[#1E1F1E]/20 backdrop-blur-sm group card border-2 border-dashed border-[#1E1F1E]/30 hover:border-[#1E1F1E]/60 transition-all shadow-lg">
+                <div className="aspect-video overflow-hidden bg-gradient-to-br from-[#C5C5B5]/10 to-[#C5C5B5]/5 flex items-center justify-center relative">
+                  <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNiIgc3Ryb2tlPSIjMUUxRjFFIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1vcGFjaXR5PSIuMSIvPjwvZz48L3N2Zz4=')] opacity-50"></div>
+                  <div className="relative z-10 text-center">
+                    <div className="text-6xl mb-2">🏗️</div>
+                    <div className="bg-[#1E1F1E]/80 backdrop-blur-sm text-[#C5C5B5] px-4 py-2 rounded-full text-sm font-bold border border-[#C5C5B5]/20">
+                      New Location Coming 2026
+                    </div>
+                  </div>
+                </div>
+                <div className="p-4 md:p-6 card-content">
+                  <div className="mb-4">
+                    <h3 className="text-lg md:text-xl font-bold text-[#1E1F1E] mb-2">Second Building</h3>
+                    <div className="inline-flex items-center gap-2 bg-[#1E1F1E]/10 px-3 py-1 rounded-full">
+                      <span className="text-xs font-semibold text-[#1E1F1E]">3 New Apartments</span>
+                      <span className="text-xs text-[#1E1F1E]/60">•</span>
+                      <span className="text-xs text-[#1E1F1E]/60">2026</span>
+                    </div>
+                  </div>
+
+                  <div className="h-16 mb-4">
+                    <p className="text-[#1E1F1E]/70 text-sm leading-relaxed">
+                      We're expanding! Our new building will feature 3 additional premium apartments, bringing the same quality and community vibe to a second location in Funchal.
+                    </p>
+                  </div>
+
+                  <div className="h-16 space-y-2 mb-4">
+                    <div className="flex items-center text-[#1E1F1E]/60">
+                      <span className="text-2xl mr-3">✨</span>
+                      <span className="text-sm">Same premium standards</span>
+                    </div>
+                    <div className="flex items-center text-[#1E1F1E]/60">
+                      <span className="text-2xl mr-3">🌍</span>
+                      <span className="text-sm">New location in Funchal</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between mt-auto">
+                    <div className="flex flex-col">
+                      <span className="text-sm text-[#1E1F1E]/60 font-medium">Opening 2026</span>
+                    </div>
+                    <span className="inline-flex items-center text-[#1E1F1E] text-xs md:text-sm uppercase tracking-wide opacity-60">
+                      Stay Tuned
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
             
             {/* Gradient Overlays for Visual Cues */}
