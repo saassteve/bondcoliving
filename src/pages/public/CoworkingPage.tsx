@@ -73,13 +73,13 @@ const CoworkingPage: React.FC = () => {
     <>
       <Helmet>
         <title>Coworking Funchal Madeira | Professional Workspace for Digital Nomads | Bond Coworking</title>
-        <meta name="description" content="Bond Coworking Funchal: Premium coworking space in central Madeira for digital nomads & remote workers. Enterprise WiFi 500+ Mbps, 24/7 access, day passes from €15. Opening September 2025." />
+        <meta name="description" content="Bond Coworking Funchal: Premium coworking space in central Madeira for digital nomads & remote workers. Enterprise WiFi 500+ Mbps, 24/7 access, day passes from €15. Opening November 2025." />
         <meta name="keywords" content="coworking Funchal, coworking Madeira, coworking space Funchal, coworking space Madeira, digital nomad workspace Funchal, remote work space Madeira, office space Funchal, flexible workspace Madeira, hot desk Funchal, dedicated desk Madeira, coworking passes Funchal, day pass coworking Madeira, monthly coworking Funchal" />
         <link rel="canonical" href="https://stayatbond.com/coworking" />
 
         {/* Open Graph */}
         <meta property="og:title" content="Coworking Funchal Madeira | Professional Workspace for Digital Nomads | Bond" />
-        <meta property="og:description" content="Premium coworking space in central Funchal, Madeira. Enterprise WiFi, 24/7 access, vibrant community. Day, weekly & monthly passes for digital nomads. Opening September 2025." />
+        <meta property="og:description" content="Premium coworking space in central Funchal, Madeira. Enterprise WiFi, 24/7 access, vibrant community. Day, weekly & monthly passes for digital nomads. Opening November 2025." />
         <meta property="og:url" content="https://stayatbond.com/coworking" />
         <meta property="og:type" content="website" />
         <meta property="og:image" content="https://images.pexels.com/photos/7688336/pexels-photo-7688336.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" />
@@ -102,7 +102,7 @@ const CoworkingPage: React.FC = () => {
               <div className="mb-8">
                 <div className="inline-flex items-center px-6 py-3 rounded-full bg-[#C5C5B5]/10 backdrop-blur-sm text-[#C5C5B5] text-sm uppercase tracking-wide mb-8 border border-[#C5C5B5]/20">
                   <Clock className="w-4 h-4 mr-2" />
-                  Opening September 2025
+                  Opening November 2025
                 </div>
                 <h1 className="text-5xl md:text-7xl font-bold mb-8">
                   <span className="bg-gradient-to-r from-[#C5C5B5] via-white to-[#C5C5B5] bg-clip-text text-transparent">
@@ -126,7 +126,7 @@ const CoworkingPage: React.FC = () => {
             <AnimatedSection animation="fadeInLeft">
               <div>
                 <div className="inline-flex items-center px-4 py-2 rounded-full bg-[#C5C5B5]/5 text-[#C5C5B5]/80 text-sm uppercase tracking-wide mb-8">
-                  Coming September 2025
+                  Coming November 2025
                 </div>
                 <h2 className="text-4xl md:text-5xl font-bold mb-8">
                   <span className="bg-gradient-to-r from-[#C5C5B5] via-white to-[#C5C5B5] bg-clip-text text-transparent">
@@ -236,7 +236,7 @@ const CoworkingPage: React.FC = () => {
                         : 'bg-[#C5C5B5]/10 text-[#C5C5B5]/50 cursor-not-allowed'
                     }`}
                   >
-                    Available September 2025
+                    Available November 2025
                   </button>
                 </div>
               </AnimatedSection>
@@ -381,7 +381,7 @@ const CoworkingPage: React.FC = () => {
                 Ready to Work in Paradise?
               </h2>
               <p className="text-xl md:text-2xl text-[#C5C5B5]/80 mb-12 leading-relaxed">
-                Join our early access list and be the first to know when our coworking space opens in September 2025. 
+                Join our early access list and be the first to know when our coworking space opens in November 2025. 
                 Founding members get exclusive rates and priority access.
               </p>
               

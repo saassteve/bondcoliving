@@ -8,7 +8,6 @@ import FeatureHighlights from '../../components/home/FeatureHighlights';
 import Reviews from '../../components/home/Reviews';
 import WhoItsFor from '../../components/home/WhoItsFor';
 import Location from '../../components/home/Location';
-import CommunityEvents from '../../components/home/CommunityEvents';
 import FinalCTA from '../../components/home/FinalCTA';
 import FAQSection from '../../components/FAQSection';
 
@@ -49,7 +48,6 @@ const HomePage: React.FC = () => {
       <Intro />
       <ValueComparison />
       <FeatureHighlights />
-      <CommunityEvents />
       <Reviews />
       <WhoItsFor />
       <Location />
