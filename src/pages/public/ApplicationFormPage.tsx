@@ -49,24 +49,23 @@ const ApplicationFormPage: React.FC = () => {
       {/* Booking Section */}
       <section className="py-8 bg-[#1E1F1E]">
         <div className="container">
-          <div className="max-w-4xl mx-auto">
-            {/* Booking Widget Container */}
-            <div className="bg-[#C5C5B5]/5 backdrop-blur-sm rounded-3xl p-8 md:p-12 border border-[#C5C5B5]/10">
-              <div className="text-center mb-8">
-                <h3 className="text-2xl font-bold text-[#C5C5B5] mb-4">
-                  Search & Book
-                </h3>
-                <p className="text-[#C5C5B5]/80">
-                  Use the booking system below to check availability and reserve your apartment.
-                </p>
-              </div>
-              
-              {/* Mangobeds Booking Widget */}
-              <MangobedsBookingForm />
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-8">
+              <h3 className="text-2xl font-bold text-[#C5C5B5] mb-4">
+                Search & Book
+              </h3>
+              <p className="text-[#C5C5B5]/80">
+                Use the booking system below to check availability and reserve your apartment.
+              </p>
             </div>
 
-            {/* Additional Information */}
-            <div className="mt-12 text-center">
+            {/* Mangobeds Booking Widget */}
+            <MangobedsBookingForm />
+          </div>
+
+          {/* Additional Information */}
+          <div className="max-w-4xl mx-auto mt-12">
+            <div className="text-center">
               <div className="bg-[#C5C5B5]/5 rounded-2xl p-6 border border-[#C5C5B5]/10">
                 <h4 className="text-lg font-bold text-[#C5C5B5] mb-3">Need Help?</h4>
                 <p className="text-[#C5C5B5]/80 mb-4">
