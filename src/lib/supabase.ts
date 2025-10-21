@@ -788,13 +788,16 @@ export class ICalService {
     return data
   }
 
-  static async deleteFeed(feedId: string): Promise<void> {
-    const { error } = await supabase
-      .from('apartment_ical_feeds')
-      .delete()
-      .eq('id', feedId)
-    
-    if (error) throw error
+  static async deleteFeed(feedId: string): Promise<{ success: boolean; message: string; availability_deleted?: number; events_deleted?: number }> {
+    const { data, error } = await supabase
+      .rpc('delete_ical_feed_cascade', { p_feed_id: feedId })
+
+    if (error) {
+      console.error('Error deleting feed:', error)
+      throw error
+    }
+
+    return data || { success: false, message: 'Unknown error' }
   }
 
   static async syncFeed(feedId: string): Promise<{ success: boolean; message: string; results?: any[] }> {
@@ -893,6 +896,20 @@ export class ICalService {
 
     if (error) throw error
     return data
+  }
+
+  static async cleanupOrphanedAvailability(apartmentId?: string): Promise<{ success: boolean; deleted_count: number; orphaned_feeds: string[]; message: string }> {
+    const { data, error } = await supabase
+      .rpc('cleanup_orphaned_availability', {
+        p_apartment_id: apartmentId || null
+      })
+
+    if (error) {
+      console.error('Error cleaning up orphaned availability:', error)
+      throw error
+    }
+
+    return data || { success: false, deleted_count: 0, orphaned_feeds: [], message: 'Unknown error' }
   }
 }
 

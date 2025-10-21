@@ -61,11 +61,15 @@ const ICalManager: React.FC = () => {
   };
 
   const handleDeleteFeed = async (feedId: string) => {
-    if (!confirm('Are you sure you want to delete this iCal feed?')) return;
+    if (!confirm('Are you sure you want to delete this iCal feed? This will also remove all associated blocked dates from the calendar.')) return;
 
     try {
-      await icalService.deleteFeed(feedId);
-      setSuccess('iCal feed deleted successfully');
+      const result = await icalService.deleteFeed(feedId);
+      if (result.success) {
+        setSuccess(`Feed deleted successfully. Removed ${result.availability_deleted || 0} blocked dates and ${result.events_deleted || 0} events.`);
+      } else {
+        setError(result.message || 'Failed to delete iCal feed');
+      }
       fetchData();
     } catch (err) {
       setError('Failed to delete iCal feed');
@@ -127,6 +131,23 @@ const ICalManager: React.FC = () => {
     }
   };
 
+  const handleCleanupOrphaned = async () => {
+    if (!confirm('This will remove all blocked dates from deleted iCal feeds. Continue?')) return;
+
+    try {
+      const result = await icalService.cleanupOrphanedAvailability();
+      if (result.success) {
+        setSuccess(`Cleaned up ${result.deleted_count} orphaned availability records from feeds: ${result.orphaned_feeds.join(', ')}`);
+        fetchData();
+      } else {
+        setError(result.message || 'Failed to cleanup orphaned availability');
+      }
+    } catch (err) {
+      setError('Failed to cleanup orphaned availability');
+      console.error('Error cleaning up orphaned availability:', err);
+    }
+  };
+
   const getApartmentName = (apartmentId: string) => {
     return apartments.find(apt => apt.id === apartmentId)?.title || 'Unknown';
   };
@@ -164,13 +185,23 @@ const ICalManager: React.FC = () => {
 
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-white">iCal Feed Management</h2>
-        <button
-          onClick={() => setShowAddForm(!showAddForm)}
-          className="admin-btn-primary flex items-center px-6 py-2 rounded-lg"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add iCal Feed
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={handleCleanupOrphaned}
+            className="admin-btn-secondary flex items-center px-4 py-2 rounded-lg"
+            title="Remove blocked dates from deleted feeds"
+          >
+            <Trash2 className="w-4 h-4 mr-2" />
+            Cleanup Orphaned
+          </button>
+          <button
+            onClick={() => setShowAddForm(!showAddForm)}
+            className="admin-btn-primary flex items-center px-6 py-2 rounded-lg"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add iCal Feed
+          </button>
+        </div>
       </div>
 
       {showAddForm && (

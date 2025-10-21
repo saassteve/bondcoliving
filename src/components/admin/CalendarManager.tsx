@@ -103,10 +103,13 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ apartmentId, apartmen
   };
 
   const handleDeleteFeed = async (feedId: string) => {
-    if (!window.confirm('Are you sure you want to delete this iCal feed?')) return;
-    
+    if (!window.confirm('Are you sure you want to delete this iCal feed? This will also remove all associated blocked dates from the calendar.')) return;
+
     try {
-      await icalService.deleteFeed(feedId);
+      const result = await icalService.deleteFeed(feedId);
+      if (result.success) {
+        alert(`Feed deleted successfully. Removed ${result.availability_deleted || 0} blocked dates and ${result.events_deleted || 0} events.`);
+      }
       await fetchData();
     } catch (error) {
       console.error('Error deleting feed:', error);
