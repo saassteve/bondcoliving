@@ -101,16 +101,16 @@ const BookingTimeline: React.FC<BookingTimelineProps> = ({
       {/* Timeline Controls */}
       <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
         <div className="flex items-center space-x-2">
-          <button 
-            onClick={onPreviousPeriod} 
-            className="p-2 rounded hover:bg-gray-200 transition-colors"
+          <button
+            onClick={onPreviousPeriod}
+            className="p-2 rounded hover:bg-gray-200 transition-colors text-gray-700 hover:text-gray-900"
             title="Previous period"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <button 
-            onClick={onNextPeriod} 
-            className="p-2 rounded hover:bg-gray-200 transition-colors"
+          <button
+            onClick={onNextPeriod}
+            className="p-2 rounded hover:bg-gray-200 transition-colors text-gray-700 hover:text-gray-900"
             title="Next period"
           >
             <ChevronRight className="w-5 h-5" />
@@ -118,7 +118,7 @@ const BookingTimeline: React.FC<BookingTimelineProps> = ({
         </div>
         
         <div className="flex items-center space-x-3">
-          <span className="text-sm font-medium text-gray-700">
+          <span className="text-sm font-semibold text-gray-900">
             {timelineStartDate.toLocaleDateString('en-US', { 
               month: 'short', 
               day: 'numeric',
@@ -165,8 +165,8 @@ const BookingTimeline: React.FC<BookingTimelineProps> = ({
           <div className="sticky top-0 z-10 bg-white border-b border-gray-200">
             <div className="flex">
               {/* Apartment Column Header */}
-              <div 
-                className="bg-gray-50 border-r border-gray-200 p-3 text-sm font-medium text-gray-700 flex items-center"
+              <div
+                className="bg-gray-50 border-r border-gray-200 p-3 text-sm font-semibold text-gray-800 flex items-center"
                 style={{ width: `${apartmentColumnWidth}px`, minWidth: `${apartmentColumnWidth}px` }}
               >
                 Apartments
@@ -182,8 +182,8 @@ const BookingTimeline: React.FC<BookingTimelineProps> = ({
                     <div 
                       key={index} 
                       className={`border-r border-gray-200 p-2 text-center text-xs font-medium ${
-                        isToday ? 'bg-blue-100 text-blue-800' : 
-                        isWeekend ? 'bg-gray-100 text-gray-600' : 'bg-gray-50 text-gray-600'
+                        isToday ? 'bg-blue-100 text-blue-900' :
+                        isWeekend ? 'bg-gray-100 text-gray-800' : 'bg-gray-50 text-gray-800'
                       }`}
                       style={{ width: `${dayWidth}px`, minWidth: `${dayWidth}px` }}
                     >
@@ -217,14 +217,14 @@ const BookingTimeline: React.FC<BookingTimelineProps> = ({
                 <div key={apartment.id} className="border-b border-gray-100 hover:bg-gray-50">
                   <div className="flex">
                     {/* Apartment Name Column */}
-                    <div 
+                    <div
                       className="border-r border-gray-200 p-4 bg-white flex flex-col justify-center"
                       style={{ width: `${apartmentColumnWidth}px`, minWidth: `${apartmentColumnWidth}px` }}
                     >
-                      <div className="text-sm font-medium text-gray-900 truncate" title={apartment.title}>
+                      <div className="text-sm font-semibold text-gray-900 truncate" title={apartment.title}>
                         {apartment.title}
                       </div>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-gray-700 font-medium">
                         €{apartment.price}/month
                       </div>
                     </div>

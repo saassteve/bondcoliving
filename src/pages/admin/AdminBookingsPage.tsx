@@ -275,23 +275,23 @@ const AdminBookingsPage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
           <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
             <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
-            <div className="text-sm text-gray-700 font-medium">Total Bookings</div>
+            <div className="text-sm text-gray-800 font-semibold">Total Bookings</div>
           </div>
           <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
             <div className="text-2xl font-bold text-blue-600">{stats.confirmed}</div>
-            <div className="text-sm text-gray-700 font-medium">Confirmed</div>
+            <div className="text-sm text-gray-800 font-semibold">Confirmed</div>
           </div>
           <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
             <div className="text-2xl font-bold text-green-600">{stats.checkedIn}</div>
-            <div className="text-sm text-gray-700 font-medium">Checked In</div>
+            <div className="text-sm text-gray-800 font-semibold">Checked In</div>
           </div>
           <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
             <div className="text-2xl font-bold text-gray-600">{stats.checkedOut}</div>
-            <div className="text-sm text-gray-700 font-medium">Checked Out</div>
+            <div className="text-sm text-gray-800 font-semibold">Checked Out</div>
           </div>
           <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
             <div className="text-2xl font-bold text-red-600">{stats.cancelled}</div>
-            <div className="text-sm text-gray-700 font-medium">Cancelled</div>
+            <div className="text-sm text-gray-800 font-semibold">Cancelled</div>
           </div>
         </div>
 
