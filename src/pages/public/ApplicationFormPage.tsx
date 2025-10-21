@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Calendar, MapPin, Users } from 'lucide-react';
-import BookingWidgetAdvanced from '../../components/BookingWidgetAdvanced';
+import { ArrowLeft } from 'lucide-react';
+import MangobedsBookingForm from '../../components/MangobedsBookingForm';
 
 const ApplicationFormPage: React.FC = () => {
   return (
@@ -61,8 +61,8 @@ const ApplicationFormPage: React.FC = () => {
                 </p>
               </div>
               
-              {/* Advanced Booking Widget */}
-              <BookingWidgetAdvanced />
+              {/* Mangobeds Booking Widget */}
+              <MangobedsBookingForm />
             </div>
 
             {/* Additional Information */}
