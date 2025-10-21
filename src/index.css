@@ -293,9 +293,9 @@
     color: #C5C5B5 !important;
   }
 
-  /* Admin Panel Enhanced Readability Styles */
+  /* Admin Panel Dark Theme Styles */
 
-  /* Apply light theme to admin pages automatically */
+  /* Apply dark theme to admin pages automatically */
   main.admin-main * {
     color: inherit;
   }
@@ -306,22 +306,22 @@
   main.admin-main h4,
   main.admin-main h5,
   main.admin-main h6 {
-    @apply text-gray-900;
+    @apply text-slate-100;
   }
 
   main.admin-main p,
-  main.admin-main span:not([class*="bg-"]):not([class*="text-white"]) {
-    @apply text-gray-700;
+  main.admin-main span:not([class*="bg-"]):not([class*="text-"]) {
+    @apply text-slate-300;
   }
 
   main.admin-main .card {
-    @apply bg-white text-gray-900 shadow-sm border border-gray-200;
+    @apply bg-slate-800 text-slate-100 shadow-sm border border-slate-700;
   }
 
   main.admin-main input:not([type="checkbox"]):not([type="radio"]),
   main.admin-main select,
   main.admin-main textarea {
-    @apply bg-white text-gray-900 border-gray-300 placeholder-gray-500;
+    @apply bg-slate-700 text-slate-100 border-slate-600 placeholder-slate-400;
   }
 
   main.admin-main input:focus,
@@ -335,15 +335,15 @@
   }
 
   main.admin-main label {
-    @apply text-gray-700 font-medium;
+    @apply text-slate-300 font-medium;
   }
 
   .admin-card {
-    @apply bg-white text-gray-900 rounded-lg shadow-sm border border-gray-200;
+    @apply bg-slate-800 text-slate-100 rounded-lg shadow-sm border border-slate-700;
   }
 
   .admin-input {
-    @apply bg-white text-gray-900 border-gray-300 placeholder-gray-400;
+    @apply bg-slate-700 text-slate-100 border-slate-600 placeholder-slate-400;
   }
 
   .admin-input:focus {
@@ -351,15 +351,15 @@
   }
 
   .admin-select {
-    @apply bg-white text-gray-900 border-gray-300;
+    @apply bg-slate-700 text-slate-100 border-slate-600;
   }
 
   .admin-label {
-    @apply text-gray-700 font-medium;
+    @apply text-slate-300 font-medium;
   }
 
   .admin-text-muted {
-    @apply text-gray-600;
+    @apply text-slate-400;
   }
 
   .admin-btn-primary {
@@ -367,7 +367,7 @@
   }
 
   .admin-btn-secondary {
-    @apply bg-gray-100 text-gray-900 hover:bg-gray-200 active:bg-gray-300 border-gray-300;
+    @apply bg-slate-700 text-slate-200 hover:bg-slate-600 active:bg-slate-500 border-slate-600;
   }
 
   .admin-btn-danger {

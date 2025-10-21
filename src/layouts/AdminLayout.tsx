@@ -36,7 +36,7 @@ const AdminLayout: React.FC = () => {
         <title>Bond Admin - Coliving & Coworking Management</title>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
-      <div className="flex h-screen bg-gray-50">
+      <div className="flex h-screen bg-slate-900">
         {/* Sidebar for desktop */}
         <aside className={`fixed inset-y-0 left-0 z-50 w-64 transform bg-gray-900 transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:h-screen ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
@@ -80,22 +80,22 @@ const AdminLayout: React.FC = () => {
 
         {/* Main content area */}
         <div className="flex flex-col flex-1 overflow-hidden">
-          <header className="bg-white shadow border-b border-gray-200">
+          <header className="bg-slate-800 shadow border-b border-slate-700">
             <div className="flex items-center justify-between h-16 px-4 md:px-6">
               <div className="flex items-center">
                 <button
                   className="md:hidden p-2 text-gray-600 focus:outline-none"
                   onClick={toggleSidebar}
                 >
-                  <Menu className="w-6 h-6" />
+                  <Menu className="w-6 h-6 text-slate-300" />
                 </button>
-                <Link to="/" className="ml-2 md:ml-0 text-sm text-gray-600 hover:text-primary-600">
+                <Link to="/" className="ml-2 md:ml-0 text-sm text-slate-300 hover:text-slate-100">
                   <Home className="w-5 h-5 inline-block mr-1" />
                   View Website
                 </Link>
               </div>
               <div className="flex items-center">
-                <span className="text-sm font-medium text-gray-800">
+                <span className="text-sm font-medium text-slate-100">
                   {user?.email || 'Admin User'}
                   {user?.role === 'guest' && (
                     <span className="ml-2 px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full">
@@ -106,7 +106,7 @@ const AdminLayout: React.FC = () => {
               </div>
             </div>
           </header>
-          <main className="admin-main flex-1 overflow-y-auto bg-gray-100 p-4 md:p-6">
+          <main className="admin-main flex-1 overflow-y-auto bg-slate-900 p-4 md:p-6">
             <Outlet />
           </main>
         </div>

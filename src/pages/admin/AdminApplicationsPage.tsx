@@ -159,7 +159,7 @@ const AdminApplicationsPage: React.FC = () => {
         <Helmet>
           <title>Applications - Bond Admin</title>
         </Helmet>
-        <div className="text-center py-8">Loading applications...</div>
+        <div className="text-center py-8 text-slate-300">Loading applications...</div>
       </>
     );
   }
@@ -170,7 +170,7 @@ const AdminApplicationsPage: React.FC = () => {
         <Helmet>
           <title>Applications - Bond Admin</title>
         </Helmet>
-        <div className="text-center py-8 text-red-600">{error}</div>
+        <div className="text-center py-8 text-red-400">{error}</div>
       </>
     );
   }
@@ -183,25 +183,25 @@ const AdminApplicationsPage: React.FC = () => {
       
       <div>
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-          <h1 className="text-2xl font-bold">Applications</h1>
+          <h1 className="text-2xl font-bold text-slate-100">Applications</h1>
           
           <div className="mt-4 sm:mt-0 flex items-center space-x-4">
             <button
               onClick={exportApplications}
-              className="btn bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+              className="btn bg-slate-700 border border-slate-600 text-slate-200 hover:bg-slate-600"
             >
               <Download className="w-4 h-4 mr-1" />
               Export CSV
             </button>
             
-            <span className="mr-2 text-sm text-gray-600">
+            <span className="mr-2 text-sm text-slate-300">
               <Filter className="w-4 h-4 inline-block mr-1" />
               Filter:
             </span>
             <select
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
-              className="form-select text-sm border-gray-300 rounded-md shadow-sm"
+              className="form-select text-sm bg-slate-700 text-slate-200 border-slate-600 rounded-md shadow-sm"
             >
               <option value="all">All</option>
               <option value="pending">Pending</option>
@@ -213,59 +213,59 @@ const AdminApplicationsPage: React.FC = () => {
         
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
-            <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
-            <div className="text-sm text-gray-700 font-medium">Total Applications</div>
+          <div className="bg-slate-800 rounded-lg shadow-sm p-4 border border-slate-700">
+            <div className="text-2xl font-bold text-slate-100">{stats.total}</div>
+            <div className="text-sm text-slate-300 font-medium">Total Applications</div>
           </div>
-          <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+          <div className="bg-slate-800 rounded-lg shadow-sm p-4 border border-slate-700">
             <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
-            <div className="text-sm text-gray-700 font-medium">Pending Review</div>
+            <div className="text-sm text-slate-300 font-medium">Pending Review</div>
           </div>
-          <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+          <div className="bg-slate-800 rounded-lg shadow-sm p-4 border border-slate-700">
             <div className="text-2xl font-bold text-green-600">{stats.approved}</div>
-            <div className="text-sm text-gray-700 font-medium">Approved</div>
+            <div className="text-sm text-slate-300 font-medium">Approved</div>
           </div>
-          <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+          <div className="bg-slate-800 rounded-lg shadow-sm p-4 border border-slate-700">
             <div className="text-2xl font-bold text-red-600">{stats.declined}</div>
-            <div className="text-sm text-gray-700 font-medium">Declined</div>
+            <div className="text-sm text-slate-300 font-medium">Declined</div>
           </div>
         </div>
         
         {/* Applications Table */}
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200">
+        <div className="bg-slate-800 rounded-lg shadow-sm overflow-hidden border border-slate-700">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-300">
-              <thead className="bg-gray-100">
+            <table className="min-w-full divide-y divide-slate-700">
+              <thead className="bg-slate-700">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
                     Name
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
                     Submitted
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
                     Room Preference
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-slate-300 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-300">
+              <tbody className="bg-slate-800 divide-y divide-slate-700">
                 {filteredApplications.map((application) => (
                   <tr key={application.id}>
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{application.name}</div>
-                      <div className="text-sm text-gray-600">{application.email}</div>
+                      <div className="text-sm font-medium text-slate-100">{application.name}</div>
+                      <div className="text-sm text-slate-400">{application.email}</div>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="text-sm text-gray-700">{formatDate(application.created_at)}</div>
+                      <div className="text-sm text-slate-200">{formatDate(application.created_at)}</div>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{application.apartment_preference || 'No preference'}</div>
+                      <div className="text-sm text-slate-200">{application.apartment_preference || 'No preference'}</div>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusBadgeClass(application.status)}`}>
@@ -275,20 +275,20 @@ const AdminApplicationsPage: React.FC = () => {
                     <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
                       <button
                         onClick={() => handleView(application)}
-                        className="text-indigo-600 hover:text-indigo-800 mr-2 font-medium"
+                        className="text-indigo-400 hover:text-indigo-300 mr-2 font-medium"
                       >
                         <Eye className="w-4 h-4 inline-block" />
                       </button>
                       <a
                         href={`mailto:${application.email}`}
-                        className="text-blue-600 hover:text-blue-800 mr-2 font-medium"
+                        className="text-blue-400 hover:text-blue-300 mr-2 font-medium"
                         title="Send email"
                       >
                         <Mail className="w-4 h-4 inline-block" />
                       </a>
                       <button
                         onClick={() => handleDelete(application.id)}
-                        className="text-red-600 hover:text-red-800 mr-2 font-medium"
+                        className="text-red-400 hover:text-red-300 mr-2 font-medium"
                         title="Delete application"
                       >
                         <Trash2 className="w-4 h-4 inline-block" />
@@ -297,13 +297,13 @@ const AdminApplicationsPage: React.FC = () => {
                         <>
                           <button
                             onClick={() => handleApprove(application.id)}
-                            className="text-green-600 hover:text-green-800 mr-2 font-medium"
+                            className="text-green-400 hover:text-green-300 mr-2 font-medium"
                           >
                             <Check className="w-4 h-4 inline-block" />
                           </button>
                           <button
                             onClick={() => handleDecline(application.id)}
-                            className="text-red-600 hover:text-red-800 font-medium"
+                            className="text-red-400 hover:text-red-300 font-medium"
                           >
                             <X className="w-4 h-4 inline-block" />
                           </button>
@@ -316,8 +316,8 @@ const AdminApplicationsPage: React.FC = () => {
                 {filteredApplications.length === 0 && (
                   <tr>
                     <td colSpan={5} className="px-4 py-8 text-center">
-                      <div className="text-gray-400 mb-1">No applications found</div>
-                      <div className="text-sm text-gray-500">Try adjusting your filters</div>
+                      <div className="text-slate-400 mb-1">No applications found</div>
+                      <div className="text-sm text-slate-500">Try adjusting your filters</div>
                     </td>
                   </tr>
                 )}
@@ -329,12 +329,12 @@ const AdminApplicationsPage: React.FC = () => {
       
       {/* Application Details Modal */}
       {selectedApplication && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 rounded-lg shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-700">
             <div className="p-6">
               <div className="flex justify-between items-start mb-6">
-                <h2 className="text-xl font-bold">Application Details</h2>
-                <button onClick={closeModal} className="text-gray-500 hover:text-gray-700">
+                <h2 className="text-xl font-bold text-slate-100">Application Details</h2>
+                <button onClick={closeModal} className="text-slate-400 hover:text-slate-300">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -347,41 +347,41 @@ const AdminApplicationsPage: React.FC = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-1">Applicant</h3>
-                  <p className="font-medium">{selectedApplication.name}</p>
-                  <p className="text-gray-800">{selectedApplication.email}</p>
+                  <h3 className="text-sm font-medium text-slate-300 mb-1">Applicant</h3>
+                  <p className="font-medium text-slate-100">{selectedApplication.name}</p>
+                  <p className="text-slate-300">{selectedApplication.email}</p>
                   {selectedApplication.phone && (
-                    <p className="text-gray-800">{selectedApplication.phone}</p>
+                    <p className="text-slate-300">{selectedApplication.phone}</p>
                   )}
                 </div>
                 
                 <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-1">Submission Date</h3>
-                  <p>{formatDate(selectedApplication.created_at)}</p>
+                  <h3 className="text-sm font-medium text-slate-300 mb-1">Submission Date</h3>
+                  <p className="text-slate-200">{formatDate(selectedApplication.created_at)}</p>
                 </div>
                 
                 <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-1">Room Preference</h3>
-                  <p>{selectedApplication.apartment_preference || 'No preference'}</p>
+                  <h3 className="text-sm font-medium text-slate-300 mb-1">Room Preference</h3>
+                  <p className="text-slate-200">{selectedApplication.apartment_preference || 'No preference'}</p>
                 </div>
                 
                 <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-1">Stay Period</h3>
-                  <p>{formatDate(selectedApplication.arrival_date)} to {formatDate(selectedApplication.departure_date)}</p>
+                  <h3 className="text-sm font-medium text-slate-300 mb-1">Stay Period</h3>
+                  <p className="text-slate-200">{formatDate(selectedApplication.arrival_date)} to {formatDate(selectedApplication.departure_date)}</p>
                 </div>
 
                 {selectedApplication.heard_from && (
                   <div>
-                    <h3 className="text-sm font-medium text-gray-700 mb-1">Heard From</h3>
-                    <p>{selectedApplication.heard_from}</p>
+                    <h3 className="text-sm font-medium text-slate-300 mb-1">Heard From</h3>
+                    <p className="text-slate-200">{selectedApplication.heard_from}</p>
                   </div>
                 )}
               </div>
               
               <div className="mb-6">
-                <h3 className="text-sm font-medium text-gray-700 mb-2">About</h3>
-                <div className="bg-gray-50 p-3 rounded-md">
-                  <p className="text-gray-900">{selectedApplication.about}</p>
+                <h3 className="text-sm font-medium text-slate-300 mb-2">About</h3>
+                <div className="bg-slate-700 p-3 rounded-md">
+                  <p className="text-slate-200">{selectedApplication.about}</p>
                 </div>
               </div>
               
@@ -399,7 +399,7 @@ const AdminApplicationsPage: React.FC = () => {
                 <div className="flex justify-end space-x-3">
                   <button
                     onClick={() => handleDecline(selectedApplication.id)}
-                    className="btn bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                    className="btn bg-slate-700 border border-slate-600 text-slate-200 hover:bg-slate-600"
                   >
                     <X className="w-4 h-4 mr-1" />
                     Decline
@@ -416,10 +416,10 @@ const AdminApplicationsPage: React.FC = () => {
             </div>
             
             {/* Delete button - always available */}
-            <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="mt-4 pt-4 border-t border-slate-700">
               <button
                 onClick={() => handleDelete(selectedApplication.id)}
-                className="btn bg-red-50 border border-red-300 text-red-700 hover:bg-red-100"
+                className="btn bg-red-900/30 border border-red-700 text-red-300 hover:bg-red-900/50"
               >
                 <Trash2 className="w-4 h-4 mr-1" />
                 Delete Application
