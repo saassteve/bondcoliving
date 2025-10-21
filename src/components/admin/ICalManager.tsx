@@ -163,10 +163,10 @@ const ICalManager: React.FC = () => {
       )}
 
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">iCal Feed Management</h2>
+        <h2 className="text-2xl font-bold text-gray-900">iCal Feed Management</h2>
         <button
           onClick={() => setShowAddForm(!showAddForm)}
-          className="btn-primary flex items-center"
+          className="admin-btn-primary flex items-center px-6 py-2 rounded-lg"
         >
           <Plus className="w-4 h-4 mr-2" />
           Add iCal Feed
@@ -174,15 +174,15 @@ const ICalManager: React.FC = () => {
       </div>
 
       {showAddForm && (
-        <form onSubmit={handleAddFeed} className="card p-6 space-y-4">
-          <h3 className="text-xl font-semibold mb-4">Add New iCal Feed</h3>
+        <form onSubmit={handleAddFeed} className="admin-card p-6 space-y-4">
+          <h3 className="text-xl font-semibold mb-4 text-gray-900">Add New iCal Feed</h3>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Apartment</label>
+            <label className="admin-label block text-sm mb-2">Apartment</label>
             <select
               value={formData.apartment_id}
               onChange={(e) => setFormData({ ...formData, apartment_id: e.target.value })}
-              className="w-full px-4 py-2 rounded-lg bg-[#C5C5B5]/5 border border-[#C5C5B5]/20 focus:outline-none focus:ring-2 focus:ring-[#C5C5B5]/50"
+              className="admin-select w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             >
               <option value="">Select an apartment</option>
@@ -195,40 +195,40 @@ const ICalManager: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Feed Name</label>
+            <label className="admin-label block text-sm mb-2">Feed Name</label>
             <input
               type="text"
               value={formData.feed_name}
               onChange={(e) => setFormData({ ...formData, feed_name: e.target.value })}
-              className="w-full px-4 py-2 rounded-lg bg-[#C5C5B5]/5 border border-[#C5C5B5]/20 focus:outline-none focus:ring-2 focus:ring-[#C5C5B5]/50"
+              className="admin-input w-full px-4 py-2 rounded-lg border focus:outline-none"
               placeholder="e.g., Airbnb, Booking.com"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">iCal URL</label>
+            <label className="admin-label block text-sm mb-2">iCal URL</label>
             <input
               type="url"
               value={formData.ical_url}
               onChange={(e) => setFormData({ ...formData, ical_url: e.target.value })}
-              className="w-full px-4 py-2 rounded-lg bg-[#C5C5B5]/5 border border-[#C5C5B5]/20 focus:outline-none focus:ring-2 focus:ring-[#C5C5B5]/50"
+              className="admin-input w-full px-4 py-2 rounded-lg border focus:outline-none"
               placeholder="https://..."
               required
             />
-            <p className="text-sm text-[#C5C5B5]/60 mt-1">
+            <p className="admin-text-muted text-sm mt-1">
               Paste the iCal export URL from your booking platform
             </p>
           </div>
 
           <div className="flex gap-4">
-            <button type="submit" className="btn-primary">
+            <button type="submit" className="admin-btn-primary px-6 py-2 rounded-lg">
               Add Feed
             </button>
             <button
               type="button"
               onClick={() => setShowAddForm(false)}
-              className="px-6 py-2 rounded-lg border border-[#C5C5B5]/20 hover:bg-[#C5C5B5]/5"
+              className="admin-btn-secondary px-6 py-2 rounded-lg border"
             >
               Cancel
             </button>
@@ -242,13 +242,13 @@ const ICalManager: React.FC = () => {
           if (apartmentFeeds.length === 0) return null;
 
           return (
-            <div key={apartment.id} className="card p-6">
+            <div key={apartment.id} className="admin-card p-6">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-semibold">{apartment.title}</h3>
+                <h3 className="text-xl font-semibold text-gray-900">{apartment.title}</h3>
                 <button
                   onClick={() => handleSyncAllFeeds(apartment.id)}
                   disabled={syncing === apartment.id}
-                  className="btn-primary flex items-center"
+                  className="admin-btn-primary flex items-center px-4 py-2 rounded-lg"
                 >
                   <RefreshCw className={`w-4 h-4 mr-2 ${syncing === apartment.id ? 'animate-spin' : ''}`} />
                   Sync All Feeds
@@ -259,27 +259,27 @@ const ICalManager: React.FC = () => {
                 {apartmentFeeds.map((feed) => (
                   <div
                     key={feed.id}
-                    className="flex items-center justify-between p-4 bg-[#C5C5B5]/5 rounded-lg border border-[#C5C5B5]/10"
+                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200"
                   >
                     <div className="flex-1">
                       <div className="flex items-center gap-3">
-                        <h4 className="font-medium">{feed.feed_name}</h4>
+                        <h4 className="font-medium text-gray-900">{feed.feed_name}</h4>
                         <span
-                          className={`px-2 py-1 rounded-full text-xs ${
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${
                             feed.is_active
-                              ? 'bg-green-500/20 text-green-500'
-                              : 'bg-gray-500/20 text-gray-500'
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-gray-200 text-gray-600'
                           }`}
                         >
                           {feed.is_active ? 'Active' : 'Inactive'}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 mt-2 text-sm text-[#C5C5B5]/60">
+                      <div className="flex items-center gap-2 mt-2 text-sm text-gray-600">
                         <a
                           href={feed.ical_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center hover:text-[#C5C5B5]"
+                          className="flex items-center hover:text-blue-600 transition-colors"
                         >
                           <ExternalLink className="w-3 h-3 mr-1" />
                           View iCal URL
@@ -292,21 +292,21 @@ const ICalManager: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleToggleActive(feed.id, feed.is_active || false)}
-                        className="px-4 py-2 rounded-lg border border-[#C5C5B5]/20 hover:bg-[#C5C5B5]/5 text-sm"
+                        className="admin-btn-secondary px-4 py-2 rounded-lg border text-sm"
                       >
                         {feed.is_active ? 'Deactivate' : 'Activate'}
                       </button>
                       <button
                         onClick={() => handleSyncFeed(feed.id)}
                         disabled={syncing === feed.id}
-                        className="px-4 py-2 rounded-lg border border-[#C5C5B5]/20 hover:bg-[#C5C5B5]/5 text-sm flex items-center"
+                        className="admin-btn-primary px-4 py-2 rounded-lg text-sm flex items-center"
                       >
                         <RefreshCw className={`w-4 h-4 mr-2 ${syncing === feed.id ? 'animate-spin' : ''}`} />
                         Sync
                       </button>
                       <button
                         onClick={() => handleDeleteFeed(feed.id)}
-                        className="p-2 rounded-lg border border-red-500/20 hover:bg-red-500/10 text-red-500"
+                        className="admin-btn-danger p-2 rounded-lg"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -319,15 +319,15 @@ const ICalManager: React.FC = () => {
         })}
 
         {feeds.length === 0 && (
-          <div className="text-center py-12 card">
-            <Calendar className="w-12 h-12 mx-auto mb-4 text-[#C5C5B5]/40" />
-            <h3 className="text-xl font-semibold mb-2">No iCal Feeds Yet</h3>
-            <p className="text-[#C5C5B5]/60 mb-6">
+          <div className="text-center py-12 admin-card">
+            <Calendar className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+            <h3 className="text-xl font-semibold mb-2 text-gray-900">No iCal Feeds Yet</h3>
+            <p className="admin-text-muted mb-6">
               Add iCal feeds from your booking platforms to automatically sync availability
             </p>
             <button
               onClick={() => setShowAddForm(true)}
-              className="btn-primary inline-flex items-center"
+              className="admin-btn-primary inline-flex items-center px-6 py-2 rounded-lg"
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Your First Feed

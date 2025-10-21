@@ -293,6 +293,91 @@
     color: #C5C5B5 !important;
   }
 
+  /* Admin Panel Enhanced Readability Styles */
+
+  /* Apply light theme to admin pages automatically */
+  main.admin-main * {
+    color: inherit;
+  }
+
+  main.admin-main h1,
+  main.admin-main h2,
+  main.admin-main h3,
+  main.admin-main h4,
+  main.admin-main h5,
+  main.admin-main h6 {
+    @apply text-gray-900;
+  }
+
+  main.admin-main p,
+  main.admin-main span:not([class*="bg-"]):not([class*="text-white"]) {
+    @apply text-gray-700;
+  }
+
+  main.admin-main .card {
+    @apply bg-white text-gray-900 shadow-sm border border-gray-200;
+  }
+
+  main.admin-main input:not([type="checkbox"]):not([type="radio"]),
+  main.admin-main select,
+  main.admin-main textarea {
+    @apply bg-white text-gray-900 border-gray-300 placeholder-gray-500;
+  }
+
+  main.admin-main input:focus,
+  main.admin-main select:focus,
+  main.admin-main textarea:focus {
+    @apply border-blue-500 ring-2 ring-blue-500 ring-opacity-50;
+  }
+
+  main.admin-main .btn-primary {
+    @apply bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 border-blue-600 shadow-sm;
+  }
+
+  main.admin-main label {
+    @apply text-gray-700 font-medium;
+  }
+
+  .admin-card {
+    @apply bg-white text-gray-900 rounded-lg shadow-sm border border-gray-200;
+  }
+
+  .admin-input {
+    @apply bg-white text-gray-900 border-gray-300 placeholder-gray-400;
+  }
+
+  .admin-input:focus {
+    @apply border-blue-500 ring-2 ring-blue-500 ring-opacity-50;
+  }
+
+  .admin-select {
+    @apply bg-white text-gray-900 border-gray-300;
+  }
+
+  .admin-label {
+    @apply text-gray-700 font-medium;
+  }
+
+  .admin-text-muted {
+    @apply text-gray-600;
+  }
+
+  .admin-btn-primary {
+    @apply bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 border-blue-600 shadow-sm;
+  }
+
+  .admin-btn-secondary {
+    @apply bg-gray-100 text-gray-900 hover:bg-gray-200 active:bg-gray-300 border-gray-300;
+  }
+
+  .admin-btn-danger {
+    @apply bg-red-600 text-white hover:bg-red-700 active:bg-red-800 border-red-600;
+  }
+
+  .admin-btn-success {
+    @apply bg-green-600 text-white hover:bg-green-700 active:bg-green-800 border-green-600;
+  }
+
   /* Enhanced animations */
   @keyframes slideInFromBottom {
     0% {
