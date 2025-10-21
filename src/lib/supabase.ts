@@ -682,6 +682,86 @@ export class AvailabilityService {
 
     return data?.length || 0
   }
+
+  static async getBlockoutRanges(): Promise<Array<{
+    id: string
+    apartment_id: string
+    check_in_date: string
+    check_out_date: string
+    source: string
+    status: string
+    notes?: string
+  }>> {
+    const { data, error } = await supabase
+      .from('apartment_availability')
+      .select('*')
+      .in('status', ['booked', 'blocked'])
+      .order('date', { ascending: true })
+
+    if (error) throw error
+
+    if (!data || data.length === 0) return []
+
+    const ranges: Array<{
+      id: string
+      apartment_id: string
+      check_in_date: string
+      check_out_date: string
+      source: string
+      status: string
+      notes?: string
+    }> = []
+
+    const groupedByApartment = data.reduce((acc, item) => {
+      if (!acc[item.apartment_id]) {
+        acc[item.apartment_id] = []
+      }
+      acc[item.apartment_id].push(item)
+      return acc
+    }, {} as Record<string, ApartmentAvailability[]>)
+
+    for (const [apartmentId, blocks] of Object.entries(groupedByApartment)) {
+      let currentRange: ApartmentAvailability[] = []
+
+      for (let i = 0; i < blocks.length; i++) {
+        const block = blocks[i]
+        const prevBlock = blocks[i - 1]
+
+        if (!prevBlock ||
+            new Date(block.date).getTime() - new Date(prevBlock.date).getTime() > 86400000 ||
+            block.booking_reference !== prevBlock.booking_reference) {
+          if (currentRange.length > 0) {
+            ranges.push({
+              id: `blockout-${currentRange[0].id}`,
+              apartment_id: apartmentId,
+              check_in_date: currentRange[0].date,
+              check_out_date: currentRange[currentRange.length - 1].date,
+              source: currentRange[0].booking_reference || 'Manual Block',
+              status: currentRange[0].status,
+              notes: currentRange[0].notes
+            })
+          }
+          currentRange = [block]
+        } else {
+          currentRange.push(block)
+        }
+      }
+
+      if (currentRange.length > 0) {
+        ranges.push({
+          id: `blockout-${currentRange[0].id}`,
+          apartment_id: apartmentId,
+          check_in_date: currentRange[0].date,
+          check_out_date: currentRange[currentRange.length - 1].date,
+          source: currentRange[0].booking_reference || 'Manual Block',
+          status: currentRange[0].status,
+          notes: currentRange[0].notes
+        })
+      }
+    }
+
+    return ranges
+  }
 }
 
 export class ICalService {

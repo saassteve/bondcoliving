@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Plus, Download, ChevronLeft, ChevronRight } from 'lucide-react';
-import { bookingService, apartmentService, type Booking, type Apartment } from '../../lib/supabase';
+import { bookingService, apartmentService, availabilityService, type Booking, type Apartment } from '../../lib/supabase';
 import BookingForm from '../../components/admin/BookingForm';
 import BookingTimeline from '../../components/admin/BookingTimeline';
 import BookingCalendar from '../../components/admin/BookingCalendar';
@@ -10,6 +10,7 @@ import BookingDetailsModal from '../../components/admin/BookingDetailsModal';
 
 const AdminBookingsPage: React.FC = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [blockouts, setBlockouts] = useState<any[]>([]);
   const [apartments, setApartments] = useState<Apartment[]>([]);
   const [currentView, setCurrentView] = useState<'list' | 'calendar' | 'timeline'>('timeline');
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
@@ -26,6 +27,7 @@ const AdminBookingsPage: React.FC = () => {
     checkedIn: 0,
     checkedOut: 0,
     cancelled: 0,
+    icalBlockouts: 0,
   });
 
   const filteredBookings = bookings.filter(booking => {
@@ -37,10 +39,10 @@ const AdminBookingsPage: React.FC = () => {
     initializeTimelineView();
   }, []);
 
-  // Update stats whenever bookings change
+  // Update stats whenever bookings or blockouts change
   useEffect(() => {
     updateStats();
-  }, [bookings]);
+  }, [bookings, blockouts]);
 
   const initializeTimelineView = async () => {
     await fetchData();
@@ -53,19 +55,22 @@ const AdminBookingsPage: React.FC = () => {
       checkedIn: bookings.filter(b => b.status === 'checked_in').length,
       checkedOut: bookings.filter(b => b.status === 'checked_out').length,
       cancelled: bookings.filter(b => b.status === 'cancelled').length,
+      icalBlockouts: blockouts.length,
     });
   };
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [bookingsData, apartmentsData] = await Promise.all([
+      const [bookingsData, apartmentsData, blockoutsData] = await Promise.all([
         bookingService.getAll(),
-        apartmentService.getAll()
+        apartmentService.getAll(),
+        availabilityService.getBlockoutRanges()
       ]);
-      
+
       setBookings(bookingsData);
       setApartments(apartmentsData);
+      setBlockouts(blockoutsData);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -319,6 +324,7 @@ const AdminBookingsPage: React.FC = () => {
         ) : (
           <BookingList
             bookings={bookings}
+            blockouts={blockouts}
             filter={filter}
             onFilterChange={setFilter}
             onEdit={handleEdit}
