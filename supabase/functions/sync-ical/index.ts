@@ -6,22 +6,23 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
-type ICalEvent = {
+interface ICalEvent {
   uid: string;
   summary?: string;
   status?: string;
-  dtstart: { raw: string; params: Record<string, string> };
-  dtend: { raw: string; params: Record<string, string> };
-};
+  sequence?: number;
+  dtstart: { raw: string; isDate: boolean; tzid?: string };
+  dtend: { raw: string; isDate: boolean; tzid?: string };
+}
 
-type Feed = {
+interface Feed {
   id: string;
   feed_name: string;
   ical_url: string;
   apartment_id: string;
   is_active: boolean;
   timezone?: string | null;
-};
+}
 
 const DEFAULT_TZ = "Europe/London";
 
@@ -41,6 +42,7 @@ function unfoldICS(text: string): string[] {
 function parseProp(line: string): { name: string; params: Record<string, string>; value: string } | null {
   const m = line.match(/^([A-Z-]+)(;[^:]+)?:([\s\S]*)$/);
   if (!m) return null;
+
   const name = m[1];
   const paramsStr = m[2] || "";
   const value = m[3].trim();
@@ -56,40 +58,6 @@ function parseProp(line: string): { name: string; params: Record<string, string>
   return { name, params, value };
 }
 
-function formatDateInTZ(d: Date, tz: string): string {
-  const fmt = new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" });
-  return fmt.format(d);
-}
-
-function icsValueToLocalDate(value: string, params: Record<string, string>, defaultTz: string): string {
-  const dateOnly = value.match(/^(\d{4})(\d{2})(\d{2})$/);
-  if (dateOnly) {
-    const [, y, m, d] = dateOnly;
-    return `${y}-${m}-${d}`;
-  }
-
-  const dt = value.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})(Z)?$/);
-  if (!dt) {
-    const maybe = value.slice(0, 8);
-    if (/^\d{8}$/.test(maybe)) {
-      return `${maybe.slice(0, 4)}-${maybe.slice(4, 6)}-${maybe.slice(6, 8)}`;
-    }
-    throw new Error(`Unrecognised ICS date value: ${value}`);
-  }
-
-  const [, y, m, d, hh, mm, ss, z] = dt;
-  const tzid = params["TZID"];
-  const yN = Number(y), mN = Number(m) - 1, dN = Number(d);
-  const hhN = Number(hh), mmN = Number(mm), ssN = Number(ss);
-
-  if (z === "Z") {
-    const asUtc = new Date(Date.UTC(yN, mN, dN, hhN, mmN, ssN));
-    return formatDateInTZ(asUtc, tzid || defaultTz);
-  }
-
-  return `${y}-${m}-${d}`;
-}
-
 function parseICalFeed(icalData: string): ICalEvent[] {
   const lines = unfoldICS(icalData);
   const events: ICalEvent[] = [];
@@ -100,6 +68,7 @@ function parseICalFeed(icalData: string): ICalEvent[] {
       current = {};
       continue;
     }
+
     if (line === "END:VEVENT") {
       if (current?.uid && current?.dtstart && current?.dtend) {
         events.push(current as ICalEvent);
@@ -107,53 +76,40 @@ function parseICalFeed(icalData: string): ICalEvent[] {
       current = null;
       continue;
     }
+
     if (!current) continue;
 
     const prop = parseProp(line);
     if (!prop) continue;
 
     const { name, params, value } = prop;
-    if (name === "UID") current.uid = value;
-    else if (name === "SUMMARY") current.summary = value;
-    else if (name === "STATUS") current.status = value.toUpperCase();
-    else if (name === "DTSTART") current.dtstart = { raw: value, params };
-    else if (name === "DTEND") current.dtend = { raw: value, params };
+
+    if (name === "UID") {
+      current.uid = value;
+    } else if (name === "SUMMARY") {
+      current.summary = value;
+    } else if (name === "STATUS") {
+      current.status = value.toUpperCase();
+    } else if (name === "SEQUENCE") {
+      current.sequence = parseInt(value) || 0;
+    } else if (name === "DTSTART") {
+      const isDate = params["VALUE"] === "DATE" || /^\d{8}$/.test(value);
+      current.dtstart = {
+        raw: value,
+        isDate: isDate,
+        tzid: params["TZID"]
+      };
+    } else if (name === "DTEND") {
+      const isDate = params["VALUE"] === "DATE" || /^\d{8}$/.test(value);
+      current.dtend = {
+        raw: value,
+        isDate: isDate,
+        tzid: params["TZID"]
+      };
+    }
   }
 
   return events;
-}
-
-function generateDateRangeExclusive(startISO: string, endISO: string): string[] {
-  const out: string[] = [];
-  let y = Number(startISO.slice(0, 4));
-  let m = Number(startISO.slice(5, 7));
-  let d = Number(startISO.slice(8, 10));
-  const endY = Number(endISO.slice(0, 4));
-  const endM = Number(endISO.slice(5, 7));
-  const endD = Number(endISO.slice(8, 10));
-  const end = Date.UTC(endY, endM - 1, endD);
-
-  let cur = Date.UTC(y, m - 1, d);
-  while (cur < end) {
-    const cd = new Date(cur);
-    const iso = `${cd.getUTCFullYear()}-${String(cd.getUTCMonth() + 1).padStart(2, "0")}-${String(cd.getUTCDate()).padStart(2, "0")}`;
-    out.push(iso);
-    cur = Date.UTC(cd.getUTCFullYear(), cd.getUTCMonth(), cd.getUTCDate() + 1);
-  }
-  return out;
-}
-
-function todayInTZ(tz: string): string {
-  const now = new Date();
-  return formatDateInTZ(now, tz);
-}
-
-function addMonthsInTZ(iso: string, months: number, tz: string): string {
-  const [y, m, d] = iso.split("-").map(Number);
-  const base = new Date(Date.UTC(y, m - 1, d, 0, 0, 0));
-  const parts = formatDateInTZ(base, tz).split("-").map(Number);
-  const dt = new Date(Date.UTC(parts[0], (parts[1] - 1) + months, parts[2], 0, 0, 0));
-  return formatDateInTZ(dt, tz);
 }
 
 Deno.serve(async (req: Request) => {
@@ -165,10 +121,10 @@ Deno.serve(async (req: Request) => {
     const { feedId, apartmentId } = await req.json();
 
     if (!feedId && !apartmentId) {
-      return new Response(JSON.stringify({ error: "Either feedId or apartmentId is required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ error: "Either feedId or apartmentId is required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -177,32 +133,33 @@ Deno.serve(async (req: Request) => {
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Missing authorization header" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ error: "Missing authorization header" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     let feedsToSync: Feed[] = [];
 
     if (feedId) {
-      const r = await fetch(`${supabaseUrl}/rest/v1/apartment_ical_feeds?id=eq.${feedId}&is_active=eq.true`, {
-        headers: { Authorization: authHeader, apikey: anonKey },
-      });
+      const r = await fetch(
+        `${supabaseUrl}/rest/v1/apartment_ical_feeds?id=eq.${feedId}&is_active=eq.true&select=*`,
+        { headers: { Authorization: authHeader, apikey: anonKey } }
+      );
       feedsToSync = await r.json();
     } else {
       const r = await fetch(
-        `${supabaseUrl}/rest/v1/apartment_ical_feeds?apartment_id=eq.${apartmentId}&is_active=eq.true`,
+        `${supabaseUrl}/rest/v1/apartment_ical_feeds?apartment_id=eq.${apartmentId}&is_active=eq.true&select=*`,
         { headers: { Authorization: authHeader, apikey: anonKey } }
       );
       feedsToSync = await r.json();
     }
 
     if (!feedsToSync?.length) {
-      return new Response(JSON.stringify({ message: "No active feeds found to sync" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ message: "No active feeds found to sync" }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const results: any[] = [];
@@ -211,129 +168,151 @@ Deno.serve(async (req: Request) => {
       const tz = feed.timezone || DEFAULT_TZ;
 
       try {
-        await fetch(
-          `${supabaseUrl}/rest/v1/apartment_availability?apartment_id=eq.${feed.apartment_id}&booking_reference=eq.${encodeURIComponent(
-            feed.feed_name
-          )}`,
-          {
-            method: "DELETE",
-            headers: { Authorization: `Bearer ${supabaseServiceKey}`, apikey: anonKey },
-          }
-        );
+        const icalResponse = await fetch(feed.ical_url, {
+          headers: { "Cache-Control": "no-cache" }
+        });
 
-        const icalResponse = await fetch(feed.ical_url, { headers: { "Cache-Control": "no-cache" } });
         if (!icalResponse.ok) {
-          results.push({ feedId: feed.id, feedName: feed.feed_name, success: false, error: `Fetch failed: ${icalResponse.status}` });
+          results.push({
+            feedId: feed.id,
+            feedName: feed.feed_name,
+            success: false,
+            error: `Fetch failed: ${icalResponse.status}`
+          });
           continue;
         }
+
         const icalData = await icalResponse.text();
+
         if (!icalData || icalData.length < 50) {
-          results.push({ feedId: feed.id, feedName: feed.feed_name, success: false, error: "ICS body suspiciously small" });
+          results.push({
+            feedId: feed.id,
+            feedName: feed.feed_name,
+            success: false,
+            error: "ICS body suspiciously small"
+          });
           continue;
         }
 
         const events = parseICalFeed(icalData);
 
-        const today = todayInTZ(tz);
-        const maxDate = addMonthsInTZ(today, 24, tz);
-
-        const bookedDates: string[] = [];
-        let eventsProcessed = 0;
-        let eventsSkipped = 0;
-
-        for (const ev of events) {
-          try {
-            if ((ev.status || "") === "CANCELLED") {
-              eventsSkipped++;
-              continue;
+        await fetch(
+          `${supabaseUrl}/rest/v1/apartment_ical_events?apartment_id=eq.${feed.apartment_id}&feed_name=eq.${encodeURIComponent(feed.feed_name)}`,
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${supabaseServiceKey}`,
+              apikey: anonKey
             }
-
-            const startISO = icsValueToLocalDate(ev.dtstart.raw, ev.dtstart.params, tz);
-            const endISO = icsValueToLocalDate(ev.dtend.raw, ev.dtend.params, tz);
-
-            if (endISO < today) {
-              eventsSkipped++;
-              continue;
-            }
-            if (startISO > maxDate) {
-              eventsSkipped++;
-              continue;
-            }
-
-            const days = generateDateRangeExclusive(startISO, endISO);
-            bookedDates.push(...days);
-            eventsProcessed++;
-          } catch (e) {
-            console.warn(`Skipping event ${ev.uid}: ${(e as Error).message}`);
-            eventsSkipped++;
           }
-        }
+        );
 
-        const uniqueDates = [...new Set(bookedDates)];
-
-        if (uniqueDates.length) {
-          const rows = uniqueDates.map((date) => ({
+        if (events.length > 0) {
+          const rows = events.map(ev => ({
             apartment_id: feed.apartment_id,
-            date,
-            status: "booked",
-            booking_reference: feed.feed_name,
-            notes: `Synced from ${feed.feed_name}`,
+            feed_name: feed.feed_name,
+            uid: ev.uid,
+            summary: ev.summary || null,
+            status: ev.status || null,
+            sequence: ev.sequence || null,
+            dtstart_raw: ev.dtstart.raw,
+            dtstart_is_date: ev.dtstart.isDate,
+            dtstart_tzid: ev.dtstart.tzid || null,
+            dtend_raw: ev.dtend.raw,
+            dtend_is_date: ev.dtend.isDate,
+            dtend_tzid: ev.dtend.tzid || null
           }));
 
           const batchSize = 100;
           for (let i = 0; i < rows.length; i += batchSize) {
             const batch = rows.slice(i, i + batchSize);
-            const ins = await fetch(`${supabaseUrl}/rest/v1/apartment_availability`, {
+            const ins = await fetch(`${supabaseUrl}/rest/v1/apartment_ical_events`, {
               method: "POST",
               headers: {
                 Authorization: `Bearer ${supabaseServiceKey}`,
                 apikey: anonKey,
                 "Content-Type": "application/json",
-                Prefer: "resolution=merge-duplicates",
+                Prefer: "resolution=merge-duplicates"
               },
-              body: JSON.stringify(batch),
+              body: JSON.stringify(batch)
             });
+
             if (!ins.ok) {
               const txt = await ins.text();
-              throw new Error(`Insert failed: ${ins.status} ${txt}`);
+              throw new Error(`Insert raw events failed: ${ins.status} ${txt}`);
             }
           }
         }
 
-        await fetch(`${supabaseUrl}/rest/v1/apartment_ical_feeds?id=eq.${feed.id}`, {
-          method: "PATCH",
-          headers: {
-            Authorization: `Bearer ${supabaseServiceKey}`,
-            apikey: anonKey,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ last_sync: new Date().toISOString() }),
-        });
+        const rpcResponse = await fetch(
+          `${supabaseUrl}/rest/v1/rpc/sync_availability_from_ical`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${supabaseServiceKey}`,
+              apikey: anonKey,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              p_apartment_id: feed.apartment_id,
+              p_feed_name: feed.feed_name,
+              p_property_tz: tz
+            })
+          }
+        );
+
+        if (!rpcResponse.ok) {
+          const txt = await rpcResponse.text();
+          throw new Error(`RPC sync_availability_from_ical failed: ${rpcResponse.status} ${txt}`);
+        }
+
+        const rpcResult = await rpcResponse.json();
+        const syncStats = Array.isArray(rpcResult) ? rpcResult[0] : rpcResult;
+
+        await fetch(
+          `${supabaseUrl}/rest/v1/apartment_ical_feeds?id=eq.${feed.id}`,
+          {
+            method: "PATCH",
+            headers: {
+              Authorization: `Bearer ${supabaseServiceKey}`,
+              apikey: anonKey,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ last_sync: new Date().toISOString() })
+          }
+        );
 
         results.push({
           feedId: feed.id,
           feedName: feed.feed_name,
           success: true,
           eventsParsed: events.length,
-          eventsProcessed,
-          eventsSkipped,
-          datesBooked: uniqueDates.length,
-          timezoneUsed: tz,
+          datesBlocked: syncStats?.dates_synced || 0,
+          dateRangeStart: syncStats?.date_range_start || null,
+          dateRangeEnd: syncStats?.date_range_end || null,
+          timezoneUsed: tz
         });
+
       } catch (error: any) {
-        results.push({ feedId: feed.id, feedName: feed.feed_name, success: false, error: error.message || String(error) });
+        results.push({
+          feedId: feed.id,
+          feedName: feed.feed_name,
+          success: false,
+          error: error.message || String(error)
+        });
       }
     }
 
-    return new Response(JSON.stringify({ message: "Sync completed", results }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ message: "Sync completed", results }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+
   } catch (error: any) {
     console.error("Error in sync-ical function:", error);
-    return new Response(JSON.stringify({ error: error.message || "Internal server error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ error: error.message || "Internal server error" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   }
 });
