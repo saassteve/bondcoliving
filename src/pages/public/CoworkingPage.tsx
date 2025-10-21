@@ -251,7 +251,7 @@ const CoworkingPage: React.FC = () => {
                   Join our early access list for exclusive founding member rates and priority booking when we open.
                 </p>
                 <a 
-                  href="mailto:hello@stayatbond.com?subject=Coworking Early Access"
+                  href="mailto:info@stayatbond.com?subject=Coworking Early Access"
                   className="inline-flex items-center px-6 py-3 bg-[#1E1F1E] text-[#C5C5B5] rounded-full hover:bg-[#1E1F1E]/80 transition-all font-semibold text-sm uppercase tracking-wide"
                 >
                   Get Early Access
@@ -387,7 +387,7 @@ const CoworkingPage: React.FC = () => {
               
               <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
                 <a 
-                  href="mailto:hello@stayatbond.com?subject=Coworking Early Access - Founding Member"
+                  href="mailto:info@stayatbond.com?subject=Coworking Early Access - Founding Member"
                   className="inline-flex items-center px-8 py-4 bg-[#C5C5B5] text-[#1E1F1E] rounded-full hover:bg-white transition-all font-semibold text-lg uppercase tracking-wide shadow-lg hover:shadow-xl hover:scale-105"
                 >
                   Join Early Access List
