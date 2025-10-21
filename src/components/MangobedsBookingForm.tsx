@@ -32,6 +32,17 @@ const MangobedsBookingForm: React.FC<MangobedsBookingFormProps> = ({
         script.src = 'https://mangobeds.com/js/widget/booking-form.js';
         containerRef.current.appendChild(script);
       }
+
+      // Add CSS to force the iframe to be wider
+      const styleEl = document.createElement('style');
+      styleEl.textContent = `
+        #mangobeds-booking-container iframe {
+          width: 100% !important;
+          min-width: 100% !important;
+          max-width: 100% !important;
+        }
+      `;
+      document.head.appendChild(styleEl);
     }
   }, [scriptStatus, formId]);
 
