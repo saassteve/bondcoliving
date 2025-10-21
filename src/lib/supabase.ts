@@ -612,10 +612,12 @@ export class AvailabilityService {
       .eq('apartment_id', apartmentId)
       .gte('date', startDate)
       .lte('date', endDate)
-      .neq('status', 'available')
+      .in('status', ['booked', 'blocked'])
 
     if (error) throw error
-    return (data || []).length === 0
+
+    const unavailableDates = data || []
+    return unavailableDates.length === 0
   }
 
   static async getNextAvailableDate(apartmentId: string): Promise<string | null> {
@@ -641,6 +643,44 @@ export class AvailabilityService {
     }
 
     return today
+  }
+
+  static async getAvailableApartments(startDate: string, endDate: string): Promise<string[]> {
+    const { data: apartments, error: apartmentsError } = await supabase
+      .from('apartments')
+      .select('id')
+      .eq('status', 'available')
+
+    if (apartmentsError) throw apartmentsError
+
+    const apartmentIds = apartments?.map(apt => apt.id) || []
+
+    if (apartmentIds.length === 0) return []
+
+    const availableApartmentIds: string[] = []
+
+    for (const apartmentId of apartmentIds) {
+      const isAvailable = await AvailabilityService.checkAvailability(apartmentId, startDate, endDate)
+      if (isAvailable) {
+        availableApartmentIds.push(apartmentId)
+      }
+    }
+
+    return availableApartmentIds
+  }
+
+  static async getBookedDatesCount(apartmentId: string, startDate: string, endDate: string): Promise<number> {
+    const { data, error } = await supabase
+      .from('apartment_availability')
+      .select('date', { count: 'exact' })
+      .eq('apartment_id', apartmentId)
+      .gte('date', startDate)
+      .lte('date', endDate)
+      .eq('status', 'booked')
+
+    if (error) throw error
+
+    return data?.length || 0
   }
 }
 

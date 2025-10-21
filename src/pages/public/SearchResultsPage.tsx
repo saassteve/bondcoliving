@@ -69,7 +69,7 @@ const SearchResultsPage: React.FC = () => {
     }
   };
 
-  const filterAndSortApartments = () => {
+  const filterAndSortApartments = async () => {
     let filtered = [...apartments];
 
     // Filter by availability status
@@ -77,22 +77,12 @@ const SearchResultsPage: React.FC = () => {
       filtered = filtered.filter(apt => apt.status === 'available');
     }
 
-    // Filter by availability dates if provided
+    // Filter by availability dates if provided - check actual availability data
     if (checkIn && checkOut) {
-      const searchCheckIn = new Date(checkIn);
-      const searchCheckOut = new Date(checkOut);
-      
+      const availableApartmentIds = await availabilityService.getAvailableApartments(checkIn, checkOut);
+
       filtered = filtered.filter(apt => {
-        if (!apt.available_from) return true; // If no availability date set, assume available
-        
-        const aptAvailableFrom = new Date(apt.available_from);
-        const aptAvailableUntil = apt.available_until ? new Date(apt.available_until) : null;
-        
-        // Check if apartment is available during the requested period
-        const isAvailableFrom = searchCheckIn >= aptAvailableFrom;
-        const isAvailableUntil = !aptAvailableUntil || searchCheckOut <= aptAvailableUntil;
-        
-        return isAvailableFrom && isAvailableUntil;
+        return availableApartmentIds.includes(apt.id);
       });
     }
 
