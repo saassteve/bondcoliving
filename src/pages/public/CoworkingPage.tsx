@@ -72,20 +72,23 @@ const CoworkingPage: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>Digital Nomad Coworking Space Central Funchal - Opening September 2025 | Bond Madeira</title>
-        <meta name="description" content="Premium coworking space for digital nomads in central Funchal, Madeira. Opening September 2025. Enterprise-grade WiFi, community events, 5 minutes to ocean. Day, weekly & monthly passes." />
-        <meta name="keywords" content="digital nomad coworking Funchal, coworking space central Funchal, remote work space Madeira, nomad workspace Funchal center, coworking passes digital nomads, office space central Madeira, work from Funchal" />
+        <title>Coworking Funchal Madeira | Professional Workspace for Digital Nomads | Bond Coworking</title>
+        <meta name="description" content="Bond Coworking Funchal: Premium coworking space in central Madeira for digital nomads & remote workers. Enterprise WiFi 500+ Mbps, 24/7 access, day passes from €15. Opening September 2025." />
+        <meta name="keywords" content="coworking Funchal, coworking Madeira, coworking space Funchal, coworking space Madeira, digital nomad workspace Funchal, remote work space Madeira, office space Funchal, flexible workspace Madeira, hot desk Funchal, dedicated desk Madeira, coworking passes Funchal, day pass coworking Madeira, monthly coworking Funchal" />
         <link rel="canonical" href="https://stayatbond.com/coworking" />
-        
+
         {/* Open Graph */}
-        <meta property="og:title" content="Digital Nomad Coworking Space Central Funchal - Opening September 2025 | Bond Madeira" />
-        <meta property="og:description" content="Premium coworking space for digital nomads in central Funchal, Madeira. Enterprise-grade WiFi, community events, 5 minutes to ocean." />
+        <meta property="og:title" content="Coworking Funchal Madeira | Professional Workspace for Digital Nomads | Bond" />
+        <meta property="og:description" content="Premium coworking space in central Funchal, Madeira. Enterprise WiFi, 24/7 access, vibrant community. Day, weekly & monthly passes for digital nomads. Opening September 2025." />
         <meta property="og:url" content="https://stayatbond.com/coworking" />
+        <meta property="og:type" content="website" />
         <meta property="og:image" content="https://images.pexels.com/photos/7688336/pexels-photo-7688336.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" />
-        
+        <meta property="og:site_name" content="Bond Coliving Funchal" />
+
         {/* Twitter */}
-        <meta name="twitter:title" content="Digital Nomad Coworking Space Central Funchal - Opening September 2025 | Bond Madeira" />
-        <meta name="twitter:description" content="Premium coworking space for digital nomads in central Funchal, Madeira. Enterprise-grade WiFi, community events, 5 minutes to ocean." />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Coworking Funchal | Professional Workspace Madeira" />
+        <meta name="twitter:description" content="Premium coworking space in central Funchal, Madeira. Enterprise WiFi, 24/7 access, day passes from €15. Perfect for digital nomads." />
         <meta name="twitter:image" content="https://images.pexels.com/photos/7688336/pexels-photo-7688336.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" />
       </Helmet>
       

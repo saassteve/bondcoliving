@@ -16,24 +16,32 @@ const HomePage: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>Bond - Premium Digital Nomad Coliving in Central Funchal, Madeira | High-Speed WiFi & All Amenities</title>
-        <meta 
-          name="description" 
-          content="Premium coliving for digital nomads in central Funchal, Madeira. Private apartments with enterprise-grade WiFi, coworking space, all amenities included. 5 minutes to ocean & city center. Monthly stays from €1,600."
+        <title>Bond Coliving Funchal | Premium Serviced Apartments & Coworking Madeira | Digital Nomad Housing</title>
+        <meta
+          name="description"
+          content="Bond Coliving Funchal: Premium serviced apartments & coworking space for digital nomads in Madeira. Monthly rentals from €1,600 with high-speed WiFi, all utilities, central location. Book your coliving experience in Funchal today."
         />
-        <meta name="keywords" content="digital nomad Funchal, coliving Madeira central, remote work Funchal apartments, digital nomad accommodation Madeira, coworking space Funchal, monthly rentals central Funchal, nomad housing Madeira city center, digital nomad community Funchal, work from Madeira, nomad visa Portugal, long term stay Funchal center, digital nomad friendly Madeira" />
+        <meta name="keywords" content="coliving Funchal, coliving Madeira, coworking Funchal, coworking Madeira, serviced apartments Funchal, serviced apartments Madeira, digital nomad Funchal, digital nomad Madeira, remote work Madeira, monthly rentals Funchal, furnished apartments Madeira, coliving space Funchal, work from Madeira, digital nomad visa Portugal, Madeira coliving, Funchal apartments, coworking space Madeira, digital nomad accommodation, long term rentals Madeira, monthly apartment rentals Funchal" />
         <link rel="canonical" href="https://stayatbond.com/" />
-        
+
         {/* Open Graph */}
-        <meta property="og:title" content="Bond - Premium Digital Nomad Coliving in Central Funchal, Madeira" />
-        <meta property="og:description" content="Premium coliving for digital nomads in central Funchal. Private apartments, enterprise-grade WiFi, coworking space, all amenities included. 5 minutes to ocean & city center." />
+        <meta property="og:title" content="Bond Coliving Funchal | Premium Serviced Apartments & Coworking Madeira" />
+        <meta property="og:description" content="Bond: Premium coliving & coworking in Funchal, Madeira. Serviced apartments from €1,600/month with enterprise WiFi, all utilities, central location. Perfect for digital nomads & remote workers." />
         <meta property="og:url" content="https://stayatbond.com/" />
+        <meta property="og:type" content="website" />
         <meta property="og:image" content="https://iili.io/FcOqdX9.png" />
-        
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:site_name" content="Bond Coliving Funchal" />
+        <meta property="og:locale" content="en_US" />
+
         {/* Twitter */}
-        <meta name="twitter:title" content="Bond - Premium Digital Nomad Coliving in Central Funchal, Madeira" />
-        <meta name="twitter:description" content="Premium coliving for digital nomads in central Funchal. Private apartments, enterprise-grade WiFi, coworking space, all amenities included. 5 minutes to ocean & city center." />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Bond Coliving Funchal | Serviced Apartments & Coworking Madeira" />
+        <meta name="twitter:description" content="Bond: Premium coliving & coworking in Funchal, Madeira. Serviced apartments from €1,600/month with enterprise WiFi, all utilities, central location. Perfect for digital nomads." />
         <meta name="twitter:image" content="https://iili.io/FcOqdX9.png" />
+        <meta name="twitter:site" content="@bondcoliving" />
+        <meta name="twitter:creator" content="@bondcoliving" />
       </Helmet>
 
       <Hero />

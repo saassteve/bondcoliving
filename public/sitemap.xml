@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+
+  <!-- Homepage -->
+  <url>
+    <loc>https://stayatbond.com/</loc>
+    <lastmod>2025-01-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://stayatbond.com/" />
+    <image:image>
+      <image:loc>https://iili.io/FcOqdX9.png</image:loc>
+      <image:title>Bond Coliving Funchal</image:title>
+      <image:caption>Premium coliving and serviced apartments in Funchal, Madeira</image:caption>
+    </image:image>
+  </url>
+
+  <!-- About Page -->
+  <url>
+    <loc>https://stayatbond.com/about</loc>
+    <lastmod>2025-01-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Coworking Page -->
+  <url>
+    <loc>https://stayatbond.com/coworking</loc>
+    <lastmod>2025-01-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://stayatbond.com/coworking" />
+    <image:image>
+      <image:loc>https://images.pexels.com/photos/7688336/pexels-photo-7688336.jpeg</image:loc>
+      <image:title>Bond Coworking Funchal</image:title>
+      <image:caption>Professional coworking space for digital nomads in Funchal, Madeira</image:caption>
+    </image:image>
+  </url>
+
+  <!-- Application Page -->
+  <url>
+    <loc>https://stayatbond.com/apply</loc>
+    <lastmod>2025-01-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Search Results Page -->
+  <url>
+    <loc>https://stayatbond.com/search</loc>
+    <lastmod>2025-01-15</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+</urlset>
