@@ -51,15 +51,15 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
   const statusBadgeClass = (status: string) => {
     switch(status) {
       case 'confirmed':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
+        return 'bg-blue-900/50 text-blue-300 border-blue-200';
       case 'checked_in':
-        return 'bg-green-100 text-green-800 border-green-200';
+        return 'bg-green-900/50 text-green-300 border-green-200';
       case 'checked_out':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-gray-700 text-gray-800 border-gray-600';
       case 'cancelled':
-        return 'bg-red-100 text-red-800 border-red-200';
+        return 'bg-red-900/50 text-red-300 border-red-200';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-gray-700 text-gray-800 border-gray-600';
     }
   };
 
@@ -75,7 +75,7 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
     
     // Empty cells for days before month starts
     for (let i = 0; i < firstDay; i++) {
-      days.push(<div key={`empty-${i}`} className="h-28 bg-gray-50 border border-gray-200"></div>);
+      days.push(<div key={`empty-${i}`} className="h-28 bg-gray-50 border border-gray-600"></div>);
     }
     
     // Days of the month
@@ -119,13 +119,13 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
       ];
       
       days.push(
-        <div key={day} className={`h-28 border border-gray-200 p-2 overflow-y-auto relative ${
+        <div key={day} className={`h-28 border border-gray-600 p-2 overflow-y-auto relative ${
           isToday ? 'bg-blue-50 border-blue-300' : 
           isPast ? 'bg-gray-50' : 'bg-white'
         }`}>
           <div className={`font-semibold text-sm mb-2 ${
             isToday ? 'text-blue-700' : 
-            isPast ? 'text-gray-400' : 'text-gray-900'
+            isPast ? 'text-gray-400' : 'text-white'
           }`}>
             {day}
             {isToday && <div className="absolute top-1 right-1 w-2 h-2 bg-blue-500 rounded-full"></div>}
@@ -170,9 +170,9 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200">
-      <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-        <button onClick={previousMonth} className="p-1 rounded hover:bg-gray-100">
+    <div className="bg-gray-800 rounded-lg shadow-sm overflow-hidden border border-gray-600">
+      <div className="p-4 border-b border-gray-600 flex items-center justify-between">
+        <button onClick={previousMonth} className="p-1 rounded hover:bg-gray-700">
           <ChevronLeft className="w-5 h-5" />
         </button>
         
@@ -180,12 +180,12 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
           {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
         </h2>
         
-        <button onClick={nextMonth} className="p-1 rounded hover:bg-gray-100">
+        <button onClick={nextMonth} className="p-1 rounded hover:bg-gray-700">
           <ChevronRight className="w-5 h-5" />
         </button>
       </div>
       
-      <div className="grid grid-cols-7 text-center py-2 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-700">
+      <div className="grid grid-cols-7 text-center py-2 border-b border-gray-600 bg-gray-50 text-xs font-medium text-gray-300">
         <div>Sunday</div>
         <div>Monday</div>
         <div>Tuesday</div>
@@ -199,7 +199,7 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
         {loading ? (
           <div className="col-span-7 p-8 text-center">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600 mx-auto mb-2"></div>
-            <p className="text-gray-600">Loading calendar...</p>
+            <p className="text-gray-300">Loading calendar...</p>
           </div>
         ) : (
           renderCalendar()

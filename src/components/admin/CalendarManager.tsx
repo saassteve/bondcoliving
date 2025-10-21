@@ -117,13 +117,13 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ apartmentId, apartmen
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'available':
-        return 'bg-green-100 text-green-800 border-green-200';
+        return 'bg-green-900/50 text-green-300 border-green-200';
       case 'booked':
-        return 'bg-red-100 text-red-800 border-red-200';
+        return 'bg-red-900/50 text-red-300 border-red-200';
       case 'blocked':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-gray-700 text-gray-800 border-gray-600';
       default:
-        return 'bg-gray-50 text-gray-600 border-gray-200';
+        return 'bg-gray-50 text-gray-300 border-gray-600';
     }
   };
 
@@ -183,7 +183,7 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ apartmentId, apartmen
   if (loading) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-        <div className="bg-white rounded-lg p-6 w-full max-w-6xl">
+        <div className="bg-gray-800 rounded-lg p-6 w-full max-w-6xl">
           <div className="flex items-center justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
           </div>
@@ -194,13 +194,13 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ apartmentId, apartmen
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-6xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-gray-800 rounded-lg p-6 w-full max-w-6xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <div>
             <h2 className="text-xl font-bold">Calendar Management</h2>
-            <p className="text-gray-600">{apartmentTitle}</p>
+            <p className="text-gray-300">{apartmentTitle}</p>
           </div>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-300">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -243,7 +243,7 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ apartmentId, apartmen
                   <span>Booked</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-gray-100 border border-gray-200 rounded"></div>
+                  <div className="w-3 h-3 bg-gray-700 border border-gray-600 rounded"></div>
                   <span>Blocked</span>
                 </div>
               </div>
@@ -257,7 +257,7 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ apartmentId, apartmen
                   <select
                     value={bulkStatus}
                     onChange={(e) => setBulkStatus(e.target.value as any)}
-                    className="px-3 py-1 border border-gray-300 rounded text-sm"
+                    className="px-3 py-1 border border-gray-600 rounded text-sm"
                   >
                     <option value="available">Set Available</option>
                     <option value="booked">Set Booked</option>
@@ -271,7 +271,7 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ apartmentId, apartmen
                   </button>
                   <button
                     onClick={() => setSelectedDates([])}
-                    className="px-4 py-1 bg-gray-300 text-gray-700 rounded text-sm hover:bg-gray-400"
+                    className="px-4 py-1 bg-gray-300 text-gray-300 rounded text-sm hover:bg-gray-400"
                   >
                     Clear
                   </button>
@@ -302,7 +302,7 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ apartmentId, apartmen
               ) : (
                 <div className="space-y-3">
                   {icalFeeds.map((feed) => (
-                    <div key={feed.id} className="p-3 bg-white rounded border">
+                    <div key={feed.id} className="p-3 bg-gray-800 rounded border">
                       <div className="flex items-start justify-between">
                         <div className="flex-1 min-w-0">
                           <h4 className="font-medium text-sm truncate">{feed.feed_name}</h4>
@@ -326,7 +326,7 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ apartmentId, apartmen
                             href={feed.ical_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="p-1 text-gray-600 hover:text-gray-800"
+                            className="p-1 text-gray-300 hover:text-gray-800"
                             title="Open feed URL"
                           >
                             <ExternalLink className="w-4 h-4" />
@@ -365,17 +365,17 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ apartmentId, apartmen
         {/* Add Feed Modal */}
         {showAddFeed && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-60">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold">Add iCal Feed</h3>
-                <button onClick={() => setShowAddFeed(false)} className="text-gray-500 hover:text-gray-700">
+                <button onClick={() => setShowAddFeed(false)} className="text-gray-500 hover:text-gray-300">
                   <X className="w-5 h-5" />
                 </button>
               </div>
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
                     Feed Name
                   </label>
                   <input
@@ -383,12 +383,12 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ apartmentId, apartmen
                     value={newFeed.name}
                     onChange={(e) => setNewFeed({ ...newFeed, name: e.target.value })}
                     placeholder="e.g., Airbnb Calendar"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
                     iCal URL
                   </label>
                   <input
@@ -396,7 +396,7 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ apartmentId, apartmen
                     value={newFeed.url}
                     onChange={(e) => setNewFeed({ ...newFeed, url: e.target.value })}
                     placeholder="https://..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   />
                 </div>
               </div>
@@ -404,7 +404,7 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ apartmentId, apartmen
               <div className="flex justify-end gap-3 mt-6">
                 <button
                   onClick={() => setShowAddFeed(false)}
-                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+                  className="px-4 py-2 text-gray-300 bg-gray-700 rounded-lg hover:bg-gray-200"
                 >
                   Cancel
                 </button>

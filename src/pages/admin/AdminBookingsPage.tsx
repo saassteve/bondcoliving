@@ -226,7 +226,7 @@ const AdminBookingsPage: React.FC = () => {
                 className={`px-3 py-1 rounded-l-md ${
                   currentView === 'timeline' 
                     ? 'bg-indigo-600 text-white' 
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                 }`}
               >
                 Timeline
@@ -236,7 +236,7 @@ const AdminBookingsPage: React.FC = () => {
                 className={`px-3 py-1 ${
                   currentView === 'calendar' 
                     ? 'bg-indigo-600 text-white' 
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                 }`}
               >
                 Calendar
@@ -246,7 +246,7 @@ const AdminBookingsPage: React.FC = () => {
                 className={`px-3 py-1 rounded-r-md ${
                   currentView === 'list' 
                     ? 'bg-indigo-600 text-white' 
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                 }`}
               >
                 List
@@ -255,7 +255,7 @@ const AdminBookingsPage: React.FC = () => {
             
             <button
               onClick={exportBookings}
-              className="btn bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+              className="btn bg-gray-700 border border-gray-600 text-gray-300 hover:bg-gray-600"
             >
               <Download className="w-4 h-4 mr-1" />
               Export
@@ -273,25 +273,25 @@ const AdminBookingsPage: React.FC = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-          <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
-            <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
-            <div className="text-sm text-gray-800 font-semibold">Total Bookings</div>
+          <div className="bg-gray-800 rounded-lg shadow-sm p-4 border border-gray-600">
+            <div className="text-2xl font-bold text-white">{stats.total}</div>
+            <div className="text-sm text-gray-300 font-semibold">Total Bookings</div>
           </div>
-          <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+          <div className="bg-gray-800 rounded-lg shadow-sm p-4 border border-gray-600">
             <div className="text-2xl font-bold text-blue-600">{stats.confirmed}</div>
-            <div className="text-sm text-gray-800 font-semibold">Confirmed</div>
+            <div className="text-sm text-gray-300 font-semibold">Confirmed</div>
           </div>
-          <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+          <div className="bg-gray-800 rounded-lg shadow-sm p-4 border border-gray-600">
             <div className="text-2xl font-bold text-green-600">{stats.checkedIn}</div>
-            <div className="text-sm text-gray-800 font-semibold">Checked In</div>
+            <div className="text-sm text-gray-300 font-semibold">Checked In</div>
           </div>
-          <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+          <div className="bg-gray-800 rounded-lg shadow-sm p-4 border border-gray-600">
             <div className="text-2xl font-bold text-gray-600">{stats.checkedOut}</div>
-            <div className="text-sm text-gray-800 font-semibold">Checked Out</div>
+            <div className="text-sm text-gray-300 font-semibold">Checked Out</div>
           </div>
-          <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+          <div className="bg-gray-800 rounded-lg shadow-sm p-4 border border-gray-600">
             <div className="text-2xl font-bold text-red-600">{stats.cancelled}</div>
-            <div className="text-sm text-gray-800 font-semibold">Cancelled</div>
+            <div className="text-sm text-gray-300 font-semibold">Cancelled</div>
           </div>
         </div>
 

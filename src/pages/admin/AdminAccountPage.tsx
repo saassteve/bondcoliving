@@ -200,26 +200,26 @@ const AdminAccountPage: React.FC = () => {
       
       <div className="space-y-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Account Settings</h1>
-          <p className="text-gray-600">Manage your account and admin users</p>
+          <h1 className="text-2xl font-bold text-white">Account Settings</h1>
+          <p className="text-gray-300">Manage your account and admin users</p>
         </div>
 
         {/* Current User Info */}
-        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+        <div className="bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-600">
           <h2 className="text-lg font-semibold mb-4 flex items-center">
             <User className="w-5 h-5 mr-2" />
             Your Account
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Email</label>
+              <label className="block text-sm font-medium text-gray-300">Email</label>
               <div className="mt-1 flex items-center">
                 <Mail className="w-4 h-4 text-gray-400 mr-2" />
-                <span className="text-gray-900">{user?.email}</span>
+                <span className="text-white">{user?.email}</span>
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Role</label>
+              <label className="block text-sm font-medium text-gray-300">Role</label>
               <div className="mt-1 flex items-center">
                 <Shield className="w-4 h-4 text-gray-400 mr-2" />
                 <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
@@ -246,7 +246,7 @@ const AdminAccountPage: React.FC = () => {
 
         {/* Change Password Form */}
         {showPasswordForm && (
-          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+          <div className="bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-600">
             <h3 className="text-lg font-semibold mb-4">Change Password</h3>
             
             {errors.general && (
@@ -257,7 +257,7 @@ const AdminAccountPage: React.FC = () => {
             
             <form onSubmit={handlePasswordChange} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-300 mb-1">
                   Current Password
                 </label>
                 <input
@@ -265,7 +265,7 @@ const AdminAccountPage: React.FC = () => {
                   value={passwordForm.currentPassword}
                   onChange={(e) => setPasswordForm(prev => ({ ...prev, currentPassword: e.target.value }))}
                   className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                    errors.currentPassword ? 'border-red-300' : 'border-gray-300'
+                    errors.currentPassword ? 'border-red-300' : 'border-gray-600'
                   }`}
                   required
                 />
@@ -273,7 +273,7 @@ const AdminAccountPage: React.FC = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-300 mb-1">
                   New Password
                 </label>
                 <div className="relative">
@@ -282,14 +282,14 @@ const AdminAccountPage: React.FC = () => {
                     value={passwordForm.newPassword}
                     onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
                     className={`w-full px-3 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                      errors.newPassword ? 'border-red-300' : 'border-gray-300'
+                      errors.newPassword ? 'border-red-300' : 'border-gray-600'
                     }`}
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-300"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -298,7 +298,7 @@ const AdminAccountPage: React.FC = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-300 mb-1">
                   Confirm New Password
                 </label>
                 <div className="relative">
@@ -307,14 +307,14 @@ const AdminAccountPage: React.FC = () => {
                     value={passwordForm.confirmPassword}
                     onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
                     className={`w-full px-3 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                      errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
+                      errors.confirmPassword ? 'border-red-300' : 'border-gray-600'
                     }`}
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-300"
                   >
                     {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -326,7 +326,7 @@ const AdminAccountPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowPasswordForm(false)}
-                  className="btn bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                  className="btn bg-white border border-gray-600 text-gray-300 hover:bg-gray-700"
                 >
                   Cancel
                 </button>
@@ -343,8 +343,8 @@ const AdminAccountPage: React.FC = () => {
         )}
 
         {/* Admin Users Management */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-          <div className="p-6 border-b border-gray-200">
+        <div className="bg-gray-800 rounded-lg shadow-sm border border-gray-600">
+          <div className="p-6 border-b border-gray-600">
             <div className="flex justify-between items-center">
               <h2 className="text-lg font-semibold">Admin Users</h2>
               {user?.role === 'super_admin' && (
@@ -361,7 +361,7 @@ const AdminAccountPage: React.FC = () => {
           
           {/* Invite Form */}
           {showInviteForm && user?.role === 'super_admin' && (
-            <div className="p-6 border-b border-gray-200 bg-gray-50">
+            <div className="p-6 border-b border-gray-600 bg-gray-50">
               <h3 className="text-lg font-semibold mb-4">Invite New Admin</h3>
               
               {errors.general && (
@@ -373,7 +373,7 @@ const AdminAccountPage: React.FC = () => {
               <form onSubmit={handleInviteAdmin} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
                       Email Address
                     </label>
                     <input
@@ -381,7 +381,7 @@ const AdminAccountPage: React.FC = () => {
                       value={inviteForm.email}
                       onChange={(e) => setInviteForm(prev => ({ ...prev, email: e.target.value }))}
                       className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                        errors.email ? 'border-red-300' : 'border-gray-300'
+                        errors.email ? 'border-red-300' : 'border-gray-600'
                       }`}
                       required
                     />
@@ -389,13 +389,13 @@ const AdminAccountPage: React.FC = () => {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
                       Role
                     </label>
                     <select
                       value={inviteForm.role}
                       onChange={(e) => setInviteForm(prev => ({ ...prev, role: e.target.value as 'admin' | 'super_admin' }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     >
                       <option value="admin">Admin</option>
                       <option value="super_admin">Super Admin</option>
@@ -404,7 +404,7 @@ const AdminAccountPage: React.FC = () => {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
                     Password
                   </label>
                   <input
@@ -412,7 +412,7 @@ const AdminAccountPage: React.FC = () => {
                     value={inviteForm.password}
                     onChange={(e) => setInviteForm(prev => ({ ...prev, password: e.target.value }))}
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                      errors.password ? 'border-red-300' : 'border-gray-300'
+                      errors.password ? 'border-red-300' : 'border-gray-600'
                     }`}
                     required
                   />
@@ -423,7 +423,7 @@ const AdminAccountPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setShowInviteForm(false)}
-                    className="btn bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                    className="btn bg-white border border-gray-600 text-gray-300 hover:bg-gray-700"
                   >
                     Cancel
                   </button>
@@ -444,26 +444,26 @@ const AdminAccountPage: React.FC = () => {
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">
                     User
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">
                     Role
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">
                     Last Login
                   </th>
                   {user?.role === 'super_admin' && (
-                    <th className="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-right text-xs font-semibold text-gray-300 uppercase tracking-wider">
                       Actions
                     </th>
                   )}
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white divide-y divide-gray-600">
                 {adminUsers.map((admin) => (
                   <tr key={admin.id}>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -474,7 +474,7 @@ const AdminAccountPage: React.FC = () => {
                           </div>
                         </div>
                         <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-sm font-medium text-white">
                             {admin.email}
                             {admin.id === user?.id && (
                               <span className="ml-2 text-xs text-gray-500">(You)</span>

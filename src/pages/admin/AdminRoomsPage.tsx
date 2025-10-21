@@ -197,7 +197,7 @@ const AdminRoomsPage: React.FC = () => {
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading apartments...</p>
+            <p className="text-gray-300">Loading apartments...</p>
           </div>
         </div>
       </>
@@ -213,8 +213,8 @@ const AdminRoomsPage: React.FC = () => {
         <div className="space-y-6">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Manage Apartments</h1>
-              <p className="text-gray-600">Add, edit, and organize your apartment listings</p>
+              <h1 className="text-2xl font-bold text-white">Manage Apartments</h1>
+              <p className="text-gray-300">Add, edit, and organize your apartment listings</p>
             </div>
             <button
               onClick={() => setShowForm(true)}
@@ -225,12 +225,12 @@ const AdminRoomsPage: React.FC = () => {
             </button>
           </div>
           
-          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+          <div className="bg-red-900/20 border border-red-700 rounded-lg p-6">
             <div className="flex items-center">
               <div className="text-red-600 mr-3">⚠️</div>
               <div>
-                <h3 className="text-red-800 font-medium">Error Loading Data</h3>
-                <p className="text-red-700 mt-1">{error}</p>
+                <h3 className="text-red-300 font-medium">Error Loading Data</h3>
+                <p className="text-red-400 mt-1">{error}</p>
                 <button
                   onClick={fetchData}
                   className="mt-3 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors"
@@ -254,8 +254,8 @@ const AdminRoomsPage: React.FC = () => {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Manage Apartments</h1>
-            <p className="text-gray-600">Add, edit, and organize your apartment listings</p>
+            <h1 className="text-2xl font-bold text-white">Manage Apartments</h1>
+            <p className="text-gray-300">Add, edit, and organize your apartment listings</p>
           </div>
           <button
             onClick={() => setShowForm(true)}
@@ -266,14 +266,14 @@ const AdminRoomsPage: React.FC = () => {
           </button>
         </div>
 
-        <div className="bg-white rounded-lg shadow">
+        <div className="bg-gray-800 rounded-lg shadow-lg border border-gray-700">
           {apartments.length === 0 ? (
             <div className="p-8 text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+              <div className="w-16 h-16 mx-auto mb-4 bg-gray-700 rounded-full flex items-center justify-center">
                 <Plus className="w-8 h-8 text-gray-400" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No apartments yet</h3>
-              <p className="text-gray-700 mb-4">Get started by adding your first apartment listing.</p>
+              <h3 className="text-lg font-semibold text-white mb-2">No apartments yet</h3>
+              <p className="text-gray-300 mb-4">Get started by adding your first apartment listing.</p>
               <button
                 onClick={() => setShowForm(true)}
                 className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
@@ -283,35 +283,35 @@ const AdminRoomsPage: React.FC = () => {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full border border-gray-200">
-                <thead className="bg-gray-100">
+              <table className="w-full border border-gray-600">
+                <thead className="bg-gray-700">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-200 uppercase tracking-wider">
                       Apartment
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-200 uppercase tracking-wider">
                       Details
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-200 uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-200 uppercase tracking-wider">
                       Availability
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-200 uppercase tracking-wider">
                       Features
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-right text-xs font-semibold text-gray-200 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-300">
+                <tbody className="bg-gray-800 divide-y divide-gray-600">
                   {apartments.map((apartment) => {
                     const apartmentFeatures = getApartmentFeatures(apartment.id);
                     
                     return (
-                      <tr key={apartment.id} className="hover:bg-gray-50 border-b border-gray-200">
+                      <tr key={apartment.id} className="hover:bg-gray-700 border-b border-gray-600">
                         <td className="px-6 py-4">
                           <div className="flex items-center">
                             <div className="flex-shrink-0 h-16 w-16">
@@ -322,19 +322,19 @@ const AdminRoomsPage: React.FC = () => {
                               />
                             </div>
                             <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900">
+                              <div className="text-sm font-medium text-white">
                                 {apartment.title}
                               </div>
-                              <div className="text-sm text-gray-600 line-clamp-2">
+                              <div className="text-sm text-gray-300 line-clamp-2">
                                 {apartment.description}
                               </div>
                             </div>
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="text-sm text-gray-900">
+                          <div className="text-sm text-white">
                             <div>€{apartment.price.toLocaleString()}/month</div>
-                            <div className="text-gray-600">{apartment.size} • {apartment.capacity}</div>
+                            <div className="text-gray-300">{apartment.size} • {apartment.capacity}</div>
                           </div>
                         </td>
                         <td className="px-6 py-4">
@@ -343,15 +343,15 @@ const AdminRoomsPage: React.FC = () => {
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="text-sm text-gray-900">
+                          <div className="text-sm text-white">
                             {apartment.available_from && (
                               <div className="font-medium">From: {new Date(apartment.available_from).toLocaleDateString()}</div>
                             )}
                             {apartment.available_until && (
-                              <div className="text-gray-600">Until: {new Date(apartment.available_until).toLocaleDateString()}</div>
+                              <div className="text-gray-300">Until: {new Date(apartment.available_until).toLocaleDateString()}</div>
                             )}
                             {!apartment.available_until && apartment.available_from && (
-                              <div className="text-gray-600">Ongoing</div>
+                              <div className="text-gray-300">Ongoing</div>
                             )}
                           </div>
                         </td>
@@ -360,13 +360,13 @@ const AdminRoomsPage: React.FC = () => {
                             {apartmentFeatures.slice(0, 3).map((feature) => (
                               <span
                                 key={feature.id}
-                                className="inline-flex items-center px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded"
+                                className="inline-flex items-center px-2 py-1 text-xs bg-blue-900/50 text-blue-300 rounded"
                               >
                                 {feature.icon} {feature.label}
                               </span>
                             ))}
                             {apartmentFeatures.length > 3 && (
-                              <span className="text-xs text-gray-500">
+                              <span className="text-xs text-gray-400">
                                 +{apartmentFeatures.length - 3} more
                               </span>
                             )}

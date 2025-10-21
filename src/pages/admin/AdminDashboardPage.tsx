@@ -362,7 +362,7 @@ const AdminDashboardPage: React.FC = () => {
                           <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                             booking.status === 'confirmed' ? 'bg-blue-100 text-blue-800' :
                             booking.status === 'checked_in' ? 'bg-green-100 text-green-800' :
-                            booking.status === 'checked_out' ? 'bg-gray-100 text-gray-800' :
+                            booking.status === 'checked_out' ? 'bg-gray-700 text-gray-800' :
                             'bg-red-100 text-red-800'
                           }`}>
                             {booking.status.replace('_', ' ').charAt(0).toUpperCase() + booking.status.replace('_', ' ').slice(1)}

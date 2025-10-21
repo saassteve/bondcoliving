@@ -114,14 +114,14 @@ const ApartmentForm: React.FC<ApartmentFormProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">
             {apartment ? 'Edit Apartment' : 'Add New Apartment'}
           </h2>
           <button
             onClick={onCancel}
-            className="text-gray-500 hover:text-gray-700"
+            className="text-gray-500 hover:text-gray-300"
           >
             <X className="w-5 h-5" />
           </button>
@@ -135,7 +135,7 @@ const ApartmentForm: React.FC<ApartmentFormProps> = ({
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-300 mb-1">
               Title
             </label>
             <input
@@ -144,7 +144,7 @@ const ApartmentForm: React.FC<ApartmentFormProps> = ({
               value={formData.title}
               onChange={handleChange}
               className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                errors.title ? 'border-red-300' : 'border-gray-300'
+                errors.title ? 'border-red-300' : 'border-gray-600'
               }`}
               required
             />
@@ -152,7 +152,7 @@ const ApartmentForm: React.FC<ApartmentFormProps> = ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-300 mb-1">
               Description
             </label>
             <textarea
@@ -161,7 +161,7 @@ const ApartmentForm: React.FC<ApartmentFormProps> = ({
               onChange={handleChange}
               rows={3}
               className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                errors.description ? 'border-red-300' : 'border-gray-300'
+                errors.description ? 'border-red-300' : 'border-gray-600'
               }`}
               required
             />
@@ -170,7 +170,7 @@ const ApartmentForm: React.FC<ApartmentFormProps> = ({
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">
                 Price (€/month)
               </label>
               <input
@@ -179,7 +179,7 @@ const ApartmentForm: React.FC<ApartmentFormProps> = ({
                 value={formData.price}
                 onChange={handleChange}
                 className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                  errors.price ? 'border-red-300' : 'border-gray-300'
+                  errors.price ? 'border-red-300' : 'border-gray-600'
                 }`}
                 min="1"
                 required
@@ -188,7 +188,7 @@ const ApartmentForm: React.FC<ApartmentFormProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">
                 Size
               </label>
               <input
@@ -198,7 +198,7 @@ const ApartmentForm: React.FC<ApartmentFormProps> = ({
                 onChange={handleChange}
                 placeholder="e.g., 25m²"
                 className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                  errors.size ? 'border-red-300' : 'border-gray-300'
+                  errors.size ? 'border-red-300' : 'border-gray-600'
                 }`}
                 required
               />
@@ -206,7 +206,7 @@ const ApartmentForm: React.FC<ApartmentFormProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">
                 Capacity
               </label>
               <input
@@ -216,7 +216,7 @@ const ApartmentForm: React.FC<ApartmentFormProps> = ({
                 onChange={handleChange}
                 placeholder="e.g., 1-2 people"
                 className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                  errors.capacity ? 'border-red-300' : 'border-gray-300'
+                  errors.capacity ? 'border-red-300' : 'border-gray-600'
                 }`}
                 required
               />
@@ -225,7 +225,7 @@ const ApartmentForm: React.FC<ApartmentFormProps> = ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-300 mb-1">
               Main Image URL
             </label>
             <input
@@ -234,7 +234,7 @@ const ApartmentForm: React.FC<ApartmentFormProps> = ({
               value={formData.image_url}
               onChange={handleChange}
               className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                errors.image_url ? 'border-red-300' : 'border-gray-300'
+                errors.image_url ? 'border-red-300' : 'border-gray-600'
               }`}
               required
             />
@@ -245,14 +245,14 @@ const ApartmentForm: React.FC<ApartmentFormProps> = ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-300 mb-1">
               Status
             </label>
             <select
               name="status"
               value={formData.status}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             >
               <option value="available">Available</option>
               <option value="occupied">Occupied</option>
@@ -262,7 +262,7 @@ const ApartmentForm: React.FC<ApartmentFormProps> = ({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">
                 Available From *
               </label>
               <input
@@ -271,7 +271,7 @@ const ApartmentForm: React.FC<ApartmentFormProps> = ({
                 value={formData.available_from}
                 onChange={handleChange}
                 className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                  errors.available_from ? 'border-red-300' : 'border-gray-300'
+                  errors.available_from ? 'border-red-300' : 'border-gray-600'
                 }`}
                 required
               />
@@ -279,7 +279,7 @@ const ApartmentForm: React.FC<ApartmentFormProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">
                 Available Until
               </label>
               <input
@@ -289,7 +289,7 @@ const ApartmentForm: React.FC<ApartmentFormProps> = ({
                 onChange={handleChange}
                 min={formData.available_from}
                 className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                  errors.available_until ? 'border-red-300' : 'border-gray-300'
+                  errors.available_until ? 'border-red-300' : 'border-gray-600'
                 }`}
               />
               {errors.available_until && <p className="mt-1 text-sm text-red-600">{errors.available_until}</p>}
@@ -303,7 +303,7 @@ const ApartmentForm: React.FC<ApartmentFormProps> = ({
               type="button"
               onClick={onCancel}
               disabled={isSubmitting}
-              className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+              className="px-4 py-2 text-gray-300 bg-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
             >
               Cancel
             </button>

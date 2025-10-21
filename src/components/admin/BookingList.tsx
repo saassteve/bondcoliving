@@ -49,15 +49,15 @@ const BookingList: React.FC<BookingListProps> = ({
   const statusBadgeClass = (status: string) => {
     switch(status) {
       case 'confirmed':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-blue-900/50 text-blue-300';
       case 'checked_in':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-900/50 text-green-300';
       case 'checked_out':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-700 text-gray-300';
       case 'cancelled':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-900/50 text-red-300';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-700 text-gray-300';
     }
   };
 
@@ -93,17 +93,17 @@ const BookingList: React.FC<BookingListProps> = ({
     <>
 
       {/* Filter Bar */}
-      <div className="bg-white rounded-lg shadow-sm mb-6 p-4 border border-gray-200">
+      <div className="bg-gray-800 rounded-lg shadow-sm mb-6 p-4 border border-gray-600">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <div className="text-sm font-medium text-gray-600">Filter by status:</div>
+            <div className="text-sm font-medium text-gray-300">Filter by status:</div>
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => onFilterChange('all')}
                 className={`px-3 py-1 text-sm rounded-full ${
                   filter === 'all' 
                     ? 'bg-indigo-600 text-white' 
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                 }`}
               >
                 All
@@ -113,7 +113,7 @@ const BookingList: React.FC<BookingListProps> = ({
                 className={`px-3 py-1 text-sm rounded-full ${
                   filter === 'confirmed' 
                     ? 'bg-blue-600 text-white' 
-                    : 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+                    : 'bg-blue-900/50 text-blue-300 hover:bg-blue-200'
                 }`}
               >
                 Confirmed
@@ -123,7 +123,7 @@ const BookingList: React.FC<BookingListProps> = ({
                 className={`px-3 py-1 text-sm rounded-full ${
                   filter === 'checked_in' 
                     ? 'bg-green-600 text-white' 
-                    : 'bg-green-100 text-green-800 hover:bg-green-200'
+                    : 'bg-green-900/50 text-green-300 hover:bg-green-200'
                 }`}
               >
                 Checked In
@@ -133,7 +133,7 @@ const BookingList: React.FC<BookingListProps> = ({
                 className={`px-3 py-1 text-sm rounded-full ${
                   filter === 'checked_out' 
                     ? 'bg-gray-600 text-white' 
-                    : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                    : 'bg-gray-700 text-gray-800 hover:bg-gray-200'
                 }`}
               >
                 Checked Out
@@ -143,7 +143,7 @@ const BookingList: React.FC<BookingListProps> = ({
                 className={`px-3 py-1 text-sm rounded-full ${
                   filter === 'cancelled'
                     ? 'bg-red-600 text-white'
-                    : 'bg-red-100 text-red-800 hover:bg-red-200'
+                    : 'bg-red-900/50 text-red-300 hover:bg-red-200'
                 }`}
               >
                 Cancelled
@@ -163,7 +163,7 @@ const BookingList: React.FC<BookingListProps> = ({
           
           <button
             onClick={onExport}
-            className="btn bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+            className="btn bg-gray-700 border border-gray-600 text-gray-300 hover:bg-gray-600"
           >
             <Download className="w-4 h-4 mr-1" />
             Export
@@ -172,9 +172,9 @@ const BookingList: React.FC<BookingListProps> = ({
       </div>
 
       {/* Bookings Table */}
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200">
+      <div className="bg-gray-800 rounded-lg shadow-sm overflow-hidden border border-gray-600">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
+          <table className="min-w-full divide-y divide-gray-600">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -197,21 +197,21 @@ const BookingList: React.FC<BookingListProps> = ({
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-gray-800 divide-y divide-gray-600">
               {combinedItems.map((item) => {
                 const isBlockout = 'source' in item && !('guest_name' in item);
                 const booking = item as Booking;
                 const blockout = item as Blockout;
 
                 return (
-                  <tr key={item.id} className={`hover:bg-gray-50 ${isBlockout ? 'bg-orange-50/30' : ''}`}>
+                  <tr key={item.id} className={`hover:bg-gray-700 ${isBlockout ? 'bg-orange-50/30' : ''}`}>
                     <td className="px-4 py-3 whitespace-nowrap">
                       {isBlockout ? (
                         <div className="text-sm font-medium text-orange-900">iCal Blockout</div>
                       ) : (
                         <>
-                          <div className="text-sm font-medium text-gray-900">{booking.guest_name}</div>
-                          <div className="text-sm text-gray-700">
+                          <div className="text-sm font-medium text-white">{booking.guest_name}</div>
+                          <div className="text-sm text-gray-300">
                             {booking.guest_email && (
                               <div className="flex items-center">
                                 <Mail className="w-3 h-3 mr-1" />
@@ -229,28 +229,28 @@ const BookingList: React.FC<BookingListProps> = ({
                       )}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{getApartmentTitle(item.apartment_id)}</div>
+                      <div className="text-sm text-white">{getApartmentTitle(item.apartment_id)}</div>
                       {!isBlockout && (
-                        <div className="text-sm text-gray-700">{booking.guest_count} guest{booking.guest_count > 1 ? 's' : ''}</div>
+                        <div className="text-sm text-gray-300">{booking.guest_count} guest{booking.guest_count > 1 ? 's' : ''}</div>
                       )}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{formatDate(item.check_in_date)}</div>
-                      <div className="text-sm text-gray-700">to {formatDate(item.check_out_date)}</div>
+                      <div className="text-sm text-white">{formatDate(item.check_in_date)}</div>
+                      <div className="text-sm text-gray-300">to {formatDate(item.check_out_date)}</div>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
                       {isBlockout ? (
                         <>
-                          <div className="text-sm text-gray-900 font-medium">{blockout.source}</div>
+                          <div className="text-sm text-white font-medium">{blockout.source}</div>
                           {blockout.notes && (
-                            <div className="text-sm text-gray-700">{blockout.notes}</div>
+                            <div className="text-sm text-gray-300">{blockout.notes}</div>
                           )}
                         </>
                       ) : (
                         <>
-                          <div className="text-sm text-gray-900 capitalize">{booking.booking_source}</div>
+                          <div className="text-sm text-white capitalize">{booking.booking_source}</div>
                           {booking.booking_reference && (
-                            <div className="text-sm text-gray-700">{booking.booking_reference}</div>
+                            <div className="text-sm text-gray-300">{booking.booking_reference}</div>
                           )}
                         </>
                       )}
