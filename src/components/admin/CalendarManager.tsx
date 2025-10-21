@@ -146,7 +146,8 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ apartmentId, apartmen
       const dayAvailability = availability.find(a => a.date === date);
       const status = dayAvailability?.status || 'available';
       const isSelected = selectedDates.includes(date);
-      const isPast = new Date(date) < new Date(new Date().toISOString().split('T')[0]);
+      const todayString = new Date().toISOString().split('T')[0];
+      const isPast = date < todayString;
       
       days.push(
         <div
@@ -159,7 +160,7 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ apartmentId, apartmen
                 ? 'bg-blue-500 text-white border-blue-500'
                 : `${getStatusColor(status)} hover:scale-105`
           }`}
-          title={dayAvailability?.notes || status}
+          title={`${date}: ${status}${dayAvailability?.booking_reference ? ` - ${dayAvailability.booking_reference}` : ''}${dayAvailability?.notes ? ` (${dayAvailability.notes})` : ''}`}
         >
           {day}
         </div>

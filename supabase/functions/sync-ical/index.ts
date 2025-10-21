@@ -14,24 +14,24 @@ interface ICalEvent {
 }
 
 function parseICalDate(dateStr: string): string {
-  if (dateStr.includes('T')) {
-    const date = new Date(
-      parseInt(dateStr.substring(0, 4)),
-      parseInt(dateStr.substring(4, 6)) - 1,
-      parseInt(dateStr.substring(6, 8)),
-      parseInt(dateStr.substring(9, 11)),
-      parseInt(dateStr.substring(11, 13)),
-      parseInt(dateStr.substring(13, 15))
-    );
-    return date.toISOString().split('T')[0];
-  } else {
-    const date = new Date(
-      parseInt(dateStr.substring(0, 4)),
-      parseInt(dateStr.substring(4, 6)) - 1,
-      parseInt(dateStr.substring(6, 8))
-    );
-    return date.toISOString().split('T')[0];
+  // Remove any whitespace
+  dateStr = dateStr.trim();
+
+  // Extract year, month, day from the date string (format: YYYYMMDD or YYYYMMDDTHHMMSS or YYYYMMDDTHHMMSSZ)
+  const year = parseInt(dateStr.substring(0, 4));
+  const month = parseInt(dateStr.substring(4, 6));
+  const day = parseInt(dateStr.substring(6, 8));
+
+  // Validate the parsed values
+  if (isNaN(year) || isNaN(month) || isNaN(day) || month < 1 || month > 12 || day < 1 || day > 31) {
+    throw new Error(`Invalid iCal date format: ${dateStr}`);
   }
+
+  // Always return date-only format in YYYY-MM-DD
+  // This ensures consistency regardless of timezone or time component
+  const dateOnly = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+  return dateOnly;
 }
 
 function parseICalFeed(icalData: string): ICalEvent[] {
@@ -60,7 +60,7 @@ function parseICalFeed(icalData: string): ICalEvent[] {
         currentEvent.summary = line.substring(8);
       } else if (line.startsWith('DTSTART')) {
         const valueMatch = line.match(/[:;]VALUE=DATE:(\d{8})/);
-        const dateMatch = line.match(/DTSTART:(\d{8}T?\d*Z?)/);
+        const dateMatch = line.match(/DTSTART:(\d{8}T?\d*Z?/);
         if (valueMatch) {
           currentEvent.dtstart = valueMatch[1];
         } else if (dateMatch) {
@@ -68,7 +68,7 @@ function parseICalFeed(icalData: string): ICalEvent[] {
         }
       } else if (line.startsWith('DTEND')) {
         const valueMatch = line.match(/[:;]VALUE=DATE:(\d{8})/);
-        const dateMatch = line.match(/DTEND:(\d{8}T?\d*Z?)/);
+        const dateMatch = line.match(/DTEND:(\d{8}T?\d*Z?/);
         if (valueMatch) {
           currentEvent.dtend = valueMatch[1];
         } else if (dateMatch) {
@@ -85,12 +85,24 @@ function parseICalFeed(icalData: string): ICalEvent[] {
 
 function generateDateRange(startDate: string, endDate: string): string[] {
   const dates: string[] = [];
-  const current = new Date(startDate);
-  const end = new Date(endDate);
 
+  // Parse dates as YYYY-MM-DD strings to avoid timezone issues
+  const [startYear, startMonth, startDay] = startDate.split('-').map(Number);
+  const [endYear, endMonth, endDay] = endDate.split('-').map(Number);
+
+  // Create Date objects at UTC midnight to prevent timezone shifts
+  const current = new Date(Date.UTC(startYear, startMonth - 1, startDay));
+  const end = new Date(Date.UTC(endYear, endMonth - 1, endDay));
+
+  // Generate dates up to but not including the end date (iCal standard)
   while (current < end) {
-    dates.push(current.toISOString().split('T')[0]);
-    current.setDate(current.getDate() + 1);
+    const year = current.getUTCFullYear();
+    const month = String(current.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(current.getUTCDate()).padStart(2, '0');
+    dates.push(`${year}-${month}-${day}`);
+
+    // Increment by one day in UTC
+    current.setUTCDate(current.getUTCDate() + 1);
   }
 
   return dates;
@@ -171,6 +183,23 @@ Deno.serve(async (req: Request) => {
 
     for (const feed of feedsToSync) {
       try {
+        // Clear existing dates from this feed before syncing new ones
+        // This prevents stale blocked dates from persisting
+        const deleteResponse = await fetch(
+          `${supabaseUrl}/rest/v1/apartment_availability?apartment_id=eq.${feed.apartment_id}&booking_reference=eq.${encodeURIComponent(feed.feed_name)}`,
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${supabaseServiceKey}`,
+              apikey: Deno.env.get("SUPABASE_ANON_KEY")!,
+            },
+          }
+        );
+
+        if (!deleteResponse.ok) {
+          console.warn(`Warning: Failed to clear old dates for feed ${feed.feed_name}`);
+        }
+
         const icalResponse = await fetch(feed.ical_url);
         if (!icalResponse.ok) {
           results.push({
@@ -185,12 +214,40 @@ Deno.serve(async (req: Request) => {
         const icalData = await icalResponse.text();
         const events = parseICalFeed(icalData);
 
+        // Filter events to only include future dates (within the next 24 months)
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const maxDate = new Date(today);
+        maxDate.setMonth(maxDate.getMonth() + 24);
+
         const bookedDates: string[] = [];
+        let eventsSkipped = 0;
+
         for (const event of events) {
-          const startDate = parseICalDate(event.dtstart);
-          const endDate = parseICalDate(event.dtend);
-          const dates = generateDateRange(startDate, endDate);
-          bookedDates.push(...dates);
+          try {
+            const startDate = parseICalDate(event.dtstart);
+            const endDate = parseICalDate(event.dtend);
+
+            // Skip events that have already ended
+            const eventEndDate = new Date(endDate);
+            if (eventEndDate < today) {
+              eventsSkipped++;
+              continue;
+            }
+
+            // Skip events that are too far in the future
+            const eventStartDate = new Date(startDate);
+            if (eventStartDate > maxDate) {
+              eventsSkipped++;
+              continue;
+            }
+
+            const dates = generateDateRange(startDate, endDate);
+            bookedDates.push(...dates);
+          } catch (error) {
+            console.warn(`Skipping invalid event in feed ${feed.feed_name}: ${error.message}`);
+            eventsSkipped++;
+          }
         }
 
         const uniqueDates = [...new Set(bookedDates)];
@@ -201,6 +258,7 @@ Deno.serve(async (req: Request) => {
             date,
             status: "booked",
             booking_reference: feed.feed_name,
+            notes: `Synced from ${feed.feed_name}`,
           }));
 
           const batchSize = 100;
@@ -243,6 +301,7 @@ Deno.serve(async (req: Request) => {
           feedName: feed.feed_name,
           success: true,
           eventsProcessed: events.length,
+          eventsSkipped: eventsSkipped,
           datesBooked: uniqueDates.length,
         });
       } catch (error) {

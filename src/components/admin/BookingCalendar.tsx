@@ -80,16 +80,13 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
     
     // Days of the month
     for (let day = 1; day <= daysInMonth; day++) {
-      const date = new Date(year, month, day);
-      const dateString = date.toISOString().split('T')[0];
+      const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
       const isToday = dateString === todayString;
-      const isPast = date < today && !isToday;
+      const isPast = dateString < todayString;
       
       // Find bookings for this day
       const dayBookings = calendarBookings.filter(booking => {
-        const checkIn = new Date(booking.check_in_date);
-        const checkOut = new Date(booking.check_out_date);
-        return date >= checkIn && date < checkOut;
+        return dateString >= booking.check_in_date && dateString < booking.check_out_date;
       });
       
       // Find availability blocks for this day
