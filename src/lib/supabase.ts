@@ -1148,3 +1148,351 @@ export class BookingService {
 }
 
 export const bookingService = BookingService
+
+export interface CoworkingPass {
+  id: string
+  name: string
+  slug: string
+  price: number
+  duration_days: number
+  duration_type: 'day' | 'week' | 'month'
+  description: string
+  features: string[]
+  is_active: boolean
+  sort_order: number
+  created_at?: string
+  updated_at?: string
+}
+
+export interface CoworkingBooking {
+  id: string
+  pass_id: string
+  customer_name: string
+  customer_email: string
+  customer_phone?: string
+  start_date: string
+  end_date: string
+  access_code?: string
+  access_code_sent_at?: string
+  booking_reference: string
+  payment_status: 'pending' | 'paid' | 'failed' | 'refunded'
+  booking_status: 'pending' | 'confirmed' | 'active' | 'completed' | 'cancelled'
+  total_amount: number
+  currency: string
+  special_notes?: string
+  created_at?: string
+  updated_at?: string
+  pass?: CoworkingPass
+}
+
+export interface CoworkingPayment {
+  id: string
+  booking_id: string
+  stripe_payment_intent_id?: string
+  stripe_checkout_session_id?: string
+  amount: number
+  currency: string
+  status: 'pending' | 'processing' | 'succeeded' | 'failed' | 'cancelled' | 'refunded'
+  payment_method?: string
+  metadata?: Record<string, any>
+  created_at?: string
+  updated_at?: string
+}
+
+export class CoworkingPassService {
+  static async getAll(): Promise<CoworkingPass[]> {
+    const { data, error } = await supabase
+      .from('coworking_passes')
+      .select('*')
+      .order('sort_order', { ascending: true })
+
+    if (error) throw error
+    return data || []
+  }
+
+  static async getActive(): Promise<CoworkingPass[]> {
+    const { data, error } = await supabase
+      .from('coworking_passes')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true })
+
+    if (error) throw error
+    return data || []
+  }
+
+  static async getById(id: string): Promise<CoworkingPass | null> {
+    const { data, error } = await supabase
+      .from('coworking_passes')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle()
+
+    if (error) throw error
+    return data
+  }
+
+  static async getBySlug(slug: string): Promise<CoworkingPass | null> {
+    const { data, error } = await supabase
+      .from('coworking_passes')
+      .select('*')
+      .eq('slug', slug)
+      .maybeSingle()
+
+    if (error) throw error
+    return data
+  }
+
+  static async create(pass: Omit<CoworkingPass, 'id' | 'created_at' | 'updated_at'>): Promise<CoworkingPass> {
+    const { data, error } = await supabase
+      .from('coworking_passes')
+      .insert(pass)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  }
+
+  static async update(id: string, pass: Partial<CoworkingPass>): Promise<CoworkingPass> {
+    const { data, error} = await supabase
+      .from('coworking_passes')
+      .update(pass)
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  }
+
+  static async delete(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('coworking_passes')
+      .delete()
+      .eq('id', id)
+
+    if (error) throw error
+  }
+}
+
+export class CoworkingBookingService {
+  static async getAll(): Promise<CoworkingBooking[]> {
+    const { data, error } = await supabase
+      .from('coworking_bookings')
+      .select(`
+        *,
+        pass:coworking_passes(*)
+      `)
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    return data || []
+  }
+
+  static async getById(id: string): Promise<CoworkingBooking | null> {
+    const { data, error } = await supabase
+      .from('coworking_bookings')
+      .select(`
+        *,
+        pass:coworking_passes(*)
+      `)
+      .eq('id', id)
+      .maybeSingle()
+
+    if (error) throw error
+    return data
+  }
+
+  static async getByEmail(email: string): Promise<CoworkingBooking[]> {
+    const { data, error } = await supabase
+      .from('coworking_bookings')
+      .select(`
+        *,
+        pass:coworking_passes(*)
+      `)
+      .eq('customer_email', email)
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    return data || []
+  }
+
+  static async getByReference(reference: string): Promise<CoworkingBooking | null> {
+    const { data, error } = await supabase
+      .from('coworking_bookings')
+      .select(`
+        *,
+        pass:coworking_passes(*)
+      `)
+      .eq('booking_reference', reference)
+      .maybeSingle()
+
+    if (error) throw error
+    return data
+  }
+
+  static async create(booking: Omit<CoworkingBooking, 'id' | 'created_at' | 'updated_at' | 'booking_reference'>): Promise<CoworkingBooking> {
+    const { data, error } = await supabase
+      .from('coworking_bookings')
+      .insert(booking)
+      .select(`
+        *,
+        pass:coworking_passes(*)
+      `)
+      .single()
+
+    if (error) throw error
+    return data
+  }
+
+  static async update(id: string, booking: Partial<CoworkingBooking>): Promise<CoworkingBooking> {
+    const { data, error } = await supabase
+      .from('coworking_bookings')
+      .update(booking)
+      .eq('id', id)
+      .select(`
+        *,
+        pass:coworking_passes(*)
+      `)
+      .single()
+
+    if (error) throw error
+    return data
+  }
+
+  static async delete(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('coworking_bookings')
+      .delete()
+      .eq('id', id)
+
+    if (error) throw error
+  }
+
+  static async getCustomers(): Promise<Array<{
+    customer_email: string
+    customer_name: string
+    total_bookings: number
+    total_spent: number
+    last_booking_date: string
+  }>> {
+    const { data, error } = await supabase
+      .from('coworking_bookings')
+      .select('customer_email, customer_name, total_amount, created_at, payment_status')
+      .eq('payment_status', 'paid')
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+
+    const customerMap = new Map<string, {
+      customer_email: string
+      customer_name: string
+      total_bookings: number
+      total_spent: number
+      last_booking_date: string
+    }>()
+
+    data?.forEach(booking => {
+      const existing = customerMap.get(booking.customer_email)
+      if (existing) {
+        existing.total_bookings += 1
+        existing.total_spent += booking.total_amount || 0
+        if (booking.created_at > existing.last_booking_date) {
+          existing.last_booking_date = booking.created_at
+        }
+      } else {
+        customerMap.set(booking.customer_email, {
+          customer_email: booking.customer_email,
+          customer_name: booking.customer_name,
+          total_bookings: 1,
+          total_spent: booking.total_amount || 0,
+          last_booking_date: booking.created_at || new Date().toISOString()
+        })
+      }
+    })
+
+    return Array.from(customerMap.values()).sort((a, b) =>
+      new Date(b.last_booking_date).getTime() - new Date(a.last_booking_date).getTime()
+    )
+  }
+
+  static async getRevenue(startDate?: string, endDate?: string): Promise<{
+    total: number
+    by_pass_type: Record<string, number>
+    count: number
+  }> {
+    let query = supabase
+      .from('coworking_bookings')
+      .select(`
+        total_amount,
+        pass:coworking_passes(name)
+      `)
+      .eq('payment_status', 'paid')
+
+    if (startDate) {
+      query = query.gte('created_at', startDate)
+    }
+    if (endDate) {
+      query = query.lte('created_at', endDate)
+    }
+
+    const { data, error } = await query
+
+    if (error) throw error
+
+    const result = {
+      total: 0,
+      by_pass_type: {} as Record<string, number>,
+      count: data?.length || 0
+    }
+
+    data?.forEach(booking => {
+      result.total += booking.total_amount || 0
+      const passName = booking.pass?.name || 'Unknown'
+      result.by_pass_type[passName] = (result.by_pass_type[passName] || 0) + (booking.total_amount || 0)
+    })
+
+    return result
+  }
+}
+
+export class CoworkingPaymentService {
+  static async create(payment: Omit<CoworkingPayment, 'id' | 'created_at' | 'updated_at'>): Promise<CoworkingPayment> {
+    const { data, error } = await supabase
+      .from('coworking_payments')
+      .insert(payment)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  }
+
+  static async getByBookingId(bookingId: string): Promise<CoworkingPayment[]> {
+    const { data, error } = await supabase
+      .from('coworking_payments')
+      .select('*')
+      .eq('booking_id', bookingId)
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    return data || []
+  }
+
+  static async updateByPaymentIntentId(paymentIntentId: string, updates: Partial<CoworkingPayment>): Promise<CoworkingPayment> {
+    const { data, error } = await supabase
+      .from('coworking_payments')
+      .update(updates)
+      .eq('stripe_payment_intent_id', paymentIntentId)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  }
+}
+
+export const coworkingPassService = CoworkingPassService
+export const coworkingBookingService = CoworkingBookingService
+export const coworkingPaymentService = CoworkingPaymentService

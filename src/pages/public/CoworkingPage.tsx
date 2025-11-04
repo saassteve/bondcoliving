@@ -1,63 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Check, Wifi, Coffee, Users, Calendar, MapPin, Moon, Clock, ArrowRight, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import AnimatedSection from '../../components/AnimatedSection';
-
-const pricingPlans = [
-  {
-    name: 'Day Pass',
-    price: '15',
-    duration: 'per day',
-    features: [
-      'Full access to coworking space',
-      'High-speed WiFi',
-      'Coffee & refreshments',
-      'Community events access',
-    ],
-    highlight: false,
-    description: 'Perfect for trying out the space'
-  },
-  {
-    name: '1 Week Pass',
-    price: '68',
-    duration: 'per week',
-    features: [
-      'All Day Pass features',
-      'Hot desk access',
-      'Priority support',
-    ],
-    highlight: false,
-    description: 'Great for short visits'
-  },
-  {
-    name: 'Monthly Hot Desk',
-    price: '149',
-    duration: 'per month',
-    features: [
-      'All Weekly Pass features',
-      'Hot desk access (sit anywhere)',
-      '24/7 access to the space',
-      'Community events access',
-    ],
-    highlight: true,
-    description: 'Most popular choice'
-  },
-  {
-    name: 'Dedicated Desk',
-    price: '199',
-    duration: 'per month',
-    features: [
-      'Your own dedicated workspace',
-      'Personal storage locker',
-      'Business address service',
-      '24/7 access to the space',
-      'Community events access',
-    ],
-    highlight: false,
-    description: 'Your permanent workspace'
-  },
-];
+import { coworkingPassService, type CoworkingPass } from '../../lib/supabase';
 
 const amenities = [
   { icon: Wifi, name: 'Enterprise WiFi', description: 'Fiber internet with 1Gbps speeds for seamless video calls' },
@@ -69,6 +15,31 @@ const amenities = [
 ];
 
 const CoworkingPage: React.FC = () => {
+  const [passes, setPasses] = useState<CoworkingPass[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchPasses();
+  }, []);
+
+  const fetchPasses = async () => {
+    try {
+      const data = await coworkingPassService.getActive();
+      setPasses(data);
+    } catch (error) {
+      console.error('Error fetching passes:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getDurationLabel = (pass: CoworkingPass) => {
+    if (pass.duration_days === 1) return 'per day';
+    if (pass.duration_days === 7) return 'per week';
+    if (pass.duration_days === 30) return 'per month';
+    return `${pass.duration_days} days`;
+  };
+
   return (
     <>
       <Helmet>
@@ -187,60 +158,73 @@ const CoworkingPage: React.FC = () => {
           </AnimatedSection>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
-            {pricingPlans.map((plan, index) => (
-              <AnimatedSection
-                key={index}
-                animation="fadeInUp"
-                delay={200 + (index * 100)}
-                className={`bg-[#1E1F1E] rounded-2xl overflow-hidden transition-all duration-300 ${
-                  plan.highlight 
-                    ? 'ring-2 ring-[#C5C5B5] transform hover:-translate-y-2 shadow-2xl'
-                    : 'hover:ring-1 hover:ring-[#C5C5B5]/50 hover:-translate-y-1 shadow-lg hover:shadow-xl'
-                }`}
-              >
-                {plan.highlight && (
-                  <div className="bg-[#C5C5B5] text-[#1E1F1E] text-center py-2 text-sm font-bold uppercase tracking-wide">
-                    {plan.description}
-                  </div>
-                )}
-                
-                <div className="p-6 lg:p-8">
-                  <div className="text-center mb-6">
-                    <h3 className="text-xl lg:text-2xl font-bold mb-2 text-[#C5C5B5]">{plan.name}</h3>
-                    {!plan.highlight && (
-                      <p className="text-[#C5C5B5]/60 text-sm">{plan.description}</p>
-                    )}
-                  </div>
-                  
-                  <div className="text-center mb-8">
-                    <div className="flex items-baseline justify-center mb-2">
-                      <span className="text-3xl lg:text-4xl font-bold text-[#C5C5B5]">€{plan.price}</span>
-                      <span className="text-[#C5C5B5]/60 ml-2 text-sm">{plan.duration}</span>
-                    </div>
-                  </div>
-                  
-                  <ul className="space-y-3 mb-8">
-                    {plan.features.map((feature, i) => (
-                      <li key={i} className="flex items-start">
-                        <Check className="w-4 h-4 text-[#C5C5B5] mr-3 flex-shrink-0 mt-1" />
-                        <span className="text-[#C5C5B5]/80 text-sm">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  
-                  <button 
-                    disabled
-                    className={`w-full px-6 py-3 rounded-full text-sm uppercase tracking-wide transition-all ${
-                      plan.highlight
-                        ? 'bg-[#C5C5B5]/20 text-[#C5C5B5]/60 cursor-not-allowed'
-                        : 'bg-[#C5C5B5]/10 text-[#C5C5B5]/50 cursor-not-allowed'
+            {loading ? (
+              <div className="col-span-full text-center py-12 text-[#C5C5B5]">
+                Loading pricing...
+              </div>
+            ) : passes.length === 0 ? (
+              <div className="col-span-full text-center py-12 text-[#C5C5B5]">
+                No passes available at the moment
+              </div>
+            ) : (
+              passes.map((pass, index) => {
+                const isHighlight = pass.slug === 'monthly-hot-desk';
+                return (
+                  <AnimatedSection
+                    key={pass.id}
+                    animation="fadeInUp"
+                    delay={200 + (index * 100)}
+                    className={`bg-[#1E1F1E] rounded-2xl overflow-hidden transition-all duration-300 ${
+                      isHighlight
+                        ? 'ring-2 ring-[#C5C5B5] transform hover:-translate-y-2 shadow-2xl'
+                        : 'hover:ring-1 hover:ring-[#C5C5B5]/50 hover:-translate-y-1 shadow-lg hover:shadow-xl'
                     }`}
                   >
-                    Available November 2025
-                  </button>
-                </div>
-              </AnimatedSection>
-            ))}
+                    {isHighlight && (
+                      <div className="bg-[#C5C5B5] text-[#1E1F1E] text-center py-2 text-sm font-bold uppercase tracking-wide">
+                        {pass.description}
+                      </div>
+                    )}
+
+                    <div className="p-6 lg:p-8">
+                      <div className="text-center mb-6">
+                        <h3 className="text-xl lg:text-2xl font-bold mb-2 text-[#C5C5B5]">{pass.name}</h3>
+                        {!isHighlight && (
+                          <p className="text-[#C5C5B5]/60 text-sm">{pass.description}</p>
+                        )}
+                      </div>
+
+                      <div className="text-center mb-8">
+                        <div className="flex items-baseline justify-center mb-2">
+                          <span className="text-3xl lg:text-4xl font-bold text-[#C5C5B5]">€{pass.price}</span>
+                          <span className="text-[#C5C5B5]/60 ml-2 text-sm">{getDurationLabel(pass)}</span>
+                        </div>
+                      </div>
+
+                      <ul className="space-y-3 mb-8">
+                        {pass.features.map((feature, i) => (
+                          <li key={i} className="flex items-start">
+                            <Check className="w-4 h-4 text-[#C5C5B5] mr-3 flex-shrink-0 mt-1" />
+                            <span className="text-[#C5C5B5]/80 text-sm">{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
+
+                      <Link
+                        to={`/coworking/book?pass=${pass.slug}`}
+                        className={`block w-full px-6 py-3 rounded-full text-sm uppercase tracking-wide transition-all text-center ${
+                          isHighlight
+                            ? 'bg-[#C5C5B5] text-[#1E1F1E] hover:bg-white'
+                            : 'bg-[#C5C5B5]/10 text-[#C5C5B5] hover:bg-[#C5C5B5]/20'
+                        }`}
+                      >
+                        Book Now
+                      </Link>
+                    </div>
+                  </AnimatedSection>
+                );
+              })
+            )}
           </div>
           
           <AnimatedSection animation="fadeInUp" delay={800}>
