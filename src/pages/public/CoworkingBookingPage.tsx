@@ -11,11 +11,18 @@ const CoworkingBookingPage: React.FC = () => {
   const [selectedPassId, setSelectedPassId] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  // Calculate tomorrow's date as minimum
+  const getTomorrowDate = () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow.toISOString().split('T')[0];
+  };
+
   const [formData, setFormData] = useState({
     customerName: '',
     customerEmail: '',
     customerPhone: '',
-    startDate: new Date().toISOString().split('T')[0],
+    startDate: getTomorrowDate(),
     specialNotes: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -65,6 +72,17 @@ const CoworkingBookingPage: React.FC = () => {
     if (!/\S+@\S+\.\S+/.test(formData.customerEmail)) newErrors.customerEmail = 'Invalid email';
     if (!formData.startDate) newErrors.startDate = 'Start date is required';
     if (!selectedPassId) newErrors.pass = 'Please select a pass';
+
+    // Validate start date is at least tomorrow
+    const selectedDate = new Date(formData.startDate);
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    selectedDate.setHours(0, 0, 0, 0);
+
+    if (selectedDate < tomorrow) {
+      newErrors.startDate = 'Bookings must start at least 1 day in advance';
+    }
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -238,7 +256,7 @@ const CoworkingBookingPage: React.FC = () => {
                     type="date"
                     value={formData.startDate}
                     onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                    min={new Date().toISOString().split('T')[0]}
+                    min={getTomorrowDate()}
                     className={`w-full px-4 py-3 bg-[#1E1F1E] border ${
                       errors.startDate ? 'border-red-400' : 'border-[#C5C5B5]/20'
                     } rounded-lg text-[#C5C5B5] focus:border-[#C5C5B5] focus:outline-none`}
