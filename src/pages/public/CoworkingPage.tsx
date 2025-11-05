@@ -8,8 +8,6 @@ import { coworkingPassService, type CoworkingPass, type PassAvailabilityCheck } 
 const amenities = [
   { icon: Wifi, name: 'Enterprise WiFi', description: 'Fiber internet with 1Gbps speeds for seamless video calls' },
   { icon: Coffee, name: 'Specialty Coffee', description: 'Premium specialty coffee and organic teas available throughout the day' },
-  { icon: Users, name: 'Curated Community', description: 'Connect with vetted remote workers and digital nomads' },
-  { icon: Calendar, name: 'Regular Events', description: 'Weekly skill shares, networking, and island adventures' },
   { icon: MapPin, name: 'Central Location', description: '5 minutes to ocean, cafes, restaurants, and transport' },
 ];
 
@@ -80,66 +78,55 @@ const CoworkingPage: React.FC = () => {
       </Helmet>
       
       {/* Hero */}
-      <section className="relative py-32">
-        <div className="absolute inset-0 bg-black/60 z-10"></div>
+      <section className="relative py-40 md:py-48">
+        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/70 z-10"></div>
         <div className="absolute inset-0 bg-[url('https://images.pexels.com/photos/7688336/pexels-photo-7688336.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1')] bg-cover bg-center"></div>
         <div className="container relative z-20">
-          <div className="max-w-4xl">
+          <div className="max-w-5xl mx-auto text-center">
             <AnimatedSection animation="fadeInUp">
-              <div className="mb-8">
-                <div className="inline-flex items-center px-6 py-3 rounded-full bg-[#C5C5B5]/10 backdrop-blur-sm text-[#C5C5B5] text-sm uppercase tracking-wide mb-8 border border-[#C5C5B5]/20">
-                  <Clock className="w-4 h-4 mr-2" />
-                  Opening November 2025
-                </div>
-                <h1 className="text-5xl md:text-7xl font-bold mb-8">
-                  <span className="bg-gradient-to-r from-[#C5C5B5] via-white to-[#C5C5B5] bg-clip-text text-transparent">
-                    Work Different
-                  </span>
-                </h1>
-              </div>
-              <p className="text-xl md:text-2xl text-[#C5C5B5] mb-8 leading-relaxed">
-                A productive workspace designed for digital nomads in the heart of Funchal. 
-                Join our community of remote workers and island entrepreneurs.
+              <h1 className="text-6xl md:text-8xl font-bold mb-10 leading-tight">
+                <span className="bg-gradient-to-r from-[#C5C5B5] via-white to-[#C5C5B5] bg-clip-text text-transparent">
+                  Your Productive Paradise
+                </span>
+              </h1>
+              <p className="text-2xl md:text-3xl text-white mb-12 leading-relaxed font-light">
+                Premium coworking in the heart of Funchal. Enterprise WiFi, specialty coffee, and ocean views.
               </p>
+              <button
+                onClick={() => {
+                  const pricingSection = document.querySelector('#pricing-section');
+                  pricingSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }}
+                className="inline-flex items-center px-10 py-5 bg-[#C5C5B5] text-[#1E1F1E] rounded-full hover:bg-white transition-all font-bold text-lg uppercase tracking-wide shadow-2xl hover:shadow-[#C5C5B5]/50 hover:scale-105 transform"
+              >
+                View Pricing
+                <ArrowRight className="ml-3 h-6 w-6" />
+              </button>
             </AnimatedSection>
           </div>
         </div>
       </section>
       
       {/* Intro */}
-      <section className="py-24 bg-[#1E1F1E]">
+      <section className="py-32 bg-[#1E1F1E]">
         <div className="container">
-          <div className="grid md:grid-cols-2 gap-16 items-center">
+          <div className="grid md:grid-cols-2 gap-20 items-center">
             <AnimatedSection animation="fadeInLeft">
               <div>
-                <div className="inline-flex items-center px-4 py-2 rounded-full bg-[#C5C5B5]/5 text-[#C5C5B5]/80 text-sm uppercase tracking-wide mb-8">
-                  Coming November 2025
-                </div>
-                <h2 className="text-4xl md:text-5xl font-bold mb-8">
+                <h2 className="text-5xl md:text-6xl font-bold mb-10 leading-tight">
                   <span className="bg-gradient-to-r from-[#C5C5B5] via-white to-[#C5C5B5] bg-clip-text text-transparent">
                     More Than Just a Desk
                   </span>
                 </h2>
-                <div className="space-y-6 text-xl text-[#C5C5B5]/90 leading-relaxed">
-                  <p>
-                    Bond's coworking space is designed for focus and connection. With enterprise-grade WiFi, 
-                    ergonomic workstations, and a community of like-minded professionals, it's the perfect 
+                <div className="space-y-8 text-xl text-[#C5C5B5]/90 leading-relaxed">
+                  <p className="text-2xl">
+                    Bond's coworking space is designed for focus and connection. With enterprise-grade WiFi,
+                    ergonomic workstations, and stunning natural light, it's the perfect
                     environment for getting things done.
                   </p>
                   <p>
-                    Whether you need a quiet space for deep work or want to collaborate with fellow nomads, 
-                    our space adapts to your workflow and schedule.
-                  </p>
-                </div>
-                
-                <div className="mt-8 p-6 bg-[#C5C5B5]/10 rounded-2xl border border-[#C5C5B5]/20">
-                  <div className="flex items-center mb-3">
-                    <Star className="w-5 h-5 text-[#C5C5B5] mr-3" />
-                    <h3 className="text-lg font-bold text-[#C5C5B5]">Early Access</h3>
-                  </div>
-                  <p className="text-[#C5C5B5]/80">
-                    Be among the first to experience this unique workspace. 
-                    Contact us for founding member benefits and early access opportunities.
+                    Whether you need a quiet space for deep work or want to network with fellow digital nomads,
+                    our flexible space adapts to your workflow and schedule. Book by the day, week, or month.
                   </p>
                 </div>
               </div>
@@ -160,14 +147,14 @@ const CoworkingPage: React.FC = () => {
       </section>
       
       {/* Pricing */}
-      <section className="py-24 bg-[#C5C5B5]">
+      <section id="pricing-section" className="py-32 bg-[#C5C5B5]">
         <div className="container">
           <AnimatedSection animation="fadeInUp">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl md:text-5xl font-bold text-[#1E1F1E] mb-6">
+            <div className="text-center mb-20">
+              <h2 className="text-5xl md:text-6xl font-bold text-[#1E1F1E] mb-8">
                 Flexible Workspace Options
               </h2>
-              <p className="text-xl text-[#1E1F1E]/80 max-w-2xl mx-auto">
+              <p className="text-2xl text-[#1E1F1E]/80 max-w-3xl mx-auto leading-relaxed">
                 Choose the plan that fits your work style and schedule. All plans include our full range of amenities.
               </p>
             </div>
@@ -208,7 +195,7 @@ const CoworkingPage: React.FC = () => {
                       </div>
                     )}
 
-                    <div className="p-6 lg:p-8 flex flex-col h-full">
+                    <div className="p-6 lg:p-8 flex flex-col">
                       <div className="text-center mb-6">
                         <h3 className="text-xl lg:text-2xl font-bold mb-2 text-[#C5C5B5]">{pass.name}</h3>
                         {!isHighlight && (
@@ -232,7 +219,7 @@ const CoworkingPage: React.FC = () => {
                         ))}
                       </ul>
 
-                      <div className="mt-auto">
+                      <div className="mt-auto pt-4">
                         {!isAvailable ? (
                           <div className="space-y-2">
                             <div className="flex items-center gap-2 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
@@ -273,7 +260,7 @@ const CoworkingPage: React.FC = () => {
                             )}
                             <Link
                               to={`/coworking/book?pass=${pass.slug}`}
-                              className={`block w-full px-6 py-3.5 rounded-full text-sm font-semibold uppercase tracking-wide transition-all text-center ${
+                              className={`block w-full px-6 py-3.5 rounded-full text-sm font-semibold uppercase tracking-wide transition-all text-center break-words ${
                                 isHighlight
                                   ? 'bg-[#C5C5B5] text-[#1E1F1E] hover:bg-white hover:shadow-lg'
                                   : 'bg-[#C5C5B5]/10 text-[#C5C5B5] hover:bg-[#C5C5B5]/20 border border-[#C5C5B5]/20'
@@ -292,33 +279,19 @@ const CoworkingPage: React.FC = () => {
           </div>
           
           <AnimatedSection animation="fadeInUp" delay={800}>
-            <div className="text-center mt-12 space-y-6">
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-[#1E1F1E]/10 max-w-2xl mx-auto">
-                <h3 className="text-xl font-bold text-[#1E1F1E] mb-3">Already Have a Booking?</h3>
-                <p className="text-[#1E1F1E]/80 mb-4">
+            <div className="text-center mt-16">
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-10 border border-[#1E1F1E]/10 max-w-2xl mx-auto shadow-xl">
+                <h3 className="text-2xl font-bold text-[#1E1F1E] mb-4">Already Have a Booking?</h3>
+                <p className="text-[#1E1F1E]/80 mb-6 text-lg">
                   Look up your booking to view your access code and booking details.
                 </p>
                 <Link
                   to="/coworking/booking/lookup"
-                  className="inline-flex items-center px-6 py-3 bg-[#1E1F1E] text-[#C5C5B5] rounded-full hover:bg-[#1E1F1E]/80 transition-all font-semibold text-sm uppercase tracking-wide"
+                  className="inline-flex items-center px-8 py-4 bg-[#1E1F1E] text-[#C5C5B5] rounded-full hover:bg-[#1E1F1E]/90 transition-all font-semibold text-base uppercase tracking-wide shadow-lg hover:shadow-xl hover:scale-105"
                 >
                   Lookup Booking
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
-              </div>
-
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-[#1E1F1E]/10 max-w-2xl mx-auto">
-                <h3 className="text-xl font-bold text-[#1E1F1E] mb-3">Founding Member Benefits</h3>
-                <p className="text-[#1E1F1E]/80 mb-4">
-                  Join our early access list for exclusive founding member rates and priority booking when we open.
-                </p>
-                <a
-                  href="mailto:info@stayatbond.com?subject=Coworking Early Access"
-                  className="inline-flex items-center px-6 py-3 bg-[#1E1F1E] text-[#C5C5B5] rounded-full hover:bg-[#1E1F1E]/80 transition-all font-semibold text-sm uppercase tracking-wide"
-                >
-                  Get Early Access
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </a>
               </div>
             </div>
           </AnimatedSection>
@@ -326,38 +299,38 @@ const CoworkingPage: React.FC = () => {
       </section>
       
       {/* Amenities */}
-      <section className="py-24 bg-[#1E1F1E]">
+      <section className="py-32 bg-[#1E1F1E]">
         <div className="container">
           <AnimatedSection animation="fadeInUp">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl md:text-5xl font-bold mb-6">
+            <div className="text-center mb-20">
+              <h2 className="text-5xl md:text-6xl font-bold mb-8 leading-tight">
                 <span className="bg-gradient-to-r from-[#C5C5B5] via-white to-[#C5C5B5] bg-clip-text text-transparent">
                   Everything You Need to Thrive
                 </span>
               </h2>
-              <p className="text-xl text-[#C5C5B5]/80 max-w-2xl mx-auto">
+              <p className="text-2xl text-[#C5C5B5]/80 max-w-3xl mx-auto leading-relaxed">
                 Our space is designed with remote workers in mind, providing all the tools and environment you need for productive work.
               </p>
             </div>
           </AnimatedSection>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-6xl mx-auto">
             {amenities.map((amenity, index) => {
               const Icon = amenity.icon;
               return (
                 <AnimatedSection
                   key={index}
                   animation="fadeInUp"
-                  delay={200 + (index * 100)}
-                  className="bg-[#C5C5B5]/5 rounded-2xl p-8 border border-[#C5C5B5]/10 group hover:bg-[#C5C5B5]/10 transition-all duration-300 hover:transform hover:-translate-y-2 hover:shadow-xl"
+                  delay={200 + (index * 150)}
+                  className="bg-[#C5C5B5]/5 rounded-3xl p-10 border border-[#C5C5B5]/10 group hover:bg-[#C5C5B5]/10 transition-all duration-500 hover:transform hover:-translate-y-3 hover:shadow-2xl hover:border-[#C5C5B5]/30"
                 >
-                  <div className="mb-6">
-                    <div className="w-14 h-14 bg-[#C5C5B5]/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-[#C5C5B5]/20 group-hover:scale-110 transition-all duration-300">
-                      <Icon className="h-7 w-7 text-[#C5C5B5]" />
+                  <div className="mb-8">
+                    <div className="w-16 h-16 bg-[#C5C5B5]/10 rounded-2xl flex items-center justify-center group-hover:bg-[#C5C5B5]/20 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
+                      <Icon className="h-8 w-8 text-[#C5C5B5]" />
                     </div>
                   </div>
-                  <h3 className="text-xl font-bold mb-3 text-[#C5C5B5]">{amenity.name}</h3>
-                  <p className="text-[#C5C5B5]/80 leading-relaxed text-base">{amenity.description}</p>
+                  <h3 className="text-2xl font-bold mb-4 text-[#C5C5B5] group-hover:text-white transition-colors">{amenity.name}</h3>
+                  <p className="text-[#C5C5B5]/80 leading-relaxed text-lg">{amenity.description}</p>
                 </AnimatedSection>
               );
             })}
@@ -366,46 +339,46 @@ const CoworkingPage: React.FC = () => {
       </section>
 
       {/* Why Choose Bond Coworking */}
-      <section className="py-24 bg-[#C5C5B5]">
+      <section className="py-32 bg-[#C5C5B5]">
         <div className="container">
-          <div className="grid md:grid-cols-2 gap-16 items-center">
+          <div className="grid md:grid-cols-2 gap-20 items-center">
             <AnimatedSection animation="fadeInLeft">
               <div>
-                <h2 className="text-4xl md:text-5xl font-bold mb-8 text-[#1E1F1E]">
+                <h2 className="text-5xl md:text-6xl font-bold mb-12 text-[#1E1F1E] leading-tight">
                   Why Bond Coworking?
                 </h2>
-                <div className="space-y-6">
-                  <div className="flex items-start gap-4">
-                    <div className="w-8 h-8 bg-[#1E1F1E]/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
-                      <Users className="w-4 h-4 text-[#1E1F1E]" />
+                <div className="space-y-8">
+                  <div className="flex items-start gap-5 group">
+                    <div className="w-12 h-12 bg-[#1E1F1E]/10 rounded-xl flex items-center justify-center flex-shrink-0 mt-1 group-hover:bg-[#1E1F1E]/20 transition-all">
+                      <Users className="w-6 h-6 text-[#1E1F1E]" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-[#1E1F1E] mb-2">Curated Community</h3>
-                      <p className="text-[#1E1F1E]/80">
+                      <h3 className="text-2xl font-bold text-[#1E1F1E] mb-3">Curated Community</h3>
+                      <p className="text-[#1E1F1E]/80 text-lg leading-relaxed">
                         Work alongside vetted professionals who share your values of quality work and meaningful connections.
                       </p>
                     </div>
                   </div>
-                  
-                  <div className="flex items-start gap-4">
-                    <div className="w-8 h-8 bg-[#1E1F1E]/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
-                      <MapPin className="w-4 h-4 text-[#1E1F1E]" />
+
+                  <div className="flex items-start gap-5 group">
+                    <div className="w-12 h-12 bg-[#1E1F1E]/10 rounded-xl flex items-center justify-center flex-shrink-0 mt-1 group-hover:bg-[#1E1F1E]/20 transition-all">
+                      <MapPin className="w-6 h-6 text-[#1E1F1E]" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-[#1E1F1E] mb-2">Perfect Location</h3>
-                      <p className="text-[#1E1F1E]/80">
+                      <h3 className="text-2xl font-bold text-[#1E1F1E] mb-3">Perfect Location</h3>
+                      <p className="text-[#1E1F1E]/80 text-lg leading-relaxed">
                         Central Funchal location puts you steps away from cafes, restaurants, and the ocean promenade.
                       </p>
                     </div>
                   </div>
-                  
-                  <div className="flex items-start gap-4">
-                    <div className="w-8 h-8 bg-[#1E1F1E]/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
-                      <Coffee className="w-4 h-4 text-[#1E1F1E]" />
+
+                  <div className="flex items-start gap-5 group">
+                    <div className="w-12 h-12 bg-[#1E1F1E]/10 rounded-xl flex items-center justify-center flex-shrink-0 mt-1 group-hover:bg-[#1E1F1E]/20 transition-all">
+                      <Coffee className="w-6 h-6 text-[#1E1F1E]" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-[#1E1F1E] mb-2">Island Lifestyle</h3>
-                      <p className="text-[#1E1F1E]/80">
+                      <h3 className="text-2xl font-bold text-[#1E1F1E] mb-3">Island Lifestyle</h3>
+                      <p className="text-[#1E1F1E]/80 text-lg leading-relaxed">
                         Work productively during the day, then explore levadas, beaches, and local culture in your free time.
                       </p>
                     </div>
@@ -415,8 +388,8 @@ const CoworkingPage: React.FC = () => {
             </AnimatedSection>
             
             <AnimatedSection animation="fadeInRight" delay={200}>
-              <div className="aspect-square bg-[#1E1F1E]/5 rounded-3xl overflow-hidden">
-                <img 
+              <div className="aspect-square bg-[#1E1F1E]/5 rounded-3xl overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-[1.02]">
+                <img
                   src="https://images.pexels.com/photos/7688336/pexels-photo-7688336.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
                   alt="Modern coworking space interior with natural lighting and contemporary design"
                   className="w-full h-full object-cover"
@@ -429,47 +402,52 @@ const CoworkingPage: React.FC = () => {
       </section>
       
       {/* CTA */}
-      <section className="py-32 bg-[#1E1F1E] relative overflow-hidden">
+      <section className="py-40 bg-gradient-to-b from-[#1E1F1E] to-black relative overflow-hidden">
         {/* Background elements */}
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-[#C5C5B5] rounded-full blur-3xl"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#C5C5B5] rounded-full blur-3xl"></div>
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#C5C5B5] rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-[#C5C5B5] rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
         </div>
-        
+
         <div className="container text-center relative z-10">
           <AnimatedSection animation="fadeInUp">
-            <div className="max-w-4xl mx-auto">
-              <h2 className="text-5xl md:text-6xl font-bold text-[#C5C5B5] mb-8">
-                Ready to Work in Paradise?
+            <div className="max-w-5xl mx-auto">
+              <h2 className="text-6xl md:text-7xl font-bold mb-10 leading-tight">
+                <span className="bg-gradient-to-r from-[#C5C5B5] via-white to-[#C5C5B5] bg-clip-text text-transparent">
+                  Start Working in Paradise Today
+                </span>
               </h2>
-              <p className="text-xl md:text-2xl text-[#C5C5B5]/80 mb-12 leading-relaxed">
-                Join our early access list and be the first to know when our coworking space opens in November 2025. 
-                Founding members get exclusive rates and priority access.
+              <p className="text-2xl md:text-3xl text-[#C5C5B5]/90 mb-14 leading-relaxed font-light">
+                Choose your pass and experience Funchal's premier coworking space.
+                Flexible options for every work style.
               </p>
-              
+
               <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-                <a 
-                  href="mailto:info@stayatbond.com?subject=Coworking Early Access - Founding Member"
-                  className="inline-flex items-center px-8 py-4 bg-[#C5C5B5] text-[#1E1F1E] rounded-full hover:bg-white transition-all font-semibold text-lg uppercase tracking-wide shadow-lg hover:shadow-xl hover:scale-105"
+                <button
+                  onClick={() => {
+                    const pricingSection = document.querySelector('#pricing-section');
+                    pricingSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }}
+                  className="inline-flex items-center px-10 py-5 bg-[#C5C5B5] text-[#1E1F1E] rounded-full hover:bg-white transition-all font-bold text-lg uppercase tracking-wide shadow-2xl hover:shadow-[#C5C5B5]/50 hover:scale-105 transform"
                 >
-                  Join Early Access List
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </a>
-                
-                <Link 
+                  Book Your Pass
+                  <ArrowRight className="ml-3 h-6 w-6" />
+                </button>
+
+                <Link
                   to="/apply"
-                  className="inline-flex items-center px-8 py-4 bg-[#C5C5B5]/10 text-[#C5C5B5] rounded-full hover:bg-[#C5C5B5]/20 transition-all font-semibold text-lg uppercase tracking-wide border border-[#C5C5B5]/20"
+                  className="inline-flex items-center px-10 py-5 bg-transparent text-[#C5C5B5] rounded-full hover:bg-[#C5C5B5]/10 transition-all font-bold text-lg uppercase tracking-wide border-2 border-[#C5C5B5] hover:border-white hover:text-white"
                 >
-                  Book Accommodation
+                  Explore Accommodation
                 </Link>
               </div>
-              
-              <div className="mt-8 text-[#C5C5B5]/60">
-                <p className="text-sm">
+
+              <div className="mt-12 text-[#C5C5B5]/70">
+                <p className="text-lg">
                   Questions? Email us at{' '}
-                  <a 
-                    href="mailto:hello@stayatbond.com" 
-                    className="text-[#C5C5B5] hover:text-white transition-colors underline"
+                  <a
+                    href="mailto:hello@stayatbond.com"
+                    className="text-[#C5C5B5] hover:text-white transition-colors underline font-semibold"
                   >
                     hello@stayatbond.com
                   </a>
