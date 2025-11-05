@@ -305,7 +305,8 @@ const CoworkingBookingPage: React.FC = () => {
                     min={getTomorrowDate()}
                     className={`w-full px-4 py-3 bg-[#1E1F1E] border ${
                       errors.startDate ? 'border-red-400' : 'border-[#C5C5B5]/20'
-                    } rounded-lg text-[#C5C5B5] focus:border-[#C5C5B5] focus:outline-none`}
+                    } rounded-lg text-[#C5C5B5] focus:border-[#C5C5B5] focus:outline-none transition-all hover:border-[#C5C5B5]/40 cursor-pointer`}
+                    placeholder="Select a date"
                   />
                   {errors.startDate && <p className="mt-1 text-sm text-red-400">{errors.startDate}</p>}
                   {selectedPass && (

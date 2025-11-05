@@ -256,6 +256,63 @@
     outline: none !important;
   }
 
+  /* Native date input styling for dark theme */
+  input[type="date"] {
+    color-scheme: dark;
+    position: relative;
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23C5C5B5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Cline x1='16' y1='2' x2='16' y2='6'%3E%3C/line%3E%3Cline x1='8' y1='2' x2='8' y2='6'%3E%3C/line%3E%3Cline x1='3' y1='10' x2='21' y2='10'%3E%3C/line%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 20px 20px;
+    width: 24px;
+    height: 24px;
+    opacity: 1;
+    filter: brightness(1);
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23FFFFFF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Cline x1='16' y1='2' x2='16' y2='6'%3E%3C/line%3E%3Cline x1='8' y1='2' x2='8' y2='6'%3E%3C/line%3E%3Cline x1='3' y1='10' x2='21' y2='10'%3E%3C/line%3E%3C/svg%3E");
+    opacity: 1;
+  }
+
+  input[type="date"]::-webkit-datetime-edit {
+    color: #C5C5B5;
+    padding: 0;
+  }
+
+  input[type="date"]::-webkit-datetime-edit-text {
+    color: #C5C5B5;
+    padding: 0 0.3em;
+  }
+
+  input[type="date"]::-webkit-datetime-edit-month-field {
+    color: #C5C5B5;
+  }
+
+  input[type="date"]::-webkit-datetime-edit-day-field {
+    color: #C5C5B5;
+  }
+
+  input[type="date"]::-webkit-datetime-edit-year-field {
+    color: #C5C5B5;
+  }
+
+  input[type="date"]:focus::-webkit-datetime-edit {
+    color: #FFFFFF;
+  }
+
+  input[type="date"]:focus::-webkit-datetime-edit-month-field,
+  input[type="date"]:focus::-webkit-datetime-edit-day-field,
+  input[type="date"]:focus::-webkit-datetime-edit-year-field {
+    color: #FFFFFF;
+    background-color: rgba(197, 197, 181, 0.1);
+    border-radius: 4px;
+  }
+
   /* Custom scrollbar for date picker if needed */
   .react-datepicker__month-container::-webkit-scrollbar {
     width: 4px;
