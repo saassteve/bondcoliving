@@ -50,6 +50,7 @@ const AdminCoworkingPage: React.FC = () => {
         start_date: editingBooking.start_date,
         booking_status: editingBooking.booking_status,
         payment_status: editingBooking.payment_status,
+        access_code: editingBooking.access_code,
         special_notes: editingBooking.special_notes,
       });
       await fetchData();
@@ -541,6 +542,24 @@ const AdminCoworkingPage: React.FC = () => {
                     <option value="failed">Failed</option>
                     <option value="refunded">Refunded</option>
                   </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                    Access Code (Door Code)
+                  </label>
+                  <input
+                    type="text"
+                    className="input font-mono"
+                    value={editingBooking.access_code || ''}
+                    onChange={(e) =>
+                      setEditingBooking({ ...editingBooking, access_code: e.target.value })
+                    }
+                    placeholder="Enter door code (e.g., 1234#)"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">
+                    This code will be visible to the customer when they look up their booking
+                  </p>
                 </div>
 
                 <div>

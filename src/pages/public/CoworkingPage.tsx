@@ -228,13 +228,27 @@ const CoworkingPage: React.FC = () => {
           </div>
           
           <AnimatedSection animation="fadeInUp" delay={800}>
-            <div className="text-center mt-12">
+            <div className="text-center mt-12 space-y-6">
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-[#1E1F1E]/10 max-w-2xl mx-auto">
+                <h3 className="text-xl font-bold text-[#1E1F1E] mb-3">Already Have a Booking?</h3>
+                <p className="text-[#1E1F1E]/80 mb-4">
+                  Look up your booking to view your access code and booking details.
+                </p>
+                <Link
+                  to="/coworking/booking/lookup"
+                  className="inline-flex items-center px-6 py-3 bg-[#1E1F1E] text-[#C5C5B5] rounded-full hover:bg-[#1E1F1E]/80 transition-all font-semibold text-sm uppercase tracking-wide"
+                >
+                  Lookup Booking
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </div>
+
               <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-[#1E1F1E]/10 max-w-2xl mx-auto">
                 <h3 className="text-xl font-bold text-[#1E1F1E] mb-3">Founding Member Benefits</h3>
                 <p className="text-[#1E1F1E]/80 mb-4">
                   Join our early access list for exclusive founding member rates and priority booking when we open.
                 </p>
-                <a 
+                <a
                   href="mailto:info@stayatbond.com?subject=Coworking Early Access"
                   className="inline-flex items-center px-6 py-3 bg-[#1E1F1E] text-[#C5C5B5] rounded-full hover:bg-[#1E1F1E]/80 transition-all font-semibold text-sm uppercase tracking-wide"
                 >

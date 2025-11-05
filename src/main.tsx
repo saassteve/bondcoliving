@@ -22,6 +22,7 @@ import ThankYouPage from './pages/public/ThankYouPage';
 import CoworkingPage from './pages/public/CoworkingPage';
 import CoworkingBookingPage from './pages/public/CoworkingBookingPage';
 import CoworkingBookingSuccessPage from './pages/public/CoworkingBookingSuccessPage';
+import CoworkingBookingLookupPage from './pages/public/CoworkingBookingLookupPage';
 import RoomDetailPage from './pages/public/RoomDetailPage';
 import LoginPage from './pages/public/LoginPage';
 import SearchResultsPage from './pages/public/SearchResultsPage';
@@ -59,7 +60,8 @@ const App = () => {
             <Route path="thank-you" element={<ThankYouPage />} />
             <Route path="coworking" element={<CoworkingPage />} />
             <Route path="coworking/book" element={<CoworkingBookingPage />} />
-            <Route path="coworking/success" element={<CoworkingBookingSuccessPage />} />
+            <Route path="coworking/booking/success" element={<CoworkingBookingSuccessPage />} />
+            <Route path="coworking/booking/lookup" element={<CoworkingBookingLookupPage />} />
             <Route path="room/:roomSlug" element={<RoomDetailPage />} />
             <Route path="login" element={<LoginPage />} />
             <Route path="search" element={<SearchResultsPage />} />

@@ -147,9 +147,15 @@ const CoworkingBookingSuccessPage: React.FC = () => {
                   <h3 className="text-lg font-semibold text-[#C5C5B5] mb-1">
                     Receive Your Access Code
                   </h3>
-                  <p className="text-[#C5C5B5]/70">
+                  <p className="text-[#C5C5B5]/70 mb-2">
                     Our team will send you an access code via email before your start date.
                   </p>
+                  <Link
+                    to="/coworking/booking/lookup"
+                    className="text-[#C5C5B5] hover:text-white underline text-sm"
+                  >
+                    You can also look up your booking anytime to view your access code
+                  </Link>
                 </div>
               </div>
 
