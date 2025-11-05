@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Search, Calendar, Mail, Key, Clock, CheckCircle } from 'lucide-react';
-import { coworkingBookingService, type CoworkingBooking } from '../../lib/supabase';
+import { Search, Calendar, Mail, Key, Clock, CheckCircle, Send } from 'lucide-react';
+import { coworkingBookingService, type CoworkingBooking, supabase } from '../../lib/supabase';
 
 const CoworkingBookingLookupPage: React.FC = () => {
   const [bookingReference, setBookingReference] = useState('');
@@ -9,6 +9,8 @@ const CoworkingBookingLookupPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [booking, setBooking] = useState<CoworkingBooking | null>(null);
   const [error, setError] = useState('');
+  const [resending, setResending] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,6 +61,42 @@ const CoworkingBookingLookupPage: React.FC = () => {
         return 'text-red-400';
       default:
         return 'text-gray-400';
+    }
+  };
+
+  const handleResendEmail = async () => {
+    if (!booking) return;
+
+    setResending(true);
+    setResendSuccess(false);
+    setError('');
+
+    try {
+      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-coworking-email`;
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          bookingId: booking.id,
+          resendEmail: true,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to resend email');
+      }
+
+      setResendSuccess(true);
+      setTimeout(() => setResendSuccess(false), 5000);
+    } catch (err) {
+      console.error('Error resending email:', err);
+      setError('Failed to resend email. Please try again or contact support.');
+    } finally {
+      setResending(false);
     }
   };
 
@@ -207,6 +245,24 @@ const CoworkingBookingLookupPage: React.FC = () => {
                           {booking.access_code}
                         </div>
                       </div>
+
+                      {resendSuccess ? (
+                        <div className="mt-4 bg-green-500/20 border border-green-500/30 rounded-lg p-3 flex items-center">
+                          <CheckCircle className="w-5 h-5 text-green-500 mr-2 flex-shrink-0" />
+                          <p className="text-sm text-[#1E1F1E] font-medium">
+                            Access code email resent successfully! Check your inbox.
+                          </p>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={handleResendEmail}
+                          disabled={resending}
+                          className="mt-4 w-full px-4 py-3 bg-[#1E1F1E]/10 hover:bg-[#1E1F1E]/20 text-[#1E1F1E] rounded-lg transition-all font-semibold flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <Send className="w-4 h-4 mr-2" />
+                          {resending ? 'Sending...' : 'Resend Access Code Email'}
+                        </button>
+                      )}
                     </div>
                   </div>
                   <div className="bg-[#1E1F1E]/10 rounded-lg p-4 mt-4">

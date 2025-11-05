@@ -8,6 +8,40 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
+// Helper function to send emails via the send-coworking-email edge function
+async function sendEmail(
+  supabaseUrl: string,
+  supabaseServiceKey: string,
+  emailData: {
+    emailType: string;
+    bookingId?: string;
+    recipientEmail?: string;
+    recipientName?: string;
+  }
+): Promise<void> {
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+  // Create a service role token for calling the email function
+  const response = await fetch(
+    `${supabaseUrl}/functions/v1/send-coworking-email`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${supabaseServiceKey}`,
+      },
+      body: JSON.stringify(emailData),
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to send email");
+  }
+
+  return await response.json();
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, {
@@ -103,6 +137,34 @@ Deno.serve(async (req: Request) => {
           .eq("id", bookingId);
 
         console.log("Updated booking and payment for:", bookingId);
+
+        // Send confirmation email to customer
+        try {
+          await sendEmail(supabaseUrl, supabaseServiceKey, {
+            emailType: "booking_confirmation",
+            bookingId: bookingId,
+          });
+          console.log("Sent booking confirmation email for:", bookingId);
+        } catch (emailError) {
+          console.error("Failed to send confirmation email:", emailError);
+          // Don't fail the webhook if email fails
+        }
+
+        // Send admin notification
+        try {
+          const adminEmail = Deno.env.get("ADMIN_EMAIL") || "hello@stayatbond.com";
+          await sendEmail(supabaseUrl, supabaseServiceKey, {
+            emailType: "admin_notification",
+            bookingId: bookingId,
+            recipientEmail: adminEmail,
+            recipientName: "Admin",
+          });
+          console.log("Sent admin notification for:", bookingId);
+        } catch (emailError) {
+          console.error("Failed to send admin notification:", emailError);
+          // Don't fail the webhook if email fails
+        }
+
         break;
       }
 
@@ -171,6 +233,17 @@ Deno.serve(async (req: Request) => {
               booking_status: "cancelled",
             })
             .eq("id", payment.booking_id);
+
+          // Send payment failed email
+          try {
+            await sendEmail(supabaseUrl, supabaseServiceKey, {
+              emailType: "payment_failed",
+              bookingId: payment.booking_id,
+            });
+            console.log("Sent payment failed email for:", payment.booking_id);
+          } catch (emailError) {
+            console.error("Failed to send payment failed email:", emailError);
+          }
         }
 
         break;
@@ -200,6 +273,17 @@ Deno.serve(async (req: Request) => {
                 booking_status: "cancelled",
               })
               .eq("id", payment.booking_id);
+
+            // Send booking cancelled email
+            try {
+              await sendEmail(supabaseUrl, supabaseServiceKey, {
+                emailType: "booking_cancelled",
+                bookingId: payment.booking_id,
+              });
+              console.log("Sent booking cancelled email for:", payment.booking_id);
+            } catch (emailError) {
+              console.error("Failed to send cancelled email:", emailError);
+            }
           }
         }
 
