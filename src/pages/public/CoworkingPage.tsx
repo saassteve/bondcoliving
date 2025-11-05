@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Check, Wifi, Coffee, Users, Calendar, MapPin, Moon, Clock, ArrowRight, Star } from 'lucide-react';
+import { Check, Wifi, Coffee, Users, Calendar, MapPin, Moon, Clock, ArrowRight, Star, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import AnimatedSection from '../../components/AnimatedSection';
-import { coworkingPassService, type CoworkingPass } from '../../lib/supabase';
+import { coworkingPassService, type CoworkingPass, type PassAvailabilityCheck } from '../../lib/supabase';
 
 const amenities = [
   { icon: Wifi, name: 'Enterprise WiFi', description: 'Fiber internet with 1Gbps speeds for seamless video calls' },
@@ -16,6 +16,7 @@ const amenities = [
 
 const CoworkingPage: React.FC = () => {
   const [passes, setPasses] = useState<CoworkingPass[]>([]);
+  const [passAvailability, setPassAvailability] = useState<Record<string, PassAvailabilityCheck>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,6 +27,22 @@ const CoworkingPage: React.FC = () => {
     try {
       const data = await coworkingPassService.getActive();
       setPasses(data);
+
+      const today = new Date().toISOString().split('T')[0];
+      const availabilityMap: Record<string, PassAvailabilityCheck> = {};
+
+      await Promise.all(
+        data.map(async (pass) => {
+          try {
+            const availability = await coworkingPassService.checkAvailability(pass.id, today);
+            availabilityMap[pass.id] = availability;
+          } catch (error) {
+            console.error(`Error checking availability for pass ${pass.id}:`, error);
+          }
+        })
+      );
+
+      setPassAvailability(availabilityMap);
     } catch (error) {
       console.error('Error fetching passes:', error);
     } finally {
@@ -169,6 +186,12 @@ const CoworkingPage: React.FC = () => {
             ) : (
               passes.map((pass, index) => {
                 const isHighlight = pass.slug === 'monthly-hot-desk';
+                const availability = passAvailability[pass.id];
+                const isAvailable = !availability || availability.available;
+                const capacityPercentage = pass.max_capacity
+                  ? Math.round((pass.current_capacity / pass.max_capacity) * 100)
+                  : 0;
+
                 return (
                   <AnimatedSection
                     key={pass.id}
@@ -210,16 +233,56 @@ const CoworkingPage: React.FC = () => {
                         ))}
                       </ul>
 
-                      <Link
-                        to={`/coworking/book?pass=${pass.slug}`}
-                        className={`block w-full px-6 py-3 rounded-full text-sm uppercase tracking-wide transition-all text-center ${
-                          isHighlight
-                            ? 'bg-[#C5C5B5] text-[#1E1F1E] hover:bg-white'
-                            : 'bg-[#C5C5B5]/10 text-[#C5C5B5] hover:bg-[#C5C5B5]/20'
-                        }`}
-                      >
-                        Book Now
-                      </Link>
+                      {!isAvailable ? (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                            <AlertCircle className="w-4 h-4 text-yellow-400 flex-shrink-0" />
+                            <span className="text-sm text-yellow-300">
+                              {availability?.reason === 'not_yet_available' && availability.next_available_date
+                                ? `Available from ${new Date(availability.next_available_date).toLocaleDateString()}`
+                                : availability?.reason === 'at_capacity'
+                                ? 'Fully booked'
+                                : 'Currently unavailable'}
+                            </span>
+                          </div>
+                          {availability?.reason === 'at_capacity' && availability.next_available_date && (
+                            <p className="text-xs text-center text-gray-400">
+                              Next available: {new Date(availability.next_available_date).toLocaleDateString()}
+                            </p>
+                          )}
+                        </div>
+                      ) : (
+                        <>
+                          {pass.is_capacity_limited && pass.max_capacity && (
+                            <div className="mb-3">
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="text-xs text-[#C5C5B5]/60">
+                                  {pass.max_capacity - pass.current_capacity} spots remaining
+                                </span>
+                                <span className="text-xs font-bold text-[#C5C5B5]">
+                                  {100 - capacityPercentage}% available
+                                </span>
+                              </div>
+                              <div className="w-full bg-[#1E1F1E]/50 rounded-full h-1.5">
+                                <div
+                                  className="h-1.5 rounded-full bg-[#C5C5B5]"
+                                  style={{ width: `${100 - capacityPercentage}%` }}
+                                ></div>
+                              </div>
+                            </div>
+                          )}
+                          <Link
+                            to={`/coworking/book?pass=${pass.slug}`}
+                            className={`block w-full px-6 py-3 rounded-full text-sm uppercase tracking-wide transition-all text-center ${
+                              isHighlight
+                                ? 'bg-[#C5C5B5] text-[#1E1F1E] hover:bg-white'
+                                : 'bg-[#C5C5B5]/10 text-[#C5C5B5] hover:bg-[#C5C5B5]/20'
+                            }`}
+                          >
+                            Book Now
+                          </Link>
+                        </>
+                      )}
                     </div>
                   </AnimatedSection>
                 );

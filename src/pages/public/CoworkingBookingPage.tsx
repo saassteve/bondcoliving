@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Calendar, User, Mail, Phone, CreditCard, Check } from 'lucide-react';
+import { Calendar, User, Mail, Phone, CreditCard, Check, AlertCircle } from 'lucide-react';
 import { coworkingPassService, type CoworkingPass } from '../../lib/supabase';
 
 const CoworkingBookingPage: React.FC = () => {
@@ -26,6 +26,8 @@ const CoworkingBookingPage: React.FC = () => {
     specialNotes: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [availabilityMessage, setAvailabilityMessage] = useState<string>('');
+  const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
 
   useEffect(() => {
     fetchPasses();
@@ -62,9 +64,47 @@ const CoworkingBookingPage: React.FC = () => {
 
   const selectedPass = passes.find((p) => p.id === selectedPassId);
 
+  const checkAvailability = async (passId: string, startDate: string) => {
+    try {
+      setIsCheckingAvailability(true);
+      const availability = await coworkingPassService.checkAvailability(passId, startDate);
+
+      if (!availability.available) {
+        let message = 'This pass is not available for the selected date.';
+        if (availability.reason === 'not_yet_available' && availability.next_available_date) {
+          message = `This pass is not yet available. Available from ${new Date(availability.next_available_date).toLocaleDateString()}.`;
+        } else if (availability.reason === 'at_capacity') {
+          message = 'This pass is fully booked for the selected date. Please choose a different date.';
+          if (availability.next_available_date) {
+            message += ` Next available: ${new Date(availability.next_available_date).toLocaleDateString()}.`;
+          }
+        } else if (availability.reason === 'no_longer_available') {
+          message = 'This pass is no longer available for booking.';
+        } else if (availability.reason === 'outside_schedule') {
+          message = 'The selected date is outside the available schedule for this pass.';
+          if (availability.next_available_date) {
+            message += ` Next available: ${new Date(availability.next_available_date).toLocaleDateString()}.`;
+          }
+        }
+        setAvailabilityMessage(message);
+        return false;
+      }
+
+      setAvailabilityMessage('');
+      return true;
+    } catch (error) {
+      console.error('Error checking availability:', error);
+      setAvailabilityMessage('Unable to check availability. Please try again.');
+      return false;
+    } finally {
+      setIsCheckingAvailability(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
+    setAvailabilityMessage('');
 
     const newErrors: Record<string, string> = {};
     if (!formData.customerName.trim()) newErrors.customerName = 'Name is required';
@@ -86,6 +126,12 @@ const CoworkingBookingPage: React.FC = () => {
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      return;
+    }
+
+    const isAvailable = await checkAvailability(selectedPassId, formData.startDate);
+    if (!isAvailable) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
@@ -283,6 +329,15 @@ const CoworkingBookingPage: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {availabilityMessage && (
+              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+                  <p className="text-yellow-300">{availabilityMessage}</p>
+                </div>
+              </div>
+            )}
 
             {errors.general && (
               <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">

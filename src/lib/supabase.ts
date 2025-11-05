@@ -1160,8 +1160,49 @@ export interface CoworkingPass {
   features: string[]
   is_active: boolean
   sort_order: number
+  max_capacity?: number
+  current_capacity: number
+  is_capacity_limited: boolean
+  available_from?: string
+  available_until?: string
+  is_date_restricted: boolean
   created_at?: string
   updated_at?: string
+}
+
+export interface CoworkingPassAvailabilitySchedule {
+  id: string
+  pass_id: string
+  schedule_name: string
+  start_date: string
+  end_date: string
+  max_capacity?: number
+  priority: number
+  is_active: boolean
+  notes?: string
+  created_at?: string
+  updated_at?: string
+}
+
+export interface PassAvailabilityCheck {
+  available: boolean
+  reason: string
+  message: string
+  next_available_date?: string
+  pass_id: string
+  check_date: string
+}
+
+export interface PassCapacityInfo {
+  pass_id: string
+  max_capacity?: number
+  current_capacity: number
+  available_capacity?: number
+  is_capacity_limited: boolean
+  date_range: {
+    start_date: string
+    end_date: string
+  }
 }
 
 export interface CoworkingBooking {
@@ -1221,6 +1262,54 @@ export class CoworkingPassService {
     return data || []
   }
 
+  static async getActiveWithAvailability(checkDate?: string): Promise<CoworkingPass[]> {
+    const passes = await this.getActive()
+    const date = checkDate || new Date().toISOString().split('T')[0]
+
+    const passesWithAvailability = await Promise.all(
+      passes.map(async (pass) => {
+        try {
+          const availability = await this.checkAvailability(pass.id, date)
+          return {
+            ...pass,
+            _availability: availability
+          }
+        } catch (error) {
+          console.error(`Error checking availability for pass ${pass.id}:`, error)
+          return pass
+        }
+      })
+    )
+
+    return passesWithAvailability.filter(pass => !pass._availability || pass._availability.available)
+  }
+
+  static async checkAvailability(passId: string, checkDate: string): Promise<PassAvailabilityCheck> {
+    const { data, error } = await supabase.rpc('check_pass_availability', {
+      p_pass_id: passId,
+      p_check_date: checkDate
+    })
+
+    if (error) throw error
+    return data as PassAvailabilityCheck
+  }
+
+  static async getCapacityInfo(passId: string, startDate: string, endDate: string): Promise<PassCapacityInfo> {
+    const { data, error } = await supabase.rpc('get_pass_capacity', {
+      p_pass_id: passId,
+      p_start_date: startDate,
+      p_end_date: endDate
+    })
+
+    if (error) throw error
+    return data as PassCapacityInfo
+  }
+
+  static async recalculateAllCapacities(): Promise<void> {
+    const { error } = await supabase.rpc('recalculate_pass_capacities')
+    if (error) throw error
+  }
+
   static async getById(id: string): Promise<CoworkingPass | null> {
     const { data, error } = await supabase
       .from('coworking_passes')
@@ -1269,6 +1358,87 @@ export class CoworkingPassService {
   static async delete(id: string): Promise<void> {
     const { error } = await supabase
       .from('coworking_passes')
+      .delete()
+      .eq('id', id)
+
+    if (error) throw error
+  }
+}
+
+export class CoworkingPassScheduleService {
+  static async getAll(passId?: string): Promise<CoworkingPassAvailabilitySchedule[]> {
+    let query = supabase
+      .from('coworking_pass_availability_schedules')
+      .select('*')
+      .order('start_date', { ascending: true })
+
+    if (passId) {
+      query = query.eq('pass_id', passId)
+    }
+
+    const { data, error } = await query
+    if (error) throw error
+    return data || []
+  }
+
+  static async getActive(passId?: string): Promise<CoworkingPassAvailabilitySchedule[]> {
+    let query = supabase
+      .from('coworking_pass_availability_schedules')
+      .select('*')
+      .eq('is_active', true)
+      .order('start_date', { ascending: true })
+
+    if (passId) {
+      query = query.eq('pass_id', passId)
+    }
+
+    const { data, error } = await query
+    if (error) throw error
+    return data || []
+  }
+
+  static async getById(id: string): Promise<CoworkingPassAvailabilitySchedule | null> {
+    const { data, error } = await supabase
+      .from('coworking_pass_availability_schedules')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle()
+
+    if (error) throw error
+    return data
+  }
+
+  static async create(
+    schedule: Omit<CoworkingPassAvailabilitySchedule, 'id' | 'created_at' | 'updated_at'>
+  ): Promise<CoworkingPassAvailabilitySchedule> {
+    const { data, error } = await supabase
+      .from('coworking_pass_availability_schedules')
+      .insert(schedule)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  }
+
+  static async update(
+    id: string,
+    schedule: Partial<CoworkingPassAvailabilitySchedule>
+  ): Promise<CoworkingPassAvailabilitySchedule> {
+    const { data, error } = await supabase
+      .from('coworking_pass_availability_schedules')
+      .update(schedule)
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  }
+
+  static async delete(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('coworking_pass_availability_schedules')
       .delete()
       .eq('id', id)
 
@@ -1494,5 +1664,6 @@ export class CoworkingPaymentService {
 }
 
 export const coworkingPassService = CoworkingPassService
+export const coworkingPassScheduleService = CoworkingPassScheduleService
 export const coworkingBookingService = CoworkingBookingService
 export const coworkingPaymentService = CoworkingPaymentService
