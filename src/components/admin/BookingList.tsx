@@ -70,17 +70,17 @@ const BookingList: React.FC<BookingListProps> = ({
     <>
 
       {/* Filter Bar */}
-      <div className="bg-gray-800 rounded-lg shadow-sm mb-6 p-4 border border-gray-600">
+      <div className="bg-slate-800 rounded-lg shadow-sm mb-6 p-4 border border-slate-700">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <div className="text-sm font-medium text-gray-300">Filter by status:</div>
+            <div className="text-sm font-medium text-slate-300">Filter by status:</div>
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => onFilterChange('all')}
                 className={`px-3 py-1 text-sm rounded-full ${
                   filter === 'all' 
                     ? 'bg-indigo-600 text-white' 
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                 }`}
               >
                 All
@@ -130,7 +130,7 @@ const BookingList: React.FC<BookingListProps> = ({
           
           <button
             onClick={onExport}
-            className="btn bg-gray-700 border border-gray-600 text-gray-300 hover:bg-gray-600"
+            className="btn bg-slate-700 border border-slate-700 text-slate-300 hover:bg-slate-600"
           >
             <Download className="w-4 h-4 mr-1" />
             Export
@@ -139,10 +139,10 @@ const BookingList: React.FC<BookingListProps> = ({
       </div>
 
       {/* Bookings Table */}
-      <div className="bg-gray-800 rounded-lg shadow-sm overflow-hidden border border-gray-600">
+      <div className="bg-slate-800 rounded-lg shadow-sm overflow-hidden border border-slate-700">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-600">
-            <thead className="bg-gray-50">
+            <thead className="bg-slate-800">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Guest
@@ -164,9 +164,9 @@ const BookingList: React.FC<BookingListProps> = ({
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-gray-800 divide-y divide-gray-600">
+            <tbody className="bg-slate-900 divide-y divide-slate-700">
               {filteredBookings.map((booking) => (
-                <tr key={booking.id} className="hover:bg-gray-700">
+                <tr key={booking.id} className="hover:bg-slate-700">
                   <td className="px-4 py-3 whitespace-nowrap">
                     <div className="text-sm font-medium text-white">{booking.guest_name}</div>
                     <div className="text-sm text-gray-300">

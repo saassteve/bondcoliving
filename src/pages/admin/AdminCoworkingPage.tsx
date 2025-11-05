@@ -153,7 +153,7 @@ const AdminCoworkingPage: React.FC = () => {
     });
 
     for (let i = 0; i < firstDayOfMonth; i++) {
-      days.push(<div key={`empty-${i}`} className="h-24 bg-gray-50 border border-gray-600"></div>);
+      days.push(<div key={`empty-${i}`} className="h-24 bg-slate-900 border border-slate-700"></div>);
     }
 
     for (let day = 1; day <= daysInMonth; day++) {
@@ -167,8 +167,8 @@ const AdminCoworkingPage: React.FC = () => {
       });
 
       days.push(
-        <div key={day} className="h-24 bg-white border border-gray-600 p-2 overflow-y-auto">
-          <div className="font-medium text-sm mb-1">{day}</div>
+        <div key={day} className="h-24 bg-slate-800 border border-slate-700 p-2 overflow-y-auto">
+          <div className="font-medium text-sm mb-1 text-slate-100">{day}</div>
           {dayBookings.length > 0 ? (
             <div className="space-y-1">
               {dayBookings.map(booking => (
@@ -290,9 +290,9 @@ const AdminCoworkingPage: React.FC = () => {
 
         {currentView === 'list' ? (
           <>
-            <div className="bg-gray-800 rounded-lg shadow-sm mb-6 p-4">
+            <div className="bg-slate-800 rounded-lg shadow-sm mb-6 p-4 border border-slate-700">
               <div className="flex items-center space-x-4">
-                <div className="text-sm font-medium text-gray-300">Filter by status:</div>
+                <div className="text-sm font-medium text-slate-300">Filter by status:</div>
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => setFilter('all')}
@@ -348,38 +348,38 @@ const AdminCoworkingPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-gray-800 rounded-lg shadow-sm overflow-hidden">
+            <div className="bg-slate-800 rounded-lg shadow-sm overflow-hidden border border-slate-700">
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-600">
-                  <thead className="bg-gray-50">
+                <table className="min-w-full divide-y divide-slate-700">
+                  <thead className="bg-slate-800">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
                         Reference
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
                         Guest
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
                         Pass Type
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
                         Date(s)
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
                         Amount
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
                         Status
                       </th>
-                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-right text-xs font-medium text-slate-300 uppercase tracking-wider">
                         Actions
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-600">
+                  <tbody className="bg-slate-900 divide-y divide-slate-700">
                     {filteredBookings.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                        <td colSpan={7} className="px-4 py-8 text-center text-slate-400">
                           No bookings found
                         </td>
                       </tr>
@@ -387,21 +387,21 @@ const AdminCoworkingPage: React.FC = () => {
                       filteredBookings.map((booking) => (
                         <tr key={booking.id}>
                           <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm font-mono text-white">{booking.booking_reference}</div>
+                            <div className="text-sm font-mono text-slate-100">{booking.booking_reference}</div>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm font-medium text-white">{booking.customer_name}</div>
-                            <div className="text-sm text-gray-500">{booking.customer_email}</div>
+                            <div className="text-sm font-medium text-slate-100">{booking.customer_name}</div>
+                            <div className="text-sm text-slate-400">{booking.customer_email}</div>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-white">{booking.pass?.name}</div>
+                            <div className="text-sm text-slate-100">{booking.pass?.name}</div>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-white">{formatDate(booking.start_date)}</div>
-                            <div className="text-sm text-gray-500">to {formatDate(booking.end_date)}</div>
+                            <div className="text-sm text-slate-100">{formatDate(booking.start_date)}</div>
+                            <div className="text-sm text-slate-400">to {formatDate(booking.end_date)}</div>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-white">€{parseFloat(booking.total_amount as any).toFixed(2)}</div>
+                            <div className="text-sm text-slate-100">€{parseFloat(booking.total_amount as any).toFixed(2)}</div>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
                             <span
@@ -443,8 +443,8 @@ const AdminCoworkingPage: React.FC = () => {
             </div>
           </>
         ) : currentView === 'calendar' ? (
-          <div className="bg-gray-800 rounded-lg shadow-sm overflow-hidden">
-            <div className="p-4 border-b border-gray-600 flex items-center justify-between">
+          <div className="bg-slate-800 rounded-lg shadow-sm overflow-hidden border border-slate-700">
+            <div className="p-4 border-b border-slate-700 flex items-center justify-between">
               <button onClick={previousMonth} className="p-1 rounded hover:bg-gray-700">
                 <ChevronLeft className="w-5 h-5" />
               </button>
@@ -458,7 +458,7 @@ const AdminCoworkingPage: React.FC = () => {
               </button>
             </div>
 
-            <div className="grid grid-cols-7 text-center py-2 border-b border-gray-600 bg-gray-50 text-xs font-medium text-gray-300">
+            <div className="grid grid-cols-7 text-center py-2 border-b border-slate-700 bg-slate-800 text-xs font-medium text-slate-300">
               <div>Sunday</div>
               <div>Monday</div>
               <div>Tuesday</div>

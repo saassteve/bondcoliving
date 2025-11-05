@@ -290,11 +290,11 @@ const ICalManager: React.FC = () => {
                 {apartmentFeeds.map((feed) => (
                   <div
                     key={feed.id}
-                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-600"
+                    className="flex items-center justify-between p-4 bg-slate-800 rounded-lg border border-slate-700 hover:bg-slate-700/50 transition-colors"
                   >
                     <div className="flex-1">
                       <div className="flex items-center gap-3">
-                        <h4 className="font-medium text-white">{feed.feed_name}</h4>
+                        <h4 className="font-medium text-slate-100">{feed.feed_name}</h4>
                         <span
                           className={`px-2 py-1 rounded-full text-xs font-medium ${
                             feed.is_active
@@ -305,12 +305,12 @@ const ICalManager: React.FC = () => {
                           {feed.is_active ? 'Active' : 'Inactive'}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 mt-2 text-sm text-gray-300">
+                      <div className="flex items-center gap-2 mt-2 text-sm text-slate-400">
                         <a
                           href={feed.ical_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center hover:text-blue-600 transition-colors"
+                          className="flex items-center hover:text-blue-400 transition-colors"
                         >
                           <ExternalLink className="w-3 h-3 mr-1" />
                           View iCal URL
@@ -351,8 +351,8 @@ const ICalManager: React.FC = () => {
 
         {feeds.length === 0 && (
           <div className="text-center py-12 admin-card">
-            <Calendar className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-            <h3 className="text-xl font-semibold mb-2 text-white">No iCal Feeds Yet</h3>
+            <Calendar className="w-12 h-12 mx-auto mb-4 text-slate-400" />
+            <h3 className="text-xl font-semibold mb-2 text-slate-100">No iCal Feeds Yet</h3>
             <p className="admin-text-muted mb-6">
               Add iCal feeds from your booking platforms to automatically sync availability
             </p>

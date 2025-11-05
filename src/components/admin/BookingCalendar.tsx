@@ -75,7 +75,7 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
     
     // Empty cells for days before month starts
     for (let i = 0; i < firstDay; i++) {
-      days.push(<div key={`empty-${i}`} className="h-28 bg-gray-50 border border-gray-600"></div>);
+      days.push(<div key={`empty-${i}`} className="h-28 bg-slate-900 border border-slate-700"></div>);
     }
     
     // Days of the month
@@ -119,13 +119,13 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
       ];
       
       days.push(
-        <div key={day} className={`h-28 border border-gray-600 p-2 overflow-y-auto relative ${
-          isToday ? 'bg-blue-50 border-blue-300' : 
-          isPast ? 'bg-gray-50' : 'bg-white'
+        <div key={day} className={`h-28 border border-slate-700 p-2 overflow-y-auto relative ${
+          isToday ? 'bg-blue-900/30 border-blue-500' :
+          isPast ? 'bg-slate-900/50' : 'bg-slate-800'
         }`}>
           <div className={`font-semibold text-sm mb-2 ${
-            isToday ? 'text-blue-700' : 
-            isPast ? 'text-gray-400' : 'text-white'
+            isToday ? 'text-blue-400' :
+            isPast ? 'text-slate-500' : 'text-slate-100'
           }`}>
             {day}
             {isToday && <div className="absolute top-1 right-1 w-2 h-2 bg-blue-500 rounded-full"></div>}
@@ -170,8 +170,8 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
   };
 
   return (
-    <div className="bg-gray-800 rounded-lg shadow-sm overflow-hidden border border-gray-600">
-      <div className="p-4 border-b border-gray-600 flex items-center justify-between">
+    <div className="bg-slate-800 rounded-lg shadow-sm overflow-hidden border border-slate-700">
+      <div className="p-4 border-b border-slate-700 flex items-center justify-between">
         <button onClick={previousMonth} className="p-1 rounded hover:bg-gray-700">
           <ChevronLeft className="w-5 h-5" />
         </button>
@@ -184,8 +184,8 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
           <ChevronRight className="w-5 h-5" />
         </button>
       </div>
-      
-      <div className="grid grid-cols-7 text-center py-2 border-b border-gray-600 bg-gray-50 text-xs font-medium text-gray-300">
+
+      <div className="grid grid-cols-7 text-center py-2 border-b border-slate-700 bg-slate-800 text-xs font-medium text-slate-300">
         <div>Sunday</div>
         <div>Monday</div>
         <div>Tuesday</div>
@@ -198,8 +198,8 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
       <div className="grid grid-cols-7 auto-rows-auto">
         {loading ? (
           <div className="col-span-7 p-8 text-center">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600 mx-auto mb-2"></div>
-            <p className="text-gray-300">Loading calendar...</p>
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto mb-2"></div>
+            <p className="text-slate-300">Loading calendar...</p>
           </div>
         ) : (
           renderCalendar()
