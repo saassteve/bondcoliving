@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { Check, Wifi, Coffee, Users, Calendar, MapPin, Moon, Clock, ArrowRight, Star, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import AnimatedSection from '../../components/AnimatedSection';
-import { coworkingPassService, type CoworkingPass, type PassAvailabilityCheck } from '../../lib/supabase';
+import { coworkingPassService, coworkingImageService, type CoworkingPass, type PassAvailabilityCheck, type CoworkingImage } from '../../lib/supabase';
 
 const amenities = [
   { icon: Wifi, name: 'Enterprise WiFi', description: 'Fiber internet with 1Gbps speeds for seamless video calls' },
@@ -14,10 +14,12 @@ const amenities = [
 const CoworkingPage: React.FC = () => {
   const [passes, setPasses] = useState<CoworkingPass[]>([]);
   const [passAvailability, setPassAvailability] = useState<Record<string, PassAvailabilityCheck>>({});
+  const [images, setImages] = useState<CoworkingImage[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchPasses();
+    fetchImages();
   }, []);
 
   const fetchPasses = async () => {
@@ -44,6 +46,15 @@ const CoworkingPage: React.FC = () => {
       console.error('Error fetching passes:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchImages = async () => {
+    try {
+      const data = await coworkingImageService.getActive();
+      setImages(data);
+    } catch (error) {
+      console.error('Error fetching images:', error);
     }
   };
 
@@ -183,7 +194,7 @@ const CoworkingPage: React.FC = () => {
                     key={pass.id}
                     animation="fadeInUp"
                     delay={200 + (index * 100)}
-                    className={`bg-[#1E1F1E] rounded-2xl overflow-hidden transition-all duration-300 ${
+                    className={`bg-[#1E1F1E] rounded-2xl overflow-hidden transition-all duration-300 flex flex-col h-full ${
                       isHighlight
                         ? 'ring-2 ring-[#C5C5B5] transform hover:-translate-y-2 shadow-2xl'
                         : 'hover:ring-1 hover:ring-[#C5C5B5]/50 hover:-translate-y-1 shadow-lg hover:shadow-xl'
@@ -195,7 +206,7 @@ const CoworkingPage: React.FC = () => {
                       </div>
                     )}
 
-                    <div className="p-6 lg:p-8 flex flex-col">
+                    <div className="p-6 lg:p-8 flex flex-col flex-grow">
                       <div className="text-center mb-6">
                         <h3 className="text-xl lg:text-2xl font-bold mb-2 text-[#C5C5B5]">{pass.name}</h3>
                         {!isHighlight && (
@@ -203,14 +214,14 @@ const CoworkingPage: React.FC = () => {
                         )}
                       </div>
 
-                      <div className="text-center mb-8">
+                      <div className="text-center mb-6">
                         <div className="flex items-baseline justify-center mb-2">
                           <span className="text-4xl lg:text-5xl font-bold text-[#C5C5B5]">€{pass.price}</span>
                           <span className="text-[#C5C5B5]/60 ml-2 text-base">{getDurationLabel(pass)}</span>
                         </div>
                       </div>
 
-                      <ul className="space-y-4 mb-8 flex-grow">
+                      <ul className="space-y-3 mb-6 flex-grow">
                         {pass.features.map((feature, i) => (
                           <li key={i} className="flex items-start">
                             <Check className="w-5 h-5 text-[#C5C5B5] mr-3 flex-shrink-0 mt-0.5" />
@@ -400,7 +411,48 @@ const CoworkingPage: React.FC = () => {
           </div>
         </div>
       </section>
-      
+
+      {/* Space Gallery */}
+      {images.length > 0 && (
+        <section className="py-20 bg-[#C5C5B5]">
+          <div className="container">
+            <AnimatedSection animation="fadeInUp">
+              <div className="text-center mb-16">
+                <h2 className="text-4xl md:text-5xl font-bold mb-6 text-[#1E1F1E] leading-tight">
+                  Our Coworking Space
+                </h2>
+                <p className="text-xl text-[#1E1F1E]/80 max-w-3xl mx-auto leading-relaxed">
+                  Take a look inside Bond's premium coworking environment
+                </p>
+              </div>
+            </AnimatedSection>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {images.map((image, index) => (
+                <AnimatedSection
+                  key={image.id}
+                  animation="fadeInUp"
+                  delay={index * 100}
+                  className="group relative aspect-[4/3] rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300"
+                >
+                  <img
+                    src={image.image_url}
+                    alt={image.alt_text}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    loading="lazy"
+                  />
+                  {image.caption && (
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+                      <p className="text-white text-sm font-medium">{image.caption}</p>
+                    </div>
+                  )}
+                </AnimatedSection>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* CTA */}
       <section className="py-28 bg-gradient-to-b from-[#1E1F1E] to-black relative overflow-hidden">
         {/* Background elements */}

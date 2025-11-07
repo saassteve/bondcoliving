@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Calendar, ChevronLeft, ChevronRight, Plus, X, Check, Edit, Trash, DollarSign, Users, Settings } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, Plus, X, Check, Edit, Trash, DollarSign, Users, Settings, Image } from 'lucide-react';
 import { coworkingBookingService, coworkingPassService, type CoworkingBooking, type CoworkingPass } from '../../lib/supabase';
 import PassAvailabilityManager from '../../components/admin/PassAvailabilityManager';
+import CoworkingImageManager from '../../components/admin/CoworkingImageManager';
 
 const AdminCoworkingPage: React.FC = () => {
   const [bookings, setBookings] = useState<CoworkingBooking[]>([]);
   const [passes, setPasses] = useState<CoworkingPass[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
-  const [currentView, setCurrentView] = useState<'list' | 'calendar' | 'stats' | 'passes'>('list');
+  const [currentView, setCurrentView] = useState<'list' | 'calendar' | 'stats' | 'passes' | 'images'>('list');
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [editingBooking, setEditingBooking] = useState<CoworkingBooking | null>(null);
   const [managingPass, setManagingPass] = useState<string | null>(null);
@@ -241,7 +242,7 @@ const AdminCoworkingPage: React.FC = () => {
               </button>
               <button
                 onClick={() => setCurrentView('passes')}
-                className={`px-3 py-1 rounded-r-md ${
+                className={`px-3 py-1 ${
                   currentView === 'passes'
                     ? 'bg-primary-600 text-white'
                     : 'bg-gray-700 text-gray-300 hover:bg-gray-200'
@@ -249,6 +250,17 @@ const AdminCoworkingPage: React.FC = () => {
               >
                 <Settings className="w-4 h-4 inline mr-1" />
                 Passes
+              </button>
+              <button
+                onClick={() => setCurrentView('images')}
+                className={`px-3 py-1 rounded-r-md ${
+                  currentView === 'images'
+                    ? 'bg-primary-600 text-white'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-200'
+                }`}
+              >
+                <Image className="w-4 h-4 inline mr-1" />
+                Images
               </button>
             </div>
           </div>
@@ -578,6 +590,8 @@ const AdminCoworkingPage: React.FC = () => {
               </div>
             )}
           </div>
+        ) : currentView === 'images' ? (
+          <CoworkingImageManager />
         ) : null}
       </div>
 

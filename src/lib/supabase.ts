@@ -1663,7 +1663,90 @@ export class CoworkingPaymentService {
   }
 }
 
+export interface CoworkingImage {
+  id: string
+  image_url: string
+  caption?: string
+  alt_text: string
+  sort_order: number
+  is_active: boolean
+  created_at?: string
+  updated_at?: string
+}
+
+export class CoworkingImageService {
+  static async getAll(): Promise<CoworkingImage[]> {
+    const { data, error } = await supabase
+      .from('coworking_images')
+      .select('*')
+      .order('sort_order', { ascending: true })
+
+    if (error) throw error
+    return data || []
+  }
+
+  static async getActive(): Promise<CoworkingImage[]> {
+    const { data, error } = await supabase
+      .from('coworking_images')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true })
+
+    if (error) throw error
+    return data || []
+  }
+
+  static async create(image: Omit<CoworkingImage, 'id' | 'created_at' | 'updated_at'>): Promise<CoworkingImage> {
+    const { data, error } = await supabase
+      .from('coworking_images')
+      .insert(image)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  }
+
+  static async update(id: string, image: Partial<CoworkingImage>): Promise<CoworkingImage> {
+    const { data, error } = await supabase
+      .from('coworking_images')
+      .update(image)
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  }
+
+  static async delete(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('coworking_images')
+      .delete()
+      .eq('id', id)
+
+    if (error) throw error
+  }
+
+  static async reorder(imageIds: string[]): Promise<void> {
+    const updates = imageIds.map((id, index) => ({
+      id,
+      sort_order: index
+    }))
+
+    for (const update of updates) {
+      const { error } = await supabase
+        .from('coworking_images')
+        .update({ sort_order: update.sort_order })
+        .eq('id', update.id)
+
+      if (error) throw error
+    }
+  }
+}
+
 export const coworkingPassService = CoworkingPassService
 export const coworkingPassScheduleService = CoworkingPassScheduleService
 export const coworkingBookingService = CoworkingBookingService
 export const coworkingPaymentService = CoworkingPaymentService
+export const coworkingImageService = CoworkingImageService
