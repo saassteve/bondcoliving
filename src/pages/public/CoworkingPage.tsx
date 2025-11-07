@@ -185,9 +185,6 @@ const CoworkingPage: React.FC = () => {
                 const isHighlight = pass.slug === 'monthly-hot-desk';
                 const availability = passAvailability[pass.id];
                 const isAvailable = !availability || availability.available;
-                const capacityPercentage = pass.max_capacity
-                  ? Math.round((pass.current_capacity / pass.max_capacity) * 100)
-                  : 0;
 
                 return (
                   <AnimatedSection
@@ -251,36 +248,16 @@ const CoworkingPage: React.FC = () => {
                               )}
                             </div>
                           ) : (
-                            <>
-                              {pass.is_capacity_limited && pass.max_capacity && (
-                                <div className="mb-4">
-                                  <div className="flex items-center justify-between mb-2">
-                                    <span className="text-xs text-[#C5C5B5]/60">
-                                      {pass.max_capacity - pass.current_capacity} spots remaining
-                                    </span>
-                                    <span className="text-xs font-bold text-[#C5C5B5]">
-                                      {100 - capacityPercentage}% available
-                                    </span>
-                                  </div>
-                                  <div className="w-full bg-[#1E1F1E]/50 rounded-full h-2">
-                                    <div
-                                      className="h-2 rounded-full bg-[#C5C5B5] transition-all duration-300"
-                                      style={{ width: `${100 - capacityPercentage}%` }}
-                                    ></div>
-                                  </div>
-                                </div>
-                              )}
-                              <Link
-                                to={`/coworking/book?pass=${pass.slug}`}
-                                className={`block w-full px-6 py-3.5 rounded-full text-sm font-semibold uppercase tracking-wide transition-all text-center break-words ${
-                                  isHighlight
-                                    ? 'bg-[#C5C5B5] text-[#1E1F1E] hover:bg-white hover:shadow-lg'
-                                    : 'bg-[#C5C5B5]/10 text-[#C5C5B5] hover:bg-[#C5C5B5]/20 border border-[#C5C5B5]/20'
-                                }`}
-                              >
-                                Book Now
-                              </Link>
-                            </>
+                            <Link
+                              to={`/coworking/book?pass=${pass.slug}`}
+                              className={`block w-full px-6 py-3.5 rounded-full text-sm font-semibold uppercase tracking-wide transition-all text-center break-words ${
+                                isHighlight
+                                  ? 'bg-[#C5C5B5] text-[#1E1F1E] hover:bg-white hover:shadow-lg'
+                                  : 'bg-[#C5C5B5]/10 text-[#C5C5B5] hover:bg-[#C5C5B5]/20 border border-[#C5C5B5]/20'
+                              }`}
+                            >
+                              Book Now
+                            </Link>
                           )}
                         </div>
                       </div>
