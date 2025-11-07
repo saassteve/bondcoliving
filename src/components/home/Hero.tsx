@@ -64,12 +64,12 @@ const Hero: React.FC = () => {
               {/* Benefits with checkmarks */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-w-2xl">
                 <div className="flex items-center text-[#C5C5B5]/90">
-                  <div className="w-4 h-4 bg-[#C5C5B5] rounded-full flex items-center justify-center mr-2 flex-shrink-0">
-                    <svg className="w-2.5 h-2.5 text-[#1E1F1E]" fill="currentColor" viewBox="0 0 20 20">
+                  <div className="w-5 h-5 bg-[#C5C5B5] rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                    <svg className="w-3 h-3 text-[#1E1F1E]" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                   </div>
-                  <span className="text-xs md:text-sm">Private apartments with all amenities</span>
+                  <span className="text-sm md:text-base">Private apartments with all amenities</span>
                 </div>
                 
                 <div className="flex items-center text-[#C5C5B5]/90">
