@@ -177,13 +177,23 @@
         "@type": "CoworkingSpace",
         "@id": "https://stayatbond.com/coworking#coworking",
         "name": "Bond Coworking Funchal",
-        "description": "Professional coworking space in central Funchal, Madeira with enterprise-grade WiFi, ergonomic workstations, and a vibrant community of digital nomads and remote workers.",
+        "alternateName": ["Bond Coworking Madeira", "Coworking Funchal", "Funchal Coworking Space", "Best Coworking Madeira"],
+        "description": "Premium coworking space in central Funchal, Madeira designed for digital nomads and remote workers. Features enterprise-grade 500+ Mbps WiFi, ergonomic workstations with ocean views, meeting rooms, specialty coffee, and a vibrant international community. Flexible day passes, weekly and monthly coworking memberships available from €15.",
         "url": "https://stayatbond.com/coworking",
+        "image": [
+          "https://images.pexels.com/photos/7688336/pexels-photo-7688336.jpeg",
+          "https://iili.io/FcOqdX9.png"
+        ],
+        "priceRange": "€15-€200",
+        "telephone": "+351-XXX-XXX-XXX",
+        "email": "hello@stayatbond.com",
         "address": {
           "@type": "PostalAddress",
+          "streetAddress": "Central Funchal",
           "addressLocality": "Funchal",
           "addressRegion": "Madeira",
-          "addressCountry": "PT"
+          "addressCountry": "PT",
+          "postalCode": "9000"
         },
         "geo": {
           "@type": "GeoCoordinates",
@@ -195,18 +205,60 @@
           "name": "Bond Coliving Funchal",
           "@id": "https://stayatbond.com/#organization"
         },
+        "hasMap": "https://maps.google.com/?q=Funchal,Madeira",
+        "makesOffer": [
+          {
+            "@type": "Offer",
+            "name": "Day Pass Coworking",
+            "description": "Flexible day pass for coworking space access in Funchal",
+            "price": "15",
+            "priceCurrency": "EUR",
+            "availability": "https://schema.org/InStock"
+          },
+          {
+            "@type": "Offer",
+            "name": "Weekly Coworking Pass",
+            "description": "One week unlimited access to Bond coworking space",
+            "price": "60",
+            "priceCurrency": "EUR",
+            "availability": "https://schema.org/InStock"
+          },
+          {
+            "@type": "Offer",
+            "name": "Monthly Hot Desk",
+            "description": "Monthly coworking membership with flexible hot desk seating",
+            "price": "150",
+            "priceCurrency": "EUR",
+            "availability": "https://schema.org/InStock"
+          }
+        ],
         "amenityFeature": [
-          {"@type": "LocationFeatureSpecification", "name": "High-Speed WiFi", "value": "Enterprise fiber 500+ Mbps"},
-          {"@type": "LocationFeatureSpecification", "name": "Dedicated Desks", "value": "Ergonomic workstations"},
-          {"@type": "LocationFeatureSpecification", "name": "Meeting Rooms", "value": "Private rooms for calls"},
-          {"@type": "LocationFeatureSpecification", "name": "Community", "value": "Network with digital nomads"}
+          {"@type": "LocationFeatureSpecification", "name": "High-Speed WiFi", "value": "Enterprise fiber internet 500+ Mbps with backup connection"},
+          {"@type": "LocationFeatureSpecification", "name": "Ergonomic Workstations", "value": "Professional desks and Herman Miller-style ergonomic chairs"},
+          {"@type": "LocationFeatureSpecification", "name": "Hot Desks", "value": "Flexible seating in open workspace"},
+          {"@type": "LocationFeatureSpecification", "name": "Dedicated Desks", "value": "Reserved desk space for monthly members"},
+          {"@type": "LocationFeatureSpecification", "name": "Meeting Rooms", "value": "Private soundproof rooms for video calls and meetings"},
+          {"@type": "LocationFeatureSpecification", "name": "Ocean Views", "value": "Natural light and views of Funchal and the Atlantic Ocean"},
+          {"@type": "LocationFeatureSpecification", "name": "Specialty Coffee", "value": "Premium coffee bar with specialty coffee and organic teas"},
+          {"@type": "LocationFeatureSpecification", "name": "Community Events", "value": "Regular networking events, workshops, and social gatherings"},
+          {"@type": "LocationFeatureSpecification", "name": "Central Location", "value": "5 minutes walk to ocean, cafes, restaurants, and Funchal city center"},
+          {"@type": "LocationFeatureSpecification", "name": "24/7 Access", "value": "Round-the-clock workspace access for members"},
+          {"@type": "LocationFeatureSpecification", "name": "Digital Nomad Community", "value": "Vibrant international community of remote workers and entrepreneurs"}
         ],
         "openingHoursSpecification": {
           "@type": "OpeningHoursSpecification",
           "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
           "opens": "00:00",
           "closes": "23:59"
-        }
+        },
+        "keywords": "coworking Funchal, coworking Madeira, coworking space Funchal, workspace Madeira, digital nomad coworking, remote work Funchal, hot desk Funchal, dedicated desk Madeira, office space Funchal, business center Madeira, flexible workspace, day pass coworking, monthly coworking pass",
+        "audience": [
+          {"@type": "PeopleAudience", "audienceType": "Digital Nomads"},
+          {"@type": "PeopleAudience", "audienceType": "Remote Workers"},
+          {"@type": "PeopleAudience", "audienceType": "Freelancers"},
+          {"@type": "PeopleAudience", "audienceType": "Startup Teams"},
+          {"@type": "PeopleAudience", "audienceType": "Online Entrepreneurs"}
+        ]
       },
       {
         "@context": "https://schema.org",
@@ -288,6 +340,38 @@
             "acceptedAnswer": {
               "@type": "Answer",
               "text": "Yes, Bond provides all necessary documentation for the Portuguese Digital Nomad Visa application, including proof of accommodation in Madeira."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What coworking options are available at Bond Funchal?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Bond offers flexible coworking options in Funchal, Madeira including day passes from €15, weekly passes, and monthly hot desk memberships. All options include enterprise WiFi 500+ Mbps, ergonomic workstations, meeting rooms, specialty coffee, and access to our digital nomad community."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Where is Bond Coworking located in Funchal?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Bond Coworking is centrally located in Funchal, Madeira, just 5 minutes walk from the ocean, city center, cafes, and restaurants. The coworking space features ocean views and is easily accessible by public transport."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What amenities does Bond Coworking Madeira offer?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Bond Coworking in Funchal, Madeira offers enterprise-grade WiFi 500+ Mbps, ergonomic workstations, meeting rooms for video calls, specialty coffee bar, ocean views, 24/7 access for members, and regular community events for networking with fellow digital nomads and remote workers."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is Bond Coworking good for digital nomads in Madeira?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes, Bond Coworking is specifically designed for digital nomads in Funchal, Madeira. We offer reliable high-speed internet, flexible passes, a vibrant international community, and combine coworking with optional coliving accommodation for the complete digital nomad experience."
             }
           }
         ]
