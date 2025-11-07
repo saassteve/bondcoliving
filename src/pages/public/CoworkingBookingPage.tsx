@@ -11,11 +11,24 @@ const CoworkingBookingPage: React.FC = () => {
   const [selectedPassId, setSelectedPassId] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  // Calculate tomorrow's date as minimum
+
   const getTomorrowDate = () => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     return tomorrow.toISOString().split('T')[0];
+  };
+
+  const getMinimumDate = () => {
+    const tomorrow = getTomorrowDate();
+
+    if (!selectedPass) return tomorrow;
+
+    if (selectedPass.is_date_restricted && selectedPass.available_from) {
+      const availableFrom = selectedPass.available_from;
+      return availableFrom > tomorrow ? availableFrom : tomorrow;
+    }
+
+    return tomorrow;
   };
 
   const [formData, setFormData] = useState({
@@ -64,6 +77,15 @@ const CoworkingBookingPage: React.FC = () => {
 
   const selectedPass = passes.find((p) => p.id === selectedPassId);
 
+  useEffect(() => {
+    if (selectedPass) {
+      const minDate = getMinimumDate();
+      if (formData.startDate < minDate) {
+        setFormData(prev => ({ ...prev, startDate: minDate }));
+      }
+    }
+  }, [selectedPassId, selectedPass]);
+
   const checkAvailability = async (passId: string, startDate: string) => {
     try {
       setIsCheckingAvailability(true);
@@ -71,9 +93,8 @@ const CoworkingBookingPage: React.FC = () => {
 
       if (!availability.available) {
         let message = 'This pass is not available for the selected date.';
-        if (availability.reason === 'not_yet_available' && availability.next_available_date) {
-          message = `This pass is not yet available. Available from ${new Date(availability.next_available_date).toLocaleDateString()}.`;
-        } else if (availability.reason === 'at_capacity') {
+
+        if (availability.reason === 'at_capacity') {
           message = 'This pass is fully booked for the selected date. Please choose a different date.';
           if (availability.next_available_date) {
             message += ` Next available: ${new Date(availability.next_available_date).toLocaleDateString()}.`;
@@ -113,15 +134,18 @@ const CoworkingBookingPage: React.FC = () => {
     if (!formData.startDate) newErrors.startDate = 'Start date is required';
     if (!selectedPassId) newErrors.pass = 'Please select a pass';
 
-    // Validate start date is at least tomorrow
+    // Validate start date meets minimum requirements
     const selectedDate = new Date(formData.startDate);
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(0, 0, 0, 0);
+    const minDate = new Date(getMinimumDate());
     selectedDate.setHours(0, 0, 0, 0);
+    minDate.setHours(0, 0, 0, 0);
 
-    if (selectedDate < tomorrow) {
-      newErrors.startDate = 'Bookings must start at least 1 day in advance';
+    if (selectedDate < minDate) {
+      if (selectedPass?.is_date_restricted && selectedPass?.available_from) {
+        newErrors.startDate = `This pass is available from ${new Date(selectedPass.available_from).toLocaleDateString()}`;
+      } else {
+        newErrors.startDate = 'Bookings must start at least 1 day in advance';
+      }
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -302,7 +326,7 @@ const CoworkingBookingPage: React.FC = () => {
                     type="date"
                     value={formData.startDate}
                     onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                    min={getTomorrowDate()}
+                    min={getMinimumDate()}
                     className={`w-full px-4 py-3 bg-[#1E1F1E] border ${
                       errors.startDate ? 'border-red-400' : 'border-[#C5C5B5]/20'
                     } rounded-lg text-[#C5C5B5] focus:border-[#C5C5B5] focus:outline-none transition-all hover:border-[#C5C5B5]/40 cursor-pointer`}
@@ -310,9 +334,16 @@ const CoworkingBookingPage: React.FC = () => {
                   />
                   {errors.startDate && <p className="mt-1 text-sm text-red-400">{errors.startDate}</p>}
                   {selectedPass && (
-                    <p className="mt-2 text-sm text-[#C5C5B5]/60">
-                      Your pass will be valid for {selectedPass.duration_days} days
-                    </p>
+                    <div className="mt-2 space-y-1">
+                      <p className="text-sm text-[#C5C5B5]/60">
+                        Your pass will be valid for {selectedPass.duration_days} days
+                      </p>
+                      {selectedPass.is_date_restricted && selectedPass.available_from && (
+                        <p className="text-sm text-blue-400">
+                          Available from {new Date(selectedPass.available_from).toLocaleDateString()}
+                        </p>
+                      )}
+                    </div>
                   )}
                 </div>
 
