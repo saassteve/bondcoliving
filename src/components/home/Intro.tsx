@@ -23,15 +23,15 @@ const benefits = [
 const Intro: React.FC = () => {
   return (
     <>
-      <section className="py-24 bg-[#1E1F1E]">
+      <section className="py-16 bg-[#1E1F1E]">
         <div className="container">
-          <div className="grid md:grid-cols-2 gap-16 items-center">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
             <AnimatedSection animation="fadeInLeft">
               <div>
                 <div className="inline-flex items-center px-4 py-2 rounded-full bg-[#C5C5B5]/5 text-[#C5C5B5]/80 text-sm uppercase tracking-wide mb-8">
                   Welcome to Bond
                 </div>
-                <h2 className="text-4xl md:text-5xl font-bold mb-8">
+                <h2 className="text-3xl md:text-4xl font-bold mb-6">
                   <span className="bg-gradient-to-r from-[#C5C5B5] via-white to-[#C5C5B5] bg-clip-text text-transparent">
                     Where Independence<br />Meets Connection
                   </span>
@@ -41,7 +41,7 @@ const Intro: React.FC = () => {
                     The Bond Difference
                   </p>
                 </div>
-                <p className="text-xl text-[#C5C5B5] mb-12 leading-relaxed">
+                <p className="text-lg text-[#C5C5B5] mb-8 leading-relaxed">
                   Bond is premium coliving designed specifically for digital nomads and remote workers. 
                   Located in central Funchal, we combine private apartments with enterprise-grade WiFi, 
                   dedicated coworking space, and a curated community. Everything you need to work 
@@ -75,8 +75,8 @@ const Intro: React.FC = () => {
         </div>
         
         {/* Benefits Grid - Simplified Animation */}
-        <div className="container mt-24">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+        <div className="container mt-16">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
             {benefits.map((benefit, index) => {
               const Icon = benefit.icon;
               return (
@@ -86,12 +86,12 @@ const Intro: React.FC = () => {
                   delay={400 + (index * 150)}
                   className="text-center group"
                 >
-                  <div className="mb-6">
-                    <div className="w-16 h-16 bg-[#C5C5B5]/10 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-[#C5C5B5]/20 transition-colors">
-                      <Icon className="h-8 w-8 text-[#C5C5B5]" />
+                  <div className="mb-4">
+                    <div className="w-12 h-12 bg-[#C5C5B5]/10 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:bg-[#C5C5B5]/20 transition-colors">
+                      <Icon className="h-6 w-6 text-[#C5C5B5]" />
                     </div>
                   </div>
-                  <h3 className="text-xl font-bold mb-3 text-[#C5C5B5]">{benefit.title}</h3>
+                  <h3 className="text-lg font-bold mb-2 text-[#C5C5B5]">{benefit.title}</h3>
                   <p className="text-[#C5C5B5]/70 leading-relaxed">{benefit.description}</p>
                 </AnimatedSection>
               );

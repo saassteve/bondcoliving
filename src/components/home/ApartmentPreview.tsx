@@ -117,18 +117,18 @@ const ApartmentPreview: React.FC = () => {
     return (
       <section id="apartments-section" className="py-24 bg-[#C5C5B5]">
         <div className="container">
-          <div className="max-w-3xl mx-auto text-center mb-16">
+          <div className="max-w-3xl mx-auto text-center mb-12">
             <div className="mb-8">
               <p className="text-sm uppercase tracking-[0.2em] text-[#1E1F1E]/60 font-medium mb-4">
                 Your Space, Your Way
               </p>
-              <h2 className="text-5xl md:text-6xl font-bold mb-6">
+              <h2 className="text-4xl md:text-5xl font-bold mb-4">
                 <span className="bg-gradient-to-r from-[#1E1F1E] via-[#1E1F1E]/60 to-[#1E1F1E] bg-clip-text text-transparent">
                   Private Apartments
                 </span>
               </h2>
             </div>
-            <p className="text-xl text-[#1E1F1E]/80">Loading apartments...</p>
+            <p className="text-lg text-[#1E1F1E]/80">Loading apartments...</p>
           </div>
         </div>
       </section>
@@ -139,18 +139,18 @@ const ApartmentPreview: React.FC = () => {
     return (
       <section id="apartments-section" className="py-24 bg-[#C5C5B5]">
         <div className="container">
-          <div className="max-w-3xl mx-auto text-center mb-16">
+          <div className="max-w-3xl mx-auto text-center mb-12">
             <div className="mb-8">
               <p className="text-sm uppercase tracking-[0.2em] text-[#1E1F1E]/60 font-medium mb-4">
                 Your Space, Your Way
               </p>
-              <h2 className="text-5xl md:text-6xl font-bold mb-6">
+              <h2 className="text-4xl md:text-5xl font-bold mb-4">
                 <span className="bg-gradient-to-r from-[#1E1F1E] via-[#1E1F1E]/60 to-[#1E1F1E] bg-clip-text text-transparent">
                   Private Apartments
                 </span>
               </h2>
             </div>
-            <p className="text-xl text-[#1E1F1E]/80">{error}</p>
+            <p className="text-lg text-[#1E1F1E]/80">{error}</p>
           </div>
         </div>
       </section>
@@ -158,21 +158,21 @@ const ApartmentPreview: React.FC = () => {
   }
 
   return (
-    <section id="apartments-section" className="py-24 bg-[#C5C5B5]">
+    <section id="apartments-section" className="py-16 bg-[#C5C5B5]">
       <div className="container">
         <AnimatedSection animation="fadeInUp">
-          <div className="max-w-3xl mx-auto text-center mb-16">
+          <div className="max-w-3xl mx-auto text-center mb-12">
             <div className="mb-8">
               <p className="text-sm uppercase tracking-[0.2em] text-[#1E1F1E]/60 font-medium mb-4">
                 Your Space, Your Way
               </p>
-              <h2 className="text-5xl md:text-6xl font-bold mb-6">
+              <h2 className="text-4xl md:text-5xl font-bold mb-4">
                 <span className="bg-gradient-to-r from-[#1E1F1E] via-[#1E1F1E]/60 to-[#1E1F1E] bg-clip-text text-transparent">
                   Private Apartments
                 </span>
               </h2>
             </div>
-            <p className="text-xl text-[#1E1F1E]/80">
+            <p className="text-lg text-[#1E1F1E]/80">
               Choose from our selection of premium apartments designed specifically for digital nomads. Each space includes enterprise-grade WiFi, all utilities, and everything you need for productive remote work in central Funchal.
             </p>
           </div>

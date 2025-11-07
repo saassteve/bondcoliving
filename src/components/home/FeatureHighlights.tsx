@@ -150,21 +150,21 @@ const FeatureHighlights: React.FC = () => {
   console.log('FeatureHighlights render - loading:', loading, 'highlights:', highlights.length, 'error:', error);
 
   return (
-    <section className="py-24 bg-[#C5C5B5]">
+    <section className="py-16 bg-[#C5C5B5]">
       <div className="container">
         <AnimatedSection animation="fadeInUp">
-          <div className="max-w-3xl mx-auto text-center mb-16">
-            <div className="mb-8">
+          <div className="max-w-3xl mx-auto text-center mb-12">
+            <div className="mb-6">
               <p className="text-sm uppercase tracking-[0.2em] text-[#1E1F1E]/60 font-medium mb-4">
                 Thoughtfully Designed
               </p>
-              <h2 className="text-4xl md:text-5xl font-bold mb-6">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
                 <span className="bg-gradient-to-r from-[#1E1F1E] via-[#1E1F1E]/70 to-[#1E1F1E] bg-clip-text text-transparent">
                   All Essentials Included
                 </span>
               </h2>
             </div>
-            <p className="text-xl text-[#1E1F1E]/80">
+            <p className="text-lg text-[#1E1F1E]/80">
               Focus on what matters. We handle the rest.
             </p>
             {loading && (
@@ -175,7 +175,7 @@ const FeatureHighlights: React.FC = () => {
 
         {!loading && (
           <div className="max-w-5xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {highlights.map((highlight, index) => {
                 const Icon = getIconComponent(highlight.icon);
                 return (
@@ -183,14 +183,14 @@ const FeatureHighlights: React.FC = () => {
                     key={highlight.id}
                     animation="fadeInUp"
                     delay={index * 150}
-                    className="bg-[#1E1F1E] p-8 rounded-2xl border border-[#1E1F1E]/20 hover:border-[#C5C5B5]/20 transition-all duration-300 hover:transform hover:-translate-y-1"
+                    className="bg-[#1E1F1E] p-6 rounded-2xl border border-[#1E1F1E]/20 hover:border-[#C5C5B5]/20 transition-all duration-300 hover:transform hover:-translate-y-1"
                   >
-                    <div className="mb-6">
-                      <div className="w-12 h-12 bg-[#C5C5B5]/10 rounded-xl flex items-center justify-center mb-4">
-                        <Icon className="h-6 w-6 text-[#C5C5B5]" />
+                    <div className="mb-4">
+                      <div className="w-10 h-10 bg-[#C5C5B5]/10 rounded-xl flex items-center justify-center mb-3">
+                        <Icon className="h-5 w-5 text-[#C5C5B5]" />
                       </div>
                     </div>
-                    <h3 className="text-xl font-bold mb-4 text-[#C5C5B5]">{highlight.title}</h3>
+                    <h3 className="text-lg font-bold mb-3 text-[#C5C5B5]">{highlight.title}</h3>
                     <p className="text-[#C5C5B5]/80 leading-relaxed">{highlight.description}</p>
                   </AnimatedSection>
                 );
