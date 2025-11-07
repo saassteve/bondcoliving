@@ -69,13 +69,13 @@ const CoworkingPage: React.FC = () => {
     <>
       <Helmet>
         <title>Best Coworking Space Funchal Madeira | Bond Coworking | Day & Monthly Passes from €15</title>
-        <meta name="description" content="Premium coworking space in Funchal, Madeira with 500+ Mbps enterprise WiFi, ergonomic workstations & ocean views. Flexible coworking day passes, weekly & monthly options. Perfect for digital nomads & remote workers in central Funchal. Book your workspace today." />
+        <meta name="description" content="Premium coworking space in Funchal, Madeira with 500+ Mbps enterprise WiFi, ergonomic workstations & specialty coffee. Flexible coworking day passes, weekly & monthly options. Perfect for digital nomads & remote workers in central Funchal. Book your workspace today." />
         <meta name="keywords" content="coworking Funchal, coworking Madeira, coworking space Funchal, coworking space Madeira, best coworking Funchal, best coworking Madeira, digital nomad coworking Funchal, remote work Funchal, office space Funchal, workspace Funchal, workspace Madeira, hot desk Funchal, dedicated desk Madeira, coworking day pass Funchal, coworking monthly pass Madeira, shared office Funchal, business center Funchal, flexible workspace Madeira, cowork Funchal, cowork Madeira, Funchal coworking spaces, Madeira coworking spaces, work remotely Madeira, freelancer workspace Funchal, startup office Madeira, professional workspace Funchal" />
         <link rel="canonical" href="https://stayatbond.com/coworking" />
 
         {/* Open Graph */}
         <meta property="og:title" content="Best Coworking Space Funchal Madeira | Bond Coworking | Day & Monthly Passes" />
-        <meta property="og:description" content="Premium coworking space in central Funchal, Madeira with 500+ Mbps WiFi, ergonomic workstations & ocean views. Flexible day, weekly & monthly passes from €15. Perfect for digital nomads & remote workers." />
+        <meta property="og:description" content="Premium coworking space in central Funchal, Madeira with 500+ Mbps WiFi, ergonomic workstations & specialty coffee. Flexible day, weekly & monthly passes from €15. Perfect for digital nomads & remote workers." />
         <meta property="og:url" content="https://stayatbond.com/coworking" />
         <meta property="og:type" content="website" />
         <meta property="og:image" content="https://images.pexels.com/photos/7688336/pexels-photo-7688336.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" />
@@ -84,7 +84,7 @@ const CoworkingPage: React.FC = () => {
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Best Coworking Space Funchal Madeira | Bond Coworking" />
-        <meta name="twitter:description" content="Premium coworking space in central Funchal with 500+ Mbps WiFi, ergonomic workstations & ocean views. Day & monthly passes from €15. Perfect for digital nomads & remote workers." />
+        <meta name="twitter:description" content="Premium coworking space in central Funchal with 500+ Mbps WiFi, ergonomic workstations & specialty coffee. Day & monthly passes from €15. Perfect for digital nomads & remote workers." />
         <meta name="twitter:image" content="https://images.pexels.com/photos/7688336/pexels-photo-7688336.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" />
       </Helmet>
       
@@ -101,7 +101,7 @@ const CoworkingPage: React.FC = () => {
                 </span>
               </h1>
               <p className="text-xl md:text-2xl text-white mb-10 leading-relaxed font-light">
-                Premium coworking in the heart of Funchal. Enterprise WiFi, specialty coffee, and ocean views.
+                Premium coworking in the heart of Funchal. Enterprise WiFi, specialty coffee, and ergonomic workstations.
               </p>
               <button
                 onClick={() => {
