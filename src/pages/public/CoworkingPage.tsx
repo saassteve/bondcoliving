@@ -194,93 +194,95 @@ const CoworkingPage: React.FC = () => {
                     key={pass.id}
                     animation="fadeInUp"
                     delay={200 + (index * 100)}
-                    className={`bg-[#1E1F1E] rounded-2xl overflow-hidden transition-all duration-300 flex flex-col h-full ${
+                    className={`bg-[#1E1F1E] rounded-2xl overflow-hidden transition-all duration-300 flex ${
                       isHighlight
                         ? 'ring-2 ring-[#C5C5B5] transform hover:-translate-y-2 shadow-2xl'
                         : 'hover:ring-1 hover:ring-[#C5C5B5]/50 hover:-translate-y-1 shadow-lg hover:shadow-xl'
                     }`}
                   >
-                    {isHighlight && (
-                      <div className="bg-[#C5C5B5] text-[#1E1F1E] text-center py-2.5 text-sm font-bold uppercase tracking-wide">
-                        {pass.description}
-                      </div>
-                    )}
-
-                    <div className="p-6 lg:p-8 flex flex-col flex-grow">
-                      <div className="text-center mb-6">
-                        <h3 className="text-xl lg:text-2xl font-bold mb-2 text-[#C5C5B5]">{pass.name}</h3>
-                        {!isHighlight && (
-                          <p className="text-[#C5C5B5]/60 text-sm min-h-[40px] flex items-center justify-center">{pass.description}</p>
-                        )}
-                      </div>
-
-                      <div className="text-center mb-6">
-                        <div className="flex items-baseline justify-center mb-2">
-                          <span className="text-4xl lg:text-5xl font-bold text-[#C5C5B5]">€{pass.price}</span>
-                          <span className="text-[#C5C5B5]/60 ml-2 text-base">{getDurationLabel(pass)}</span>
+                    <div className="flex flex-col w-full">
+                      {isHighlight && (
+                        <div className="bg-[#C5C5B5] text-[#1E1F1E] text-center py-2.5 text-sm font-bold uppercase tracking-wide">
+                          {pass.description}
                         </div>
-                      </div>
+                      )}
 
-                      <ul className="space-y-3 mb-6 flex-grow">
-                        {pass.features.map((feature, i) => (
-                          <li key={i} className="flex items-start">
-                            <Check className="w-5 h-5 text-[#C5C5B5] mr-3 flex-shrink-0 mt-0.5" />
-                            <span className="text-[#C5C5B5]/80 text-sm leading-relaxed">{feature}</span>
-                          </li>
-                        ))}
-                      </ul>
+                      <div className="p-6 lg:p-8 flex flex-col flex-grow">
+                        <div className="text-center mb-6">
+                          <h3 className="text-xl lg:text-2xl font-bold mb-2 text-[#C5C5B5]">{pass.name}</h3>
+                          {!isHighlight && (
+                            <p className="text-[#C5C5B5]/60 text-sm min-h-[40px] flex items-center justify-center">{pass.description}</p>
+                          )}
+                        </div>
 
-                      <div className="mt-auto pt-4">
-                        {!isAvailable ? (
-                          <div className="space-y-2">
-                            <div className="flex items-center gap-2 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
-                              <AlertCircle className="w-4 h-4 text-yellow-400 flex-shrink-0" />
-                              <span className="text-sm text-yellow-300">
-                                {availability?.reason === 'not_yet_available' && availability.next_available_date
-                                  ? `Available from ${new Date(availability.next_available_date).toLocaleDateString()}`
-                                  : availability?.reason === 'at_capacity'
-                                  ? 'Fully booked'
-                                  : 'Currently unavailable'}
-                              </span>
-                            </div>
-                            {availability?.reason === 'at_capacity' && availability.next_available_date && (
-                              <p className="text-xs text-center text-gray-400">
-                                Next available: {new Date(availability.next_available_date).toLocaleDateString()}
-                              </p>
-                            )}
+                        <div className="text-center mb-6">
+                          <div className="flex items-baseline justify-center mb-2">
+                            <span className="text-4xl lg:text-5xl font-bold text-[#C5C5B5]">€{pass.price}</span>
+                            <span className="text-[#C5C5B5]/60 ml-2 text-base">{getDurationLabel(pass)}</span>
                           </div>
-                        ) : (
-                          <>
-                            {pass.is_capacity_limited && pass.max_capacity && (
-                              <div className="mb-4">
-                                <div className="flex items-center justify-between mb-2">
-                                  <span className="text-xs text-[#C5C5B5]/60">
-                                    {pass.max_capacity - pass.current_capacity} spots remaining
-                                  </span>
-                                  <span className="text-xs font-bold text-[#C5C5B5]">
-                                    {100 - capacityPercentage}% available
-                                  </span>
-                                </div>
-                                <div className="w-full bg-[#1E1F1E]/50 rounded-full h-2">
-                                  <div
-                                    className="h-2 rounded-full bg-[#C5C5B5] transition-all duration-300"
-                                    style={{ width: `${100 - capacityPercentage}%` }}
-                                  ></div>
-                                </div>
+                        </div>
+
+                        <ul className="space-y-3 mb-6 flex-grow">
+                          {pass.features.map((feature, i) => (
+                            <li key={i} className="flex items-start">
+                              <Check className="w-5 h-5 text-[#C5C5B5] mr-3 flex-shrink-0 mt-0.5" />
+                              <span className="text-[#C5C5B5]/80 text-sm leading-relaxed">{feature}</span>
+                            </li>
+                          ))}
+                        </ul>
+
+                        <div className="mt-auto pt-4">
+                          {!isAvailable ? (
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                                <AlertCircle className="w-4 h-4 text-yellow-400 flex-shrink-0" />
+                                <span className="text-sm text-yellow-300">
+                                  {availability?.reason === 'not_yet_available' && availability.next_available_date
+                                    ? `Available from ${new Date(availability.next_available_date).toLocaleDateString()}`
+                                    : availability?.reason === 'at_capacity'
+                                    ? 'Fully booked'
+                                    : 'Currently unavailable'}
+                                </span>
                               </div>
-                            )}
-                            <Link
-                              to={`/coworking/book?pass=${pass.slug}`}
-                              className={`block w-full px-6 py-3.5 rounded-full text-sm font-semibold uppercase tracking-wide transition-all text-center break-words ${
-                                isHighlight
-                                  ? 'bg-[#C5C5B5] text-[#1E1F1E] hover:bg-white hover:shadow-lg'
-                                  : 'bg-[#C5C5B5]/10 text-[#C5C5B5] hover:bg-[#C5C5B5]/20 border border-[#C5C5B5]/20'
-                              }`}
-                            >
-                              Book Now
-                            </Link>
-                          </>
-                        )}
+                              {availability?.reason === 'at_capacity' && availability.next_available_date && (
+                                <p className="text-xs text-center text-gray-400">
+                                  Next available: {new Date(availability.next_available_date).toLocaleDateString()}
+                                </p>
+                              )}
+                            </div>
+                          ) : (
+                            <>
+                              {pass.is_capacity_limited && pass.max_capacity && (
+                                <div className="mb-4">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <span className="text-xs text-[#C5C5B5]/60">
+                                      {pass.max_capacity - pass.current_capacity} spots remaining
+                                    </span>
+                                    <span className="text-xs font-bold text-[#C5C5B5]">
+                                      {100 - capacityPercentage}% available
+                                    </span>
+                                  </div>
+                                  <div className="w-full bg-[#1E1F1E]/50 rounded-full h-2">
+                                    <div
+                                      className="h-2 rounded-full bg-[#C5C5B5] transition-all duration-300"
+                                      style={{ width: `${100 - capacityPercentage}%` }}
+                                    ></div>
+                                  </div>
+                                </div>
+                              )}
+                              <Link
+                                to={`/coworking/book?pass=${pass.slug}`}
+                                className={`block w-full px-6 py-3.5 rounded-full text-sm font-semibold uppercase tracking-wide transition-all text-center break-words ${
+                                  isHighlight
+                                    ? 'bg-[#C5C5B5] text-[#1E1F1E] hover:bg-white hover:shadow-lg'
+                                    : 'bg-[#C5C5B5]/10 text-[#C5C5B5] hover:bg-[#C5C5B5]/20 border border-[#C5C5B5]/20'
+                                }`}
+                              >
+                                Book Now
+                              </Link>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </AnimatedSection>
@@ -345,69 +347,6 @@ const CoworkingPage: React.FC = () => {
                 </AnimatedSection>
               );
             })}
-          </div>
-        </div>
-      </section>
-
-      {/* Why Choose Bond Coworking */}
-      <section className="py-20 bg-[#C5C5B5]">
-        <div className="container">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <AnimatedSection animation="fadeInLeft">
-              <div>
-                <h2 className="text-4xl md:text-5xl font-bold mb-10 text-[#1E1F1E] leading-tight">
-                  Why Bond Coworking?
-                </h2>
-                <div className="space-y-6">
-                  <div className="flex items-start gap-5 group">
-                    <div className="w-10 h-10 bg-[#1E1F1E]/10 rounded-xl flex items-center justify-center flex-shrink-0 mt-1 group-hover:bg-[#1E1F1E]/20 transition-all">
-                      <Users className="w-5 h-5 text-[#1E1F1E]" />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold text-[#1E1F1E] mb-2">Curated Community</h3>
-                      <p className="text-[#1E1F1E]/80 text-base leading-relaxed">
-                        Work alongside vetted professionals who share your values of quality work and meaningful connections.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-5 group">
-                    <div className="w-12 h-12 bg-[#1E1F1E]/10 rounded-xl flex items-center justify-center flex-shrink-0 mt-1 group-hover:bg-[#1E1F1E]/20 transition-all">
-                      <MapPin className="w-6 h-6 text-[#1E1F1E]" />
-                    </div>
-                    <div>
-                      <h3 className="text-2xl font-bold text-[#1E1F1E] mb-3">Perfect Location</h3>
-                      <p className="text-[#1E1F1E]/80 text-lg leading-relaxed">
-                        Central Funchal location puts you steps away from cafes, restaurants, and the ocean promenade.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-5 group">
-                    <div className="w-12 h-12 bg-[#1E1F1E]/10 rounded-xl flex items-center justify-center flex-shrink-0 mt-1 group-hover:bg-[#1E1F1E]/20 transition-all">
-                      <Coffee className="w-6 h-6 text-[#1E1F1E]" />
-                    </div>
-                    <div>
-                      <h3 className="text-2xl font-bold text-[#1E1F1E] mb-3">Island Lifestyle</h3>
-                      <p className="text-[#1E1F1E]/80 text-lg leading-relaxed">
-                        Work productively during the day, then explore levadas, beaches, and local culture in your free time.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </AnimatedSection>
-            
-            <AnimatedSection animation="fadeInRight" delay={200}>
-              <div className="aspect-square bg-[#1E1F1E]/5 rounded-3xl overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-[1.02]">
-                <img
-                  src="https://images.pexels.com/photos/7688336/pexels-photo-7688336.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
-                  alt="Modern coworking space interior with natural lighting and contemporary design"
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
-              </div>
-            </AnimatedSection>
           </div>
         </div>
       </section>
