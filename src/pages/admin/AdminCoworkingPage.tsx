@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Calendar, ChevronLeft, ChevronRight, Plus, X, Check, Edit, Trash, DollarSign, Users, Settings, Image } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, Plus, X, Check, Edit, Trash, DollarSign, Users, Settings, Image, Mail } from 'lucide-react';
 import { coworkingBookingService, coworkingPassService, type CoworkingBooking, type CoworkingPass } from '../../lib/supabase';
+import { supabase } from '../../lib/supabase';
 import PassAvailabilityManager from '../../components/admin/PassAvailabilityManager';
 import CoworkingImageManager from '../../components/admin/CoworkingImageManager';
 
@@ -15,6 +16,7 @@ const AdminCoworkingPage: React.FC = () => {
   const [editingBooking, setEditingBooking] = useState<CoworkingBooking | null>(null);
   const [managingPass, setManagingPass] = useState<string | null>(null);
   const [revenue, setRevenue] = useState<any>(null);
+  const [sendingEmail, setSendingEmail] = useState<string | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -66,6 +68,34 @@ const AdminCoworkingPage: React.FC = () => {
 
   const handleCancelEdit = () => {
     setEditingBooking(null);
+  };
+
+  const handleSendAccessCodeEmail = async (bookingId: string) => {
+    if (!window.confirm('Send access code email to customer?')) return;
+
+    try {
+      setSendingEmail(bookingId);
+
+      const { data, error } = await supabase.functions.invoke('send-coworking-email', {
+        body: {
+          emailType: 'access_code',
+          bookingId: bookingId,
+          resendEmail: true
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      alert('Access code email sent successfully!');
+      await fetchData();
+    } catch (error) {
+      console.error('Error sending access code email:', error);
+      alert('Failed to send access code email. Check console for details.');
+    } finally {
+      setSendingEmail(null);
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -683,17 +713,33 @@ const AdminCoworkingPage: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-300 mb-1">
                     Access Code (Door Code)
                   </label>
-                  <input
-                    type="text"
-                    className="input font-mono"
-                    value={editingBooking.access_code || ''}
-                    onChange={(e) =>
-                      setEditingBooking({ ...editingBooking, access_code: e.target.value })
-                    }
-                    placeholder="Enter door code (e.g., 1234#)"
-                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      className="input font-mono flex-1"
+                      value={editingBooking.access_code || ''}
+                      onChange={(e) =>
+                        setEditingBooking({ ...editingBooking, access_code: e.target.value })
+                      }
+                      placeholder="Enter door code (e.g., 1234#)"
+                    />
+                    {editingBooking.access_code && (
+                      <button
+                        type="button"
+                        onClick={() => handleSendAccessCodeEmail(editingBooking.id)}
+                        disabled={sendingEmail === editingBooking.id}
+                        className="btn bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                        title="Send access code email to customer"
+                      >
+                        <Mail className="w-4 h-4 inline mr-1" />
+                        {sendingEmail === editingBooking.id ? 'Sending...' : 'Send Email'}
+                      </button>
+                    )}
+                  </div>
                   <p className="text-xs text-gray-400 mt-1">
-                    This code will be visible to the customer when they look up their booking
+                    {editingBooking.access_code_email_sent_at
+                      ? `Email sent on ${new Date(editingBooking.access_code_email_sent_at).toLocaleString()}`
+                      : 'Customer will receive this code via email after you click "Send Email"'}
                   </p>
                 </div>
 
