@@ -60,7 +60,7 @@ const ApplicationFormPage: React.FC = () => {
             </div>
 
             {/* Mangobeds Booking Widget */}
-            <MangobedsBookingForm />
+            <MangobedsBookingForm className="min-h-[1400px]" minHeightPx={1200} />
           </div>
 
           {/* Additional Information */}
