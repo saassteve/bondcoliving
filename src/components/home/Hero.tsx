@@ -1,84 +1,55 @@
-// components/Hero.tsx
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import AnimatedSection from '../AnimatedSection';
+// components/Header.tsx
+import React, { useEffect, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { Menu, X } from 'lucide-react';
 
-const Hero: React.FC = () => {
-  const navigate = useNavigate();
+const Header: React.FC = () => {
+  const [open, setOpen] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => setOpen(false), [location.pathname]);
 
   return (
-    <section className="relative min-h-[80vh] flex items-center pb-14 md:pb-20">
-      <div className="absolute inset-0 bg-black/60 z-10"></div>
-      <div className="absolute inset-0 bg-[url('https://ucarecdn.com/958a4400-0486-4ba2-8e75-484d692d7df9/foundersbond.png')] bg-cover bg-[center_bottom_20%]">
-        <img
-          src="https://ucarecdn.com/958a4400-0486-4ba2-8e75-484d692d7df9/foundersbond.png"
-          alt="Modern coliving space in central Funchal, Madeira"
-          className="w-full h-full object-cover opacity-0"
-          loading="eager"
-          decoding="async"
-          fetchPriority="high"
-        />
-      </div>
+    <header className="fixed top-0 left-0 right-0 z-50">
+      <div className="backdrop-blur-md bg-[#0f100f]/60 border-b border-white/10">
+        <div className="container flex items-center justify-between h-16">
+          <Link to="/" className="font-semibold text-[#C5C5B5] tracking-tight">Bond</Link>
 
-      <div className="container relative z-20">
-        <div className="max-w-3xl text-center lg:text-left">
-          <AnimatedSection animation="fadeInUp" delay={200}>
-            <h1 className="font-bold text-4xl md:text-6xl tracking-tight mb-4">
-              <span className="bg-gradient-to-r from-[#C5C5B5] via-white to-[#C5C5B5] bg-clip-text text-transparent">
-                Live. Work. Belong.
-              </span>
-            </h1>
-            <p className="text-base md:text-lg lg:text-xl text-[#C5C5B5] leading-relaxed">
-              Premium coliving for digital nomads in central Funchal, Madeira.
-            </p>
-          </AnimatedSection>
-
-          {/* Primary and secondary actions */}
-          <AnimatedSection animation="fadeInUp" delay={500}>
-            <div className="mt-6 flex flex-col sm:flex-row items-center gap-3">
-              <button
-                onClick={() => window.dispatchEvent(new CustomEvent('openBookingModal'))}
-                className="w-full sm:w-auto inline-flex items-center justify-center rounded-2xl bg-[#C5C5B5] text-[#1E1F1E] px-6 py-3 font-semibold hover:bg-white transition"
-              >
-                Check availability
-              </button>
-
-              <div className="flex items-center gap-5 text-[#C5C5B5]/90">
-                <button
-                  onClick={() => document.getElementById('apartments-section')?.scrollIntoView({ behavior: 'smooth' })}
-                  className="text-sm underline underline-offset-4 hover:text-white"
-                >
-                  View apartments
-                </button>
-                <button
-                  onClick={() => navigate('/coworking')}
-                  className="text-sm underline underline-offset-4 hover:text-white"
-                >
-                  Explore coworking
-                </button>
+          {/* Desktop nav */}
+          <nav className="hidden md:flex items-center gap-6 text-[#C5C5B5]">
+            <Link to="/#apartments-section" className="hover:text-white">Apartments</Link>
+            <Link to="/coworking" className="hover:text-white">Coworking</Link>
+            <details className="relative">
+              <summary className="cursor-pointer list-none hover:text-white">More</summary>
+              <div className="absolute right-0 mt-2 w-44 rounded-xl border border-white/10 bg-[#1E1F1E] p-2 shadow-xl">
+                <Link to="/#amenities" className="block px-3 py-2 text-sm hover:bg-white/5 rounded-md">Amenities</Link>
+                <Link to="/#location" className="block px-3 py-2 text-sm hover:bg-white/5 rounded-md">Location</Link>
+                <Link to="/#faq" className="block px-3 py-2 text-sm hover:bg-white/5 rounded-md">FAQ</Link>
               </div>
-            </div>
-          </AnimatedSection>
+            </details>
+          </nav>
 
-          {/* Compact benefit pills */}
-          <AnimatedSection animation="fadeInUp" delay={800}>
-            <ul className="mt-6 flex flex-wrap gap-2 max-w-2xl">
-              {[
-                'Private apartments with all amenities',
-                'Enterprise-grade Wi-Fi and coworking',
-                '5 minutes to ocean and centre',
-                'Curated nomad community',
-              ].map(x => (
-                <li key={x} className="text-xs md:text-sm text-[#C5C5B5] bg-[#C5C5B5]/10 border border-[#C5C5B5]/20 rounded-full px-3 py-1">
-                  {x}
-                </li>
-              ))}
-            </ul>
-          </AnimatedSection>
+          {/* Mobile menu trigger only */}
+          <button className="md:hidden p-2 text-[#C5C5B5]" onClick={() => setOpen(v => !v)}>
+            {open ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
         </div>
       </div>
-    </section>
+
+      {/* Mobile sheet */}
+      {open && (
+        <div className="md:hidden bg-[#1E1F1E] border-b border-white/10">
+          <div className="container py-3 grid gap-1">
+            <Link to="/#apartments-section" className="px-1 py-2 text-[#C5C5B5]">Apartments</Link>
+            <Link to="/coworking" className="px-1 py-2 text-[#C5C5B5]">Coworking</Link>
+            <Link to="/#amenities" className="px-1 py-2 text-[#C5C5B5]">Amenities</Link>
+            <Link to="/#location" className="px-1 py-2 text-[#C5C5B5]">Location</Link>
+            <Link to="/#faq" className="px-1 py-2 text-[#C5C5B5]">FAQ</Link>
+          </div>
+        </div>
+      )}
+    </header>
   );
 };
 
-export default Hero;
+export default Header;
