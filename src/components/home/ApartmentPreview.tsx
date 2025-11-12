@@ -1,468 +1,367 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
-import {
-  ArrowRight,
-  ChevronLeft,
-  ChevronRight,
-  RefreshCw,
-  Sparkles,
-} from "lucide-react";
-import { motion } from "framer-motion";
-import AnimatedSection from "../AnimatedSection";
-import {
-  apartmentService,
-  availabilityService,
-  type Apartment,
-} from "../../lib/supabase";
-import { getIconComponent } from "../../lib/iconUtils";
+import React, { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
+import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { apartmentService, availabilityService, type Apartment } from '../../lib/supabase';
+import { getIconComponent } from '../../lib/iconUtils';
+import AnimatedSection from '../AnimatedSection';
 
-/**
- * World-class Apartment Showcase
- *
- * Design goals
- * - Calm, premium surface with strong hierarchy
- * - Snap-to-center carousel with subtle depth on the focused card
- * - Availability copy that reads human
- * - Skeletons that preserve layout
- * - Smart data refresh on visibility, manual refresh button
- * - Accessible controls and keyboard support
- * - Clean currency presentation for UK visitors
- */
-
-type ApartmentWithExtras = Apartment & {
-  image_url?: string;
-  features?: { icon: string; label: string }[];
-  available_from?: string | null;
-};
-
-const GBP_PER_EUR = 0.85; // keep in sync with your pricing util
-const USD_PER_EUR = 1.05;
-
-const money = (amount: number, code: "EUR" | "GBP" | "USD") =>
-  new Intl.NumberFormat("en-GB", { style: "currency", currency: code }).format(
-    amount
-  );
-
-const humanAvailability = (iso?: string | null) => {
-  if (!iso) return null;
-  const d = new Date(iso);
-  const today = new Date();
-  d.setHours(0, 0, 0, 0);
-  today.setHours(0, 0, 0, 0);
-  if (d <= today) return "Available now";
-  return `Available ${d.toLocaleDateString("en-GB", {
-    month: "short",
-    year: "numeric",
-  })}`;
-};
-
-const AvailabilityBadge: React.FC<{ iso?: string | null }> = ({ iso }) => {
-  const copy = humanAvailability(iso);
-  if (!copy) return null;
-
-  const soon = (() => {
-    if (!iso) return false;
-    const d = new Date(iso).getTime();
-    const now = Date.now();
-    const days = (d - now) / 86_400_000;
-    return days <= 30; // highlight if within a month
-  })();
-
-  return (
-    <div className="absolute top-3 right-3 z-10">
-      <div className={`px-3 py-1 rounded-full text-xs font-medium backdrop-blur border ${
-        soon
-          ? "bg-emerald-900/50 text-emerald-100 border-emerald-400/20"
-          : "bg-black/55 text-white border-white/10"
-      }`}>
-        {copy}
-      </div>
-    </div>
-  );
-};
-
-const SkeletonCard: React.FC = () => (
-  <div className="flex-none snap-center w-80 md:w-[28rem] rounded-2xl overflow-hidden bg-[#1E1F1E] ring-1 ring-black/10">
-    <div className="aspect-video bg-[#2A2B2A] animate-pulse" />
-    <div className="p-5">
-      <div className="h-6 w-48 bg-[#2A2B2A] rounded mb-3 animate-pulse" />
-      <div className="h-4 w-24 bg-[#2A2B2A] rounded mb-5 animate-pulse" />
-      <div className="grid grid-cols-2 gap-3 mb-6">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-4 bg-[#2A2B2A] rounded animate-pulse" />
-        ))}
-      </div>
-      <div className="h-4 w-40 bg-[#2A2B2A] rounded animate-pulse" />
-    </div>
-  </div>
-);
-
-const useVisibilityReresh = (cb: () => void, ms: number) => {
-  const last = useRef<number>(0);
-  useEffect(() => {
-    const onVis = () => {
-      if (document.visibilityState === "visible") {
-        const now = Date.now();
-        if (now - last.current > ms) {
-          last.current = now;
-          cb();
-        }
-      }
-    };
-    document.addEventListener("visibilitychange", onVis);
-    return () => document.removeEventListener("visibilitychange", onVis);
-  }, [cb, ms]);
-};
-
-const PriceBlock: React.FC<{ eur: number }> = ({ eur }) => {
-  const gbp = Math.round(eur * GBP_PER_EUR);
-  const usd = Math.round(eur * USD_PER_EUR);
-  return (
-    <div className="text-right">
-      <div className="text-lg md:text-xl font-bold text-[#C5C5B5]">{money(eur, "EUR")}</div>
-      <div className="text-xs text-[#C5C5B5]/60">
-        {money(usd, "USD")} • {money(gbp, "GBP")}
-      </div>
-      <div className="text-xs text-[#C5C5B5]/60">per month</div>
-    </div>
-  );
-};
-
-const Card: React.FC<{ a: ApartmentWithExtras; index: number; active: boolean }>= ({ a, active }) => {
-  const avail = humanAvailability(a.available_from);
-  return (
-    <motion.div
-      whileHover={{ y: -4 }}
-      animate={{ scale: active ? 1.02 : 1, opacity: active ? 1 : 0.92 }}
-      transition={{ type: "spring", stiffness: 180, damping: 18 }}
-      className="flex-none snap-center w-80 md:w-[28rem] rounded-2xl overflow-hidden bg-[#1E1F1E] ring-1 ring-white/5 hover:ring-[#C5C5B5]/30 group"
-    >
-      <div className="relative aspect-video overflow-hidden">
-        <AvailabilityBadge iso={a.available_from} />
-        <img
-          src={a.image_url}
-          alt={a.title}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          loading="lazy"
-          decoding="async"
-        />
-        {/* Subtle corner shimmer */}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-black/0 via-black/0 to-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-        {/* Price chip bottom-left on hover for quick scanning */}
-        <div className="absolute left-3 bottom-3">
-          <div className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#C5C5B5]/90 text-[#1E1F1E] shadow">
-            {money(a.price, "EUR")} pm
-          </div>
-        </div>
-      </div>
-
-      <div className="p-5">
-        <div className="flex items-start justify-between gap-3 mb-2">
-          <h3 className="text-lg md:text-xl font-bold text-[#C5C5B5]">{a.title}</h3>
-          <PriceBlock eur={a.price} />
-        </div>
-
-        <p className="text-[#C5C5B5]/80 text-sm leading-relaxed line-clamp-3 min-h-[3.5rem]">
-          {a.description}
-        </p>
-
-        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
-          {a.features?.slice(0, 4).map((f, idx) => {
-            const Icon = getIconComponent(f.icon);
-            return (
-              <div key={idx} className="flex items-center text-[#C5C5B5]/70">
-                <Icon className="w-4 h-4 mr-2 flex-shrink-0" />
-                <span className="text-sm truncate">{f.label}</span>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="mt-4 flex items-center justify-between">
-          <span className="text-sm text-[#C5C5B5]/70">{a.size}</span>
-          <span className="inline-flex items-center text-[#C5C5B5] text-xs md:text-sm uppercase tracking-wide group-hover:text-white">
-            View details <ArrowRight className="ml-2 h-4 w-4" />
-          </span>
-        </div>
-
-        {avail && (
-          <div className="mt-3 text-xs text-[#C5C5B5]/70 flex items-center gap-1">
-            <Sparkles className="w-3.5 h-3.5" /> {avail}
-          </div>
-        )}
-      </div>
-    </motion.div>
-  );
-};
-
-const ApartmentPreviewWorldClass: React.FC = () => {
-  const [items, setItems] = useState<ApartmentWithExtras[]>([]);
+const ApartmentPreview: React.FC = () => {
+  const [apartments, setApartments] = useState<Apartment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [sort, setSort] = useState<"soonest" | "priceAsc">("soonest");
-  const [active, setActive] = useState(0);
+  const [lastFetch, setLastFetch] = useState<number>(0);
+  const [scrollPosition, setScrollPosition] = useState(0);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
 
-  const railRef = useRef<HTMLDivElement>(null);
-
-  const enrich = async (a: Apartment): Promise<ApartmentWithExtras> => {
+  const fetchApartments = useCallback(async () => {
     try {
-      const [images, features, nextDate] = await Promise.all([
-        apartmentService.getImages(a.id),
-        apartmentService.getFeatures(a.id),
-        availabilityService.getNextAvailableDate(a.id),
-      ]);
-      const featured = images.find((i: any) => i.is_featured);
-      return {
-        ...a,
-        image_url: featured?.image_url || a.image_url,
-        features,
-        available_from: nextDate || a.available_from,
-      };
-    } catch (e) {
-      console.error("Enrich failed", e);
-      return { ...a, features: [] };
-    }
-  };
-
-  const fetchAll = useCallback(async () => {
-    try {
-      setError(null);
       setLoading(true);
-      const base = await apartmentService.getAll();
-      const full = await Promise.all(base.map(enrich));
-      setItems(full);
-    } catch (e) {
-      console.error(e);
-      setError("Could not load apartments. Please try again.");
+      const apartments = await apartmentService.getAll();
+
+      const apartmentsWithImages = await Promise.all(
+        apartments.map(async (apartment) => {
+          try {
+            const [images, features, nextAvailableDate] = await Promise.all([
+              apartmentService.getImages(apartment.id),
+              apartmentService.getFeatures(apartment.id),
+              availabilityService.getNextAvailableDate(apartment.id)
+            ]);
+
+            const featuredImage = images.find(img => img.is_featured);
+
+            return {
+              ...apartment,
+              image_url: featuredImage?.image_url || apartment.image_url,
+              features,
+              available_from: nextAvailableDate || apartment.available_from
+            };
+          } catch (error) {
+            console.error(`Error fetching data for apartment ${apartment.id}:`, error);
+            return {
+              ...apartment,
+              features: []
+            };
+          }
+        })
+      );
+
+      setApartments(apartmentsWithImages);
+      setLastFetch(Date.now());
+    } catch (err) {
+      setError('Failed to load apartments');
+      console.error('Error fetching apartments:', err);
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchAll();
-  }, [fetchAll]);
-
-  // Refresh on tab return if away for more than 60s
-  useVisibilityReresh(fetchAll, 60_000);
-
-  // Sort
-  const data = useMemo(() => {
-    const arr = [...items];
-    if (sort === "priceAsc") return arr.sort((a, b) => a.price - b.price);
-    // soonest
-    return arr.sort((a, b) => {
-      const ad = a.available_from ? new Date(a.available_from).getTime() : Infinity;
-      const bd = b.available_from ? new Date(b.available_from).getTime() : Infinity;
-      return ad - bd;
-    });
-  }, [items, sort]);
-
-  // Active card detection based on closest to container centre
-  const updateActive = useCallback(() => {
-    const rail = railRef.current;
-    if (!rail) return;
-    const children = Array.from(rail.children) as HTMLElement[];
-    const railRect = rail.getBoundingClientRect();
-    const centre = railRect.left + railRect.width / 2;
-    let bestIdx = 0;
-    let bestDist = Number.POSITIVE_INFINITY;
-    children.forEach((el, i) => {
-      const r = el.getBoundingClientRect();
-      const cardCentre = r.left + r.width / 2;
-      const d = Math.abs(cardCentre - centre);
-      if (d < bestDist) {
-        bestDist = d;
-        bestIdx = i;
+    fetchApartments();
+  }, [fetchApartments]);
+  
+  // Refresh data every 30 seconds to catch updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (Date.now() - lastFetch > 30000) { // 30 seconds
+        fetchApartments();
       }
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [lastFetch, fetchApartments]);
+
+  const updateScrollButtons = (container: HTMLElement) => {
+    const { scrollLeft, scrollWidth, clientWidth } = container;
+    setCanScrollLeft(scrollLeft > 0);
+    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1);
+    setScrollPosition(scrollLeft);
+  };
+
+  const scroll = (direction: 'left' | 'right') => {
+    const container = document.getElementById('apartments-scroll');
+    if (!container) return;
+
+    const cardWidth = 400; // Approximate card width + gap
+    const scrollAmount = cardWidth * 2; // Scroll 2 cards at a time
+    
+    const newScrollLeft = direction === 'left' 
+      ? container.scrollLeft - scrollAmount
+      : container.scrollLeft + scrollAmount;
+
+    container.scrollTo({
+      left: newScrollLeft,
+      behavior: 'smooth'
     });
-    setActive(bestIdx);
-  }, []);
+  };
 
   useEffect(() => {
-    const el = railRef.current;
-    if (!el) return;
-    const onScroll = () => updateActive();
-    const ro = new ResizeObserver(updateActive);
-    el.addEventListener("scroll", onScroll, { passive: true });
-    ro.observe(el);
-    updateActive();
+    const container = document.getElementById('apartments-scroll');
+    if (!container) return;
+
+    const handleScroll = () => updateScrollButtons(container);
+    const handleResize = () => updateScrollButtons(container);
+
+    container.addEventListener('scroll', handleScroll);
+    window.addEventListener('resize', handleResize);
+    
+    // Initial check
+    updateScrollButtons(container);
+
     return () => {
-      el.removeEventListener("scroll", onScroll);
-      ro.disconnect();
+      container.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleResize);
     };
-  }, [data, updateActive]);
+  }, [apartments]);
 
-  const canScrollLeft = () => {
-    const el = railRef.current;
-    if (!el) return false;
-    return el.scrollLeft > 2;
-  };
-  const canScrollRight = () => {
-    const el = railRef.current;
-    if (!el) return false;
-    return el.scrollLeft + el.clientWidth < el.scrollWidth - 2;
-  };
+  if (loading) {
+    return (
+      <section id="apartments-section" className="py-24 bg-[#C5C5B5]">
+        <div className="container">
+          <div className="max-w-3xl mx-auto text-center mb-12">
+            <div className="mb-8">
+              <p className="text-sm uppercase tracking-[0.2em] text-[#1E1F1E]/60 font-medium mb-4">
+                Your Space, Your Way
+              </p>
+              <h2 className="text-4xl md:text-5xl font-bold mb-4">
+                <span className="bg-gradient-to-r from-[#1E1F1E] via-[#1E1F1E]/60 to-[#1E1F1E] bg-clip-text text-transparent">
+                  Private Apartments
+                </span>
+              </h2>
+            </div>
+            <p className="text-lg text-[#1E1F1E]/80">Loading apartments...</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
-  const scroll = (dir: "left" | "right") => {
-    const el = railRef.current;
-    if (!el) return;
-    const delta = Math.round(el.clientWidth * 0.9);
-    el.scrollBy({ left: dir === "left" ? -delta : delta, behavior: "smooth" });
-  };
-
-  // Keyboard support when the rail is in viewport focus
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "ArrowLeft") scroll("left");
-      if (e.key === "ArrowRight") scroll("right");
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  if (error) {
+    return (
+      <section id="apartments-section" className="py-24 bg-[#C5C5B5]">
+        <div className="container">
+          <div className="max-w-3xl mx-auto text-center mb-12">
+            <div className="mb-8">
+              <p className="text-sm uppercase tracking-[0.2em] text-[#1E1F1E]/60 font-medium mb-4">
+                Your Space, Your Way
+              </p>
+              <h2 className="text-4xl md:text-5xl font-bold mb-4">
+                <span className="bg-gradient-to-r from-[#1E1F1E] via-[#1E1F1E]/60 to-[#1E1F1E] bg-clip-text text-transparent">
+                  Private Apartments
+                </span>
+              </h2>
+            </div>
+            <p className="text-lg text-[#1E1F1E]/80">{error}</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section id="apartments-section" className="py-16 bg-[#C5C5B5]">
       <div className="container">
         <AnimatedSection animation="fadeInUp">
-          <div className="max-w-3xl mx-auto text-center mb-10">
-            <p className="text-sm uppercase tracking-[0.2em] text-[#1E1F1E]/60 font-medium mb-3">
-              Your Space, Your Way
-            </p>
-            <h2 className="text-4xl md:text-5xl font-bold">
-              <span className="bg-gradient-to-r from-[#1E1F1E] via-[#1E1F1E]/60 to-[#1E1F1E] bg-clip-text text-transparent">
-                Private Apartments
-              </span>
-            </h2>
-            <p className="mt-4 text-lg text-[#1E1F1E]/80">
-              Choose a private unit designed for deep work and easy living in the centre of Funchal.
+          <div className="max-w-3xl mx-auto text-center mb-12">
+            <div className="mb-8">
+              <p className="text-sm uppercase tracking-[0.2em] text-[#1E1F1E]/60 font-medium mb-4">
+                Your Space, Your Way
+              </p>
+              <h2 className="text-4xl md:text-5xl font-bold mb-4">
+                <span className="bg-gradient-to-r from-[#1E1F1E] via-[#1E1F1E]/60 to-[#1E1F1E] bg-clip-text text-transparent">
+                  Private Apartments
+                </span>
+              </h2>
+            </div>
+            <p className="text-lg text-[#1E1F1E]/80">
+              Choose from our selection of premium apartments designed specifically for digital nomads. Each space includes enterprise-grade WiFi, all utilities, and everything you need for productive remote work in central Funchal.
             </p>
           </div>
         </AnimatedSection>
 
-        <AnimatedSection animation="fadeInUp" delay={120}>
-          <div className="mb-5 md:mb-7 flex items-center justify-between gap-3">
-            <div className="text-[#1E1F1E]/70 text-sm">
-              {loading
-                ? "Loading apartments..."
-                : `${data.length} apartment${data.length !== 1 ? "s" : ""} available`}
+        {/* Scroll Controls */}
+        <AnimatedSection animation="fadeInUp" delay={200}>
+          <div className="flex justify-between items-center mb-6 md:mb-8">
+            <div className="flex items-center gap-4">
+              <span className="text-[#1E1F1E]/60 text-xs md:text-sm">
+                {apartments.length} apartment{apartments.length !== 1 ? 's' : ''} available
+              </span>
             </div>
-
-            <div className="flex items-center gap-2">
-              <label htmlFor="apt-sort" className="text-[#1E1F1E]/70 text-sm">
-                Sort
-              </label>
-              <select
-                id="apt-sort"
-                value={sort}
-                onChange={(e) => setSort(e.target.value as any)}
-                className="text-sm bg-white/80 text-[#1E1F1E] border border-[#1E1F1E]/20 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#1E1F1E]/30"
-              >
-                <option value="soonest">Soonest availability</option>
-                <option value="priceAsc">Price low to high</option>
-              </select>
-
+            
+            <div className="flex items-center gap-1 md:gap-2">
               <button
-                onClick={fetchAll}
-                aria-label="Refresh apartments"
-                className="inline-flex items-center justify-center rounded-md border border-[#1E1F1E]/20 bg-white/80 text-[#1E1F1E] p-2 hover:bg-white"
-                title="Refresh"
+                onClick={() => scroll('left')}
+                disabled={!canScrollLeft}
+                className={`p-1.5 md:p-2 rounded-full border-2 transition-all ${
+                  canScrollLeft 
+                    ? 'border-[#1E1F1E] text-[#1E1F1E] hover:bg-[#1E1F1E] hover:text-[#C5C5B5]' 
+                    : 'border-[#1E1F1E]/20 text-[#1E1F1E]/20 cursor-not-allowed'
+                }`}
+                aria-label="Scroll left"
               >
-                <RefreshCw className="w-4 h-4" />
+                <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
+              </button>
+              <button
+                onClick={() => scroll('right')}
+                disabled={!canScrollRight}
+                className={`p-1.5 md:p-2 rounded-full border-2 transition-all ${
+                  canScrollRight 
+                    ? 'border-[#1E1F1E] text-[#1E1F1E] hover:bg-[#1E1F1E] hover:text-[#C5C5B5]' 
+                    : 'border-[#1E1F1E]/20 text-[#1E1F1E]/20 cursor-not-allowed'
+                }`}
+                aria-label="Scroll right"
+              >
+                <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
               </button>
             </div>
           </div>
         </AnimatedSection>
 
-        <AnimatedSection animation="fadeInUp" delay={220}>
+        {/* Horizontal Scroll Container */}
+        <AnimatedSection animation="fadeInUp" delay={400}>
           <div className="relative">
-            {/* Edge gradients */}
-            <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-8 md:w-12 bg-gradient-to-r from-[#C5C5B5] to-transparent" />
-            <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 md:w-12 bg-gradient-to-l from-[#C5C5B5] to-transparent" />
-
-            {/* Rail */}
-            <div
-              ref={railRef}
+            <div 
               id="apartments-scroll"
-              className="flex gap-4 md:gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 px-1"
-              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+              className="flex gap-4 md:gap-6 overflow-x-auto scrollbar-hide pb-4 px-1"
+              style={{ 
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+                WebkitScrollbar: { display: 'none' }
+              }}
             >
-              <style>{`#apartments-scroll::-webkit-scrollbar{display:none}`}</style>
+              {apartments.map((apartment) => (
+                <Link
+                  key={apartment.id}
+                  to={`/room/${apartmentService.generateSlug(apartment.title)}`}
+                  className="flex-none w-80 md:w-96 bg-[#1E1F1E] group card hover:ring-2 hover:ring-[#C5C5B5]/20 transition-all hover:transform hover:-translate-y-1 shadow-lg apartment-card"
+                >
+                  <div className="aspect-video overflow-hidden">
+                    {/* Availability Pill */}
+                    {apartment.available_from && (
+                      <div className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <div className="bg-black/50 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-medium border border-white/10">
+                          Available {new Date(apartment.available_from).toLocaleDateString('en-US', { 
+                            month: 'short', 
+                            year: 'numeric' 
+                          })}
+                        </div>
+                      </div>
+                    )}
+                    <img 
+                      src={apartment.image_url} 
+                      alt={`${apartment.title} - Premium coliving apartment in central Funchal, Madeira with ${apartment.size} and capacity for ${apartment.capacity}`}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div className="p-4 md:p-6 card-content">
+                    <div className="flex justify-between items-start mb-4">
+                      <h3 className="text-lg md:text-xl font-bold text-[#C5C5B5]">{apartment.title}</h3>
+                      <div className="text-right">
+                        <div className="text-lg md:text-xl font-bold text-[#C5C5B5]">€{apartment.price.toLocaleString()}</div>
+                        <div className="text-xs text-[#C5C5B5]/50">
+                          ${Math.round(apartment.price * 1.05).toLocaleString()} • £{Math.round(apartment.price * 0.85).toLocaleString()}
+                        </div>
+                        <div className="text-sm text-[#C5C5B5]/60">per month</div>
+                      </div>
+                    </div>
+                    
+                    {/* Fixed height description container */}
+                    <div className="h-16 mb-4">
+                      <p className="text-[#C5C5B5]/80 text-sm leading-relaxed line-clamp-3">{apartment.description}</p>
+                    </div>
+                    
+                    {/* Fixed height features container */}
+                    <div className="h-16 grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3 mb-4">
+                      {apartment.features?.slice(0, 4).map((feature, index) => {
+                        const Icon = getIconComponent(feature.icon);
+                        return (
+                          <div key={index} className="flex items-center text-[#C5C5B5]/60">
+                            <Icon className="w-3 h-3 md:w-4 md:h-4 mr-2 flex-shrink-0" />
+                            <span className="text-sm truncate">{feature.label}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
 
-              {loading && (
-                <>
-                  <SkeletonCard />
-                  <SkeletonCard />
-                  <SkeletonCard />
-                </>
-              )}
-
-              {!loading && error && (
-                <div className="text-[#1E1F1E]/80 p-6">{error}</div>
-              )}
-
-              {!loading && !error &&
-                data.map((a, i) => (
-                  <Link
-                    key={a.id}
-                    to={`/room/${apartmentService.generateSlug(a.title)}`}
-                    className="outline-none focus:ring-2 focus:ring-[#1E1F1E]/40 rounded-2xl"
-                    aria-label={`View ${a.title}`}
-                  >
-                    <Card a={a} index={i} active={i === active} />
-                  </Link>
-                ))}
-
-              {/* Teaser card at end */}
-              {!loading && !error && (
-                <div className="flex-none snap-center w-80 md:w-[28rem] rounded-2xl overflow-hidden bg-gradient-to-br from-[#1E1F1E]/40 to-[#1E1F1E]/20 ring-1 ring-[#1E1F1E]/20">
-                  <div className="aspect-video grid place-items-center relative">
-                    <div className="text-6xl">🏗️</div>
-                    <div className="absolute bottom-3 right-3 bg-[#1E1F1E]/80 text-[#C5C5B5] px-3 py-1 rounded-full text-xs border border-[#C5C5B5]/20">
-                      New location 2026
+                    {/* Fixed position for view details button */}
+                    <div className="flex items-center justify-between mt-auto">
+                      <div className="flex flex-col">
+                        <span className="text-sm text-[#C5C5B5]/60">{apartment.size}</span>
+                      </div>
+                      <span className="inline-flex items-center text-[#C5C5B5] text-xs md:text-sm uppercase tracking-wide group-hover:text-white transition-colors">
+                        View Details
+                        <ArrowRight className="ml-1 md:ml-2 h-3 w-3 md:h-4 md:w-4" />
+                      </span>
                     </div>
                   </div>
-                  <div className="p-5">
-                    <h3 className="text-lg md:text-xl font-bold text-[#1E1F1E] mb-1">Second building</h3>
-                    <p className="text-[#1E1F1E]/70 text-sm leading-relaxed">
-                      Three new premium apartments bringing the Bond experience to a second address in Funchal.
-                    </p>
-                    <div className="mt-4 text-sm text-[#1E1F1E]/70">Opening 2026</div>
+                </Link>
+              ))}
+
+              {/* Coming Soon Teaser Card */}
+              <div className="flex-none w-80 md:w-96 bg-gradient-to-br from-[#1E1F1E]/40 to-[#1E1F1E]/20 backdrop-blur-sm group card border-2 border-dashed border-[#1E1F1E]/30 hover:border-[#1E1F1E]/60 transition-all shadow-lg">
+                <div className="aspect-video overflow-hidden bg-gradient-to-br from-[#C5C5B5]/10 to-[#C5C5B5]/5 flex items-center justify-center relative">
+                  <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNiIgc3Ryb2tlPSIjMUUxRjFFIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1vcGFjaXR5PSIuMSIvPjwvZz48L3N2Zz4=')] opacity-50"></div>
+                  <div className="relative z-10 text-center">
+                    <div className="text-6xl mb-2">🏗️</div>
+                    <div className="bg-[#1E1F1E]/80 backdrop-blur-sm text-[#C5C5B5] px-4 py-2 rounded-full text-sm font-bold border border-[#C5C5B5]/20">
+                      New Location Coming 2026
+                    </div>
                   </div>
                 </div>
-              )}
-            </div>
+                <div className="p-4 md:p-6 card-content">
+                  <div className="mb-4">
+                    <h3 className="text-lg md:text-xl font-bold text-[#1E1F1E] mb-2">Second Building</h3>
+                    <div className="inline-flex items-center gap-2 bg-[#1E1F1E]/10 px-3 py-1 rounded-full">
+                      <span className="text-xs font-semibold text-[#1E1F1E]">3 New Apartments</span>
+                      <span className="text-xs text-[#1E1F1E]/60">•</span>
+                      <span className="text-xs text-[#1E1F1E]/60">2026</span>
+                    </div>
+                  </div>
 
-            {/* Arrows */}
-            {canScrollLeft() && (
-              <button
-                onClick={() => scroll("left")}
-                aria-label="Scroll apartments left"
-                className="absolute -left-2 md:-left-3 top-1/2 -translate-y-1/2 rounded-full bg-white/85 text-[#1E1F1E] p-2 shadow hover:bg-white"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-            )}
-            {canScrollRight() && (
-              <button
-                onClick={() => scroll("right")}
-                aria-label="Scroll apartments right"
-                className="absolute -right-2 md:-right-3 top-1/2 -translate-y-1/2 rounded-full bg-white/85 text-[#1E1F1E] p-2 shadow hover:bg-white"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
-            )}
+                  <div className="h-16 mb-4">
+                    <p className="text-[#1E1F1E]/70 text-sm leading-relaxed">
+                      We're expanding! Our new building will feature 3 additional premium apartments, bringing the same quality and community vibe to a second location in Funchal.
+                    </p>
+                  </div>
+
+                  <div className="h-16 space-y-2 mb-4">
+                    <div className="flex items-center text-[#1E1F1E]/60">
+                      <span className="text-2xl mr-3">✨</span>
+                      <span className="text-sm">Same premium standards</span>
+                    </div>
+                    <div className="flex items-center text-[#1E1F1E]/60">
+                      <span className="text-2xl mr-3">🌍</span>
+                      <span className="text-sm">New location in Funchal</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between mt-auto">
+                    <div className="flex flex-col">
+                      <span className="text-sm text-[#1E1F1E]/60 font-medium">Opening 2026</span>
+                    </div>
+                    <span className="inline-flex items-center text-[#1E1F1E] text-xs md:text-sm uppercase tracking-wide opacity-60">
+                      Stay Tuned
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Gradient Overlays for Visual Cues */}
+            <div className="absolute left-0 top-0 bottom-0 w-4 md:w-8 bg-gradient-to-r from-[#C5C5B5] to-transparent pointer-events-none opacity-50"></div>
+            <div className="absolute right-0 top-0 bottom-0 w-4 md:w-8 bg-gradient-to-l from-[#C5C5B5] to-transparent pointer-events-none opacity-50"></div>
           </div>
         </AnimatedSection>
 
-        <AnimatedSection animation="fadeInUp" delay={320}>
+        {/* View All Link */}
+        <AnimatedSection animation="fadeInUp" delay={600}>
           <div className="text-center mt-8 md:mt-12">
-            <Link
-              to="/apply"
-              className="inline-flex items-center text-[#1E1F1E] hover:text-[#1E1F1E]/80 font-medium text-base md:text-lg"
+            <Link 
+              to="/apply" 
+              className="inline-flex items-center text-[#1E1F1E] hover:text-[#1E1F1E]/80 transition-colors font-medium text-base md:text-lg"
             >
               Ready to join our community?
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <ArrowRight className="ml-2 h-4 w-4 md:h-5 md:w-5" />
             </Link>
           </div>
         </AnimatedSection>
@@ -471,4 +370,4 @@ const ApartmentPreviewWorldClass: React.FC = () => {
   );
 };
 
-export default ApartmentPreviewWorldClass;
+export default ApartmentPreview;
