@@ -1,18 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Users, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 import { apartmentService, availabilityService, type Apartment } from '../../lib/supabase';
 import { getIconComponent } from '../../lib/iconUtils';
 import CalendarAvailability from '../../components/CalendarAvailability';
 
+const formatMoney = (amount: number, currency: 'EUR' | 'GBP' | 'USD') =>
+  new Intl.NumberFormat('en-GB', { style: 'currency', currency }).format(amount);
+
+const humanAvailability = (iso?: string | null) => {
+  if (!iso) return null;
+  const d = new Date(iso);
+  const today = new Date();
+  d.setHours(0, 0, 0, 0);
+  today.setHours(0, 0, 0, 0);
+  if (d <= today) return 'Available now';
+  return `Available ${d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}`;
+};
+
 const RoomDetailPage: React.FC = () => {
   const { roomSlug } = useParams<{ roomSlug: string }>();
+  const navigate = useNavigate();
+
   const [apartment, setApartment] = useState<Apartment | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [lastFetch, setLastFetch] = useState<number>(0);
 
   useEffect(() => {
     const fetchApartment = async () => {
@@ -23,19 +37,14 @@ const RoomDetailPage: React.FC = () => {
       }
 
       try {
-        // First try to find by slug
         let apartmentData = await apartmentService.getBySlug(roomSlug);
-        
-        // If not found by slug, try by ID (for backward compatibility)
-        if (!apartmentData) {
-          apartmentData = await apartmentService.getById(roomSlug);
-        }
-        
+        if (!apartmentData) apartmentData = await apartmentService.getById(roomSlug);
+
         if (apartmentData) {
           const [features, images, nextAvailableDate] = await Promise.all([
             apartmentService.getFeatures(apartmentData.id),
             apartmentService.getImages(apartmentData.id),
-            availabilityService.getNextAvailableDate(apartmentData.id)
+            availabilityService.getNextAvailableDate(apartmentData.id),
           ]);
 
           const sortedImages = images.sort((a, b) => {
@@ -50,9 +59,8 @@ const RoomDetailPage: React.FC = () => {
             features,
             images: sortedImages,
             image_url: sortedImages[0]?.image_url || apartmentData.image_url,
-            available_from: nextAvailableDate || apartmentData.available_from
+            available_from: nextAvailableDate || apartmentData.available_from,
           });
-          setLastFetch(Date.now());
         } else {
           setError('Apartment not found');
         }
@@ -63,28 +71,42 @@ const RoomDetailPage: React.FC = () => {
         setLoading(false);
       }
     };
-    
+
     fetchApartment();
   }, [roomSlug]);
-  
+
   const nextImage = () => {
     if (apartment?.images && apartment.images.length > 1) {
-      setCurrentImageIndex((prev) => 
-        prev === apartment.images.length - 1 ? 0 : prev + 1
-      );
+      setCurrentImageIndex(prev => (prev === apartment.images.length - 1 ? 0 : prev + 1));
     }
   };
 
   const previousImage = () => {
     if (apartment?.images && apartment.images.length > 1) {
-      setCurrentImageIndex((prev) => 
-        prev === 0 ? apartment.images.length - 1 : prev - 1
-      );
+      setCurrentImageIndex(prev => (prev === 0 ? apartment.images.length - 1 : prev - 1));
     }
   };
 
-  const goToImage = (index: number) => {
-    setCurrentImageIndex(index);
+  const goToImage = (index: number) => setCurrentImageIndex(index);
+
+  const handleBookNow = () => {
+    if (!apartment) return;
+    try {
+      const evt = new CustomEvent('openBookingModal', {
+        detail: {
+          apartmentId: apartment.id,
+          apartmentTitle: apartment.title,
+          // prefill can be added later if your modal supports it
+        },
+      });
+      window.dispatchEvent(evt);
+      // Fallback to booking page in case no modal listener exists
+      setTimeout(() => {
+        navigate('/apply'); // this is your booking page route
+      }, 50);
+    } catch {
+      navigate('/apply');
+    }
   };
 
   if (loading) {
@@ -118,83 +140,73 @@ const RoomDetailPage: React.FC = () => {
     );
   }
 
-  const currentImage = apartment.images && apartment.images.length > 0 
-    ? apartment.images[currentImageIndex] 
-    : null;
+  const currentImage =
+    apartment.images && apartment.images.length > 0 ? apartment.images[currentImageIndex] : null;
   const displayImageUrl = currentImage?.image_url || apartment.image_url;
-  
+  const availCopy = humanAvailability(apartment.available_from);
+
+  const eur = formatMoney(apartment.price, 'EUR');
+  const usd = formatMoney(Math.round(apartment.price * 1.05), 'USD');
+  const gbp = formatMoney(Math.round(apartment.price * 0.85), 'GBP');
+
   return (
     <>
       <Helmet>
-        <title>{`${apartment.title} - Private Apartment | Bond Coliving Funchal, Madeira`}</title>
-        <meta name="description" content={`${apartment.description} Located in Funchal, Madeira. €${apartment.price}/month. ${apartment.size} • ${apartment.capacity}. Book your stay at Bond.`} />
-        <meta name="keywords" content={`${apartment.title}, Bond apartment, coliving Funchal, private apartment Madeira, ${apartment.size}, €${apartment.price}`} />
-        <link rel="canonical" href={`https://stayatbond.com/room/${apartment.id}`} />
-        
+        <title>{`${apartment.title} — Book Your Stay | Bond Coliving Funchal`}</title>
+        <meta
+          name="description"
+          content={`${apartment.description} Located in Funchal, Madeira. ${eur}/month. ${apartment.size} • ${apartment.capacity}. Book your stay at Bond.`}
+        />
+        <link rel="canonical" href={`https://stayatbond.com/room/${apartment.slug}`} />
+
         {/* Open Graph */}
-        <meta property="og:title" content={`${apartment.title} - Private Apartment | Bond Coliving Funchal, Madeira`} />
-        <meta property="og:description" content={`${apartment.description} €${apartment.price}/month in Funchal, Madeira.`} />
-        <meta property="og:url" content={`https://stayatbond.com/room/${apartment.id}`} />
+        <meta property="og:title" content={`${apartment.title} — Book Your Stay | Bond Coliving Funchal`} />
+        <meta property="og:description" content={`${apartment.description} ${eur}/month in Funchal, Madeira.`} />
         <meta property="og:url" content={`https://stayatbond.com/room/${apartment.slug}`} />
         <meta property="og:image" content={displayImageUrl} />
-        
+
         {/* Twitter */}
-        <meta name="twitter:title" content={`${apartment.title} - Private Apartment | Bond Coliving Funchal, Madeira`} />
-        <meta name="twitter:description" content={`${apartment.description} €${apartment.price}/month in Funchal, Madeira.`} />
-        <meta name="twitter:url" content={`https://stayatbond.com/room/${apartment.slug}`} />
+        <meta name="twitter:title" content={`${apartment.title} — Book Your Stay | Bond Coliving Funchal`} />
+        <meta name="twitter:description" content={`${apartment.description} ${eur}/month in Funchal, Madeira.`} />
         <meta name="twitter:image" content={displayImageUrl} />
       </Helmet>
-      
-      {/* Hero Section */}
-      <section className="relative py-32">
+
+      {/* Hero */}
+      <section className="relative py-28 md:py-32">
         <div className="absolute inset-0 bg-black/60 z-10"></div>
-        {/* Availability Pill */}
-        {apartment.available_from && (
+
+        {availCopy && (
           <div className="absolute top-8 right-8 z-20 opacity-90 hover:opacity-100 transition-opacity duration-300">
             <div className="bg-black/60 backdrop-blur-md text-white px-4 py-2 rounded-full text-sm font-medium border border-white/20 shadow-lg">
-              Available {new Date(apartment.available_from).toLocaleDateString('en-US', { 
-                month: 'long', 
-                year: 'numeric' 
-              })}
-              {apartment.available_until && (
-                <span className="block text-xs opacity-70 mt-1">
-                  Until {new Date(apartment.available_until).toLocaleDateString('en-US', { 
-                    month: 'long', 
-                    year: 'numeric' 
-                  })}
-                </span>
-              )}
+              {availCopy}
             </div>
           </div>
         )}
-        <div 
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${displayImageUrl})` }}
-        ></div>
+
+        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${displayImageUrl})` }} />
         <div className="container relative z-20">
-          <Link to="/" className="inline-flex items-center text-[#C5C5B5]/60 hover:text-[#C5C5B5] mb-8">
+          <Link to="/" className="inline-flex items-center text-[#C5C5B5]/70 hover:text-[#C5C5B5] mb-8">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
           </Link>
-          <h1 className="text-5xl md:text-7xl font-bold mb-6">{apartment.title}</h1>
-          <p className="text-xl md:text-2xl text-[#C5C5B5]">{apartment.description}</p>
+          <h1 className="text-5xl md:text-7xl font-bold mb-4">{apartment.title}</h1>
+          <p className="text-lg md:text-2xl text-[#C5C5B5] max-w-3xl">{apartment.description}</p>
         </div>
       </section>
-      
-      {/* Details Section */}
-      <section className="py-24 bg-[#1E1F1E]">
+
+      {/* Details */}
+      <section className="py-20 bg-[#1E1F1E]">
         <div className="container">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+            {/* Gallery and calendar */}
             <div className="space-y-6">
-              {/* Main Image */}
               <div className="relative aspect-square bg-[#C5C5B5]/5 rounded-2xl overflow-hidden group">
-                <img 
-                  src={displayImageUrl} 
-                  alt={apartment.title}
-                  className="w-full h-full object-cover transition-transform duration-300" 
+                <img
+                  src={displayImageUrl}
+                  alt={`${apartment.title} interior`}
+                  className="w-full h-full object-cover transition-transform duration-300"
                 />
-                
-                {/* Navigation arrows - only show if multiple images */}
+
                 {apartment.images && apartment.images.length > 1 && (
                   <>
                     <button
@@ -211,103 +223,36 @@ const RoomDetailPage: React.FC = () => {
                     >
                       <ChevronRight className="w-5 h-5" />
                     </button>
-                    
-                    {/* Image counter */}
+
                     <div className="absolute bottom-4 right-4 bg-black/50 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                       {currentImageIndex + 1} / {apartment.images.length}
                     </div>
                   </>
                 )}
               </div>
-              
-              {/* Thumbnail Gallery - only show if multiple images */}
-              {apartment.images && apartment.images.length > 1 && (
-                <div className="grid grid-cols-4 gap-3">
-                  {apartment.images.map((image, index) => (
-                    <button
-                      key={image.id}
-                      onClick={() => goToImage(index)}
-                      className={`aspect-square rounded-lg overflow-hidden border-2 transition-all duration-300 ${
-                        index === currentImageIndex 
-                          ? 'border-[#C5C5B5] ring-2 ring-[#C5C5B5]/30' 
-                          : 'border-[#C5C5B5]/20 hover:border-[#C5C5B5]/50'
-                      }`}
-                    >
-                      <img
-                        src={image.image_url}
-                        alt={`${apartment.title} - Image ${index + 1}`}
-                        className="w-full h-full object-cover"
-                      />
-                      {image.is_featured && (
-                        <div className="absolute top-1 right-1 w-2 h-2 bg-[#C5C5B5] rounded-full"></div>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              )}
-              
-              {/* Live Calendar Availability - Desktop */}
+
+              {/* Live Availability */}
               <div className="hidden lg:block">
-                <h2 className="text-2xl font-bold mb-6">Live Availability</h2>
-                <CalendarAvailability 
-                  apartmentId={apartment.id} 
-                  apartmentTitle={apartment.title} 
-                />
+                <h2 className="text-2xl font-bold mb-6">Live availability</h2>
+                <CalendarAvailability apartmentId={apartment.id} apartmentTitle={apartment.title} />
               </div>
             </div>
-            
+
+            {/* Booking panel */}
             <div>
               <div className="mb-12 p-8 bg-[#C5C5B5]/5 rounded-2xl">
-                <div className="flex justify-between items-center mb-8">
+                <div className="flex items-start justify-between mb-6">
                   <div>
-                    <span className="block text-4xl font-bold">€{apartment.price.toLocaleString()}</span>
-                    <div className="text-sm text-[#C5C5B5]/50 mt-1">
-                      ${Math.round(apartment.price * 1.05).toLocaleString()} USD • £{Math.round(apartment.price * 0.85).toLocaleString()} GBP
+                    <span className="block text-3xl md:text-4xl font-bold">{eur}</span>
+                    <div className="text-sm text-[#C5C5B5]/60 mt-1">
+                      {usd} • {gbp}
                     </div>
-                    <span className="text-[#C5C5B5]/60 text-sm">per month</span>
+                    <span className="text-[#C5C5B5]/70 text-sm">per month</span>
                   </div>
                 </div>
-                
-                {/* What's Included Section */}
-                <div className="mb-8 p-6 bg-[#1E1F1E]/30 rounded-xl border border-[#C5C5B5]/10">
-                  <h3 className="text-lg font-bold text-[#C5C5B5] mb-4">What's Included</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div className="flex items-center text-[#C5C5B5]/80">
-                      <div className="w-2 h-2 bg-[#C5C5B5] rounded-full mr-3"></div>
-                      <span className="text-sm">All utilities (water, electricity)</span>
-                    </div>
-                    <div className="flex items-center text-[#C5C5B5]/80">
-                      <div className="w-2 h-2 bg-[#C5C5B5] rounded-full mr-3"></div>
-                      <span className="text-sm">Enterprise-grade WiFi</span>
-                    </div>
-                    <div className="flex items-center text-[#C5C5B5]/80">
-                      <div className="w-2 h-2 bg-[#C5C5B5] rounded-full mr-3"></div>
-                      <span className="text-sm">Bi-weekly cleaning service</span>
-                    </div>
-                    <div className="flex items-center text-[#C5C5B5]/80">
-                      <div className="w-2 h-2 bg-[#C5C5B5] rounded-full mr-3"></div>
-                      <span className="text-sm">Weekly laundry service</span>
-                    </div>
-                    <div className="flex items-center text-[#C5C5B5]/80">
-                      <div className="w-2 h-2 bg-[#C5C5B5] rounded-full mr-3"></div>
-                      <span className="text-sm">Coworking space access</span>
-                    </div>
-                    <div className="flex items-center text-[#C5C5B5]/80">
-                      <div className="w-2 h-2 bg-[#C5C5B5] rounded-full mr-3"></div>
-                      <span className="text-sm">Community events</span>
-                    </div>
-                    <div className="flex items-center text-[#C5C5B5]/80">
-                      <div className="w-2 h-2 bg-[#C5C5B5] rounded-full mr-3"></div>
-                      <span className="text-sm">Fresh linens & towels</span>
-                    </div>
-                    <div className="flex items-center text-[#C5C5B5]/80">
-                      <div className="w-2 h-2 bg-[#C5C5B5] rounded-full mr-3"></div>
-                      <span className="text-sm">No hidden fees</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-6">
+
+                {/* Key facts */}
+                <div className="grid grid-cols-2 gap-6 mb-8">
                   <div className="flex items-center">
                     <Users className="w-5 h-5 text-[#C5C5B5] mr-3" />
                     <span>{apartment.capacity}</span>
@@ -316,34 +261,51 @@ const RoomDetailPage: React.FC = () => {
                     <MapPin className="w-5 h-5 text-[#C5C5B5] mr-3" />
                     <span>{apartment.size}</span>
                   </div>
-                  <div className="flex items-center">
-                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                      apartment.status === 'available' ? 'bg-green-100 text-green-800' :
-                      apartment.status === 'occupied' ? 'bg-blue-100 text-blue-800' :
-                      'bg-red-100 text-red-800'
-                    }`}>
-                      {apartment.status.charAt(0).toUpperCase() + apartment.status.slice(1)}
-                    </span>
+                </div>
+
+                {/* Included */}
+                <div className="mb-8 p-6 bg-[#1E1F1E]/30 rounded-xl border border-[#C5C5B5]/10">
+                  <h3 className="text-lg font-bold text-[#C5C5B5] mb-4">What is included</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {[
+                      'All utilities',
+                      'Enterprise Wi-Fi',
+                      'Bi-weekly cleaning',
+                      'Weekly laundry',
+                      'Coworking access',
+                      'Community events',
+                      'Fresh linens and towels',
+                      'No hidden fees',
+                    ].map(item => (
+                      <div key={item} className="flex items-center text-[#C5C5B5]/80">
+                        <div className="w-2 h-2 bg-[#C5C5B5] rounded-full mr-3" />
+                        <span className="text-sm">{item}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
-                
-                {/* Clear Call-to-Action */}
-                <div className="mt-8 p-6 bg-[#C5C5B5]/10 rounded-xl border border-[#C5C5B5]/20 lg:block hidden">
+
+                {/* Book now */}
+                <div className="p-6 bg-[#C5C5B5]/10 rounded-xl border border-[#C5C5B5]/20">
                   <div className="text-center">
-                    <h3 className="text-xl font-bold text-[#C5C5B5] mb-3">Ready to call this home?</h3>
-                    <p className="text-[#C5C5B5]/80 mb-6">Join our community and start your journey in Funchal</p>
-                    <Link 
-                      to="/apply" 
-                      className="inline-flex items-center px-8 py-4 bg-[#C5C5B5] text-[#1E1F1E] rounded-full hover:bg-white transition-all font-semibold text-lg uppercase tracking-wide shadow-lg hover:shadow-xl hover:scale-105"
+                    <h3 className="text-xl font-bold text-[#C5C5B5] mb-2">Ready to book</h3>
+                    <p className="text-[#C5C5B5]/80 mb-6">
+                      Select your dates in the next step and confirm your booking
+                    </p>
+                    <button
+                      onClick={handleBookNow}
+                      className="inline-flex items-center px-8 py-4 bg-[#C5C5B5] text-[#1E1F1E] rounded-full hover:bg-white transition-all font-semibold text-lg tracking-wide shadow-lg hover:shadow-xl hover:scale-105"
                     >
-                      Apply for This Apartment
+                      Book this apartment
                       <ArrowRight className="ml-2 h-5 w-5" />
-                    </Link>
+                    </button>
+                    <div className="mt-3 text-xs text-[#C5C5B5]/60">Minimum stay 30 nights</div>
                   </div>
                 </div>
               </div>
-              
-              <div className="space-y-12 lg:block hidden">
+
+              {/* Features and info */}
+              <div className="space-y-12">
                 {apartment.features && apartment.features.length > 0 && (
                   <div>
                     <h2 className="text-2xl font-bold mb-6">Features</h2>
@@ -360,24 +322,27 @@ const RoomDetailPage: React.FC = () => {
                     </ul>
                   </div>
                 )}
-                
+
+                <div className="lg:hidden">
+                  <h2 className="text-2xl font-bold mb-6">Live availability</h2>
+                  <CalendarAvailability apartmentId={apartment.id} apartmentTitle={apartment.title} />
+                </div>
+
                 <div>
-                  <h2 className="text-2xl font-bold mb-6">About Your Stay</h2>
+                  <h2 className="text-2xl font-bold mb-6">About your stay</h2>
                   <div className="space-y-4 text-[#C5C5B5]/80">
                     <p>
-                      All private apartments at Bond include access to our coworking space and community events. 
-                      Utilities, cleaning service, and high-speed internet are included in the monthly price.
+                      Your private apartment includes access to our coworking space and community events. Utilities,
+                      cleaning and high speed internet are included in the monthly price.
                     </p>
-                    <p>
-                      Minimum stay is one month, and we offer discounts for longer commitments.
-                    </p>
+                    <p>Minimum stay is one month. Longer commitments may be eligible for discounts.</p>
                     <div className="mt-6 p-4 bg-[#C5C5B5]/10 rounded-xl border border-[#C5C5B5]/20">
-                      <h4 className="text-lg font-bold text-[#C5C5B5] mb-2">Have Questions?</h4>
+                      <h4 className="text-lg font-bold text-[#C5C5B5] mb-2">Questions</h4>
                       <p className="text-[#C5C5B5]/80 text-sm mb-3">
-                        Find answers to common questions about what's included, cleaning services, WiFi quality, and more.
+                        Answers about inclusions, cleaning, Wi-Fi and more
                       </p>
-                      <a 
-                        href="/#faq" 
+                      <a
+                        href="/#faq"
                         className="inline-flex items-center text-[#C5C5B5] hover:text-white transition-colors text-sm font-medium"
                       >
                         View FAQ
@@ -388,92 +353,24 @@ const RoomDetailPage: React.FC = () => {
                 </div>
               </div>
             </div>
-            
-            {/* Mobile Layout - Below lg breakpoint */}
-            <div className="lg:hidden space-y-12">
-              {apartment.features && apartment.features.length > 0 && (
+
+            {/* Sticky mobile booking bar */}
+            <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#1E1F1E]/95 backdrop-blur border-t border-[#C5C5B5]/20">
+              <div className="container py-3 flex items-center justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold mb-6">Features</h2>
-                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {apartment.features.map((feature, index) => {
-                      const Icon = getIconComponent(feature.icon);
-                      return (
-                        <li key={index} className="flex items-center text-[#C5C5B5]/80">
-                          <Icon className="w-4 h-4 mr-3 text-[#C5C5B5]" />
-                          {feature.label}
-                        </li>
-                      );
-                    })}
-                  </ul>
+                  <div className="text-xs text-[#C5C5B5]/70">From</div>
+                  <div className="text-lg font-bold text-[#C5C5B5]">{eur} <span className="text-sm font-normal text-[#C5C5B5]/70">per month</span></div>
                 </div>
-              )}
-              
-              <div>
-                <h2 className="text-2xl font-bold mb-6">About Your Stay</h2>
-                <div className="space-y-4 text-[#C5C5B5]/80">
-                  <p>
-                    All private apartments at Bond include access to our coworking space and community events. 
-                    Utilities, cleaning service, and high-speed internet are included in the monthly price.
-                  </p>
-                  <p>
-                    Minimum stay is one month, and we offer discounts for longer commitments.
-                  </p>
-                  <div className="mt-6 p-4 bg-[#C5C5B5]/10 rounded-xl border border-[#C5C5B5]/20">
-                    <h4 className="text-lg font-bold text-[#C5C5B5] mb-2">Have Questions?</h4>
-                    <p className="text-[#C5C5B5]/80 text-sm mb-3">
-                      Find answers to common questions about what's included, cleaning services, WiFi quality, and more.
-                    </p>
-                    <a 
-                      href="/#faq" 
-                      className="inline-flex items-center text-[#C5C5B5] hover:text-white transition-colors text-sm font-medium"
-                    >
-                      View FAQ
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </a>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Live Calendar Availability - Mobile */}
-              <div>
-                <h2 className="text-2xl font-bold mb-6">Live Availability</h2>
-                <CalendarAvailability 
-                  apartmentId={apartment.id} 
-                  apartmentTitle={apartment.title} 
-                />
-              </div>
-              
-              {/* Clear Call-to-Action - Mobile */}
-              <div className="p-6 bg-[#C5C5B5]/10 rounded-xl border border-[#C5C5B5]/20">
-                <div className="text-center">
-                  <h3 className="text-xl font-bold text-[#C5C5B5] mb-3">Ready to call this home?</h3>
-                  <p className="text-[#C5C5B5]/80 mb-6">Join our community and start your journey in Funchal</p>
-                  <Link 
-                    to="/apply" 
-                    className="inline-flex items-center px-8 py-4 bg-[#C5C5B5] text-[#1E1F1E] rounded-full hover:bg-white transition-all font-semibold text-lg uppercase tracking-wide shadow-lg hover:shadow-xl hover:scale-105"
-                  >
-                    Apply for This Apartment
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Link>
-                </div>
+                <button
+                  onClick={handleBookNow}
+                  className="px-5 py-3 rounded-full bg-[#C5C5B5] text-[#1E1F1E] font-semibold hover:bg-white transition"
+                >
+                  Book now
+                </button>
               </div>
             </div>
+            <div className="lg:hidden h-16" aria-hidden="true" />
           </div>
-        </div>
-      </section>
-      
-      {/* CTA Section */}
-      <section className="py-24 bg-[#C5C5B5]">
-        <div className="container text-center">
-          <h2 className="text-4xl font-bold text-[#1E1F1E] mb-8">
-            Ready to join our community?
-          </h2>
-          <p className="text-xl text-[#1E1F1E]/80 mb-12">
-            Apply now and start your journey with Bond.
-          </p>
-          <Link to="/apply" className="btn-primary">
-            Apply Now
-          </Link>
         </div>
       </section>
     </>
