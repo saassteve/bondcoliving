@@ -51,7 +51,7 @@ const Hero: React.FC = () => {
                   </div>
                   <div className="flex-1">
                     <div className="font-semibold text-[#C5C5B5] leading-none">Apartments</div>
-                    <div className="text-sm text-[#C5C5B5]/70 mt-1">Private units from €1,600 per month</div>
+                    <div className="text-sm text-[#C5C5B5]/70 mt-1">Private units from €1,500 per month</div>
                   </div>
                 </div>
               </button>
@@ -68,7 +68,7 @@ const Hero: React.FC = () => {
                   </div>
                   <div className="flex-1">
                     <div className="font-semibold text-[#C5C5B5] leading-none">Coworking</div>
-                    <div className="text-sm text-[#C5C5B5]/70 mt-1">Flexible passes from €15 per day</div>
+                    <div className="text-sm text-[#C5C5B5]/70 mt-1">Flexible passes from €14 per day</div>
                   </div>
                 </div>
               </button>
