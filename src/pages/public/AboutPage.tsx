@@ -1,7 +1,8 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Users, Heart, Coffee, Map, ArrowDown } from 'lucide-react';
-import AnimatedSection from '../components/AnimatedSection';
+// Fixed import path: needs to go up two levels from src/pages/public/
+import AnimatedSection from '../../components/AnimatedSection';
 
 const values = [
   {
