@@ -168,8 +168,6 @@ const MainLayout: React.FC = () => {
           </div>
         </div>
 
-        {/* Sticky Booking Bar */}
-        <StickyBookingBar />
 
         {/* Main Content */}
         <main className="flex-grow pt-0">
