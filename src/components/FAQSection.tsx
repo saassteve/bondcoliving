@@ -20,7 +20,7 @@ const faqData: FAQItem[] = [
   {
     category: 'Living',
     question: "Is cleaning service provided?",
-    answer: "Yes. We provide a thorough weekly cleaning of your apartment, which includes a change of bed linens and towels. We also clean the communal areas and coworking spaces daily to ensure a spotless environment."
+    answer: "Yes. We provide a thorough bi-weekly cleaning of your apartment, which includes a change of bed linens and towels. We also clean the communal areas and coworking spaces daily to ensure a spotless environment."
   },
   {
     category: 'Living',
