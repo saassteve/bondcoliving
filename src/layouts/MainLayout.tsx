@@ -168,8 +168,6 @@ const MainLayout: React.FC = () => {
           </div>
         </div>
 
-        {/* Sticky Booking Bar Integration */}
-        <StickyBookingBar />
 
         {/* Main Content */}
         {/* UPDATED: Added 'pt-28' for mobile to prevent overlap, keeping 'md:pt-0' for immersive desktop experience */}
