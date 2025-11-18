@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Home, Coffee, ArrowDown } from 'lucide-react';
-import AnimatedSection from './AnimatedSection';
+import AnimatedSection from '../AnimatedSection';
 
 const Hero: React.FC = () => {
   const navigate = useNavigate();
