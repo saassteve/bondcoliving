@@ -3,14 +3,13 @@ import { Sparkles } from 'lucide-react';
 
 const MARQUEE_ITEMS = [
   "Premium Coliving",
-  "1Gbps Fiber Internet",
+  "600Mbps+ Internet",
   "Central Funchal",
   "Curated Community",
-  "Rooftop Sunsets",
-  "Ergonomic Workspace",
+  "Private Apartments",
+  "Coworking Space",
   "Weekly Cleaning",
-  "Ocean Views",
-  "Digital Nomad Hub"
+  "Laundry Done For You",
 ];
 
 const Marquee: React.FC = () => {
