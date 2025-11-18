@@ -14,7 +14,7 @@ const values = [
   {
     id: 2,
     title: "Balance",
-    description: "Work and life shouldn't compete—they should complement each other in an environment that inspires both.",
+    description: "Work and life shouldn't compete, they should complement each other in an environment that inspires both.",
     icon: Heart
   },
   {
@@ -26,7 +26,7 @@ const values = [
   {
     id: 4,
     title: "Place",
-    description: "Madeira isn't just our location—it's our inspiration. This island teaches us daily about finding beauty in simplicity.",
+    description: "Madeira isn't just our location, it's our inspiration. This island teaches us daily about finding beauty in simplicity.",
     icon: Map
   }
 ];
