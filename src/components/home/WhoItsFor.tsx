@@ -13,7 +13,7 @@ const WhoItsFor: React.FC = () => {
     {
       icon: Zap,
       title: "How We Connect",
-      content: "Life at BOND flows naturally. Connections form over morning coffee, ideas spark during sunset gatherings, and collaborations emerge during focused coworking sessions. We believe in organic moments over forced networking—whether it's a spontaneous dinner or a weekend hike, interaction happens authentically."
+      content: "Life at BOND flows naturally. Connections form over morning coffee, ideas spark during sunset gatherings, and collaborations emerge during focused coworking sessions. We believe in organic moments over forced networking, whether it's a spontaneous dinner or a weekend hike, interaction happens authentically."
     },
     {
       icon: Fingerprint,
