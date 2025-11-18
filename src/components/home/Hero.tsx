@@ -1,15 +1,14 @@
-// components/Hero.tsx
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Home, Coffee, ArrowDown } from 'lucide-react';
-import AnimatedSection from '../AnimatedSection';
+import AnimatedSection from './AnimatedSection';
 
 const Hero: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="relative h-screen min-h-[700px] flex flex-col justify-end pb-12 md:pb-24 overflow-hidden">
-      {/* Background Image with refined gradient - no full dark overlay */}
+    <section className="relative h-screen min-h-[100svh] flex flex-col justify-center md:justify-end pb-12 md:pb-24 overflow-hidden">
+      {/* Background Image & Overlays */}
       <div className="absolute inset-0 z-0">
         <img
           src="https://ucarecdn.com/958a4400-0486-4ba2-8e75-484d692d7df9/foundersbond.png"
@@ -17,7 +16,11 @@ const Hero: React.FC = () => {
           className="w-full h-full object-cover"
           loading="eager"
         />
-        {/* Gradient only at the bottom to make text readable while keeping top bright */}
+        
+        {/* 1. Base Darkening Layer (New) - darkens entire image for contrast */}
+        <div className="absolute inset-0 bg-black/40"></div>
+
+        {/* 2. Gradient Layer - ensures bottom text readability */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#1E1F1E] via-[#1E1F1E]/50 to-transparent opacity-90"></div>
       </div>
 
@@ -27,7 +30,8 @@ const Hero: React.FC = () => {
           {/* Left: Typography */}
           <div className="lg:col-span-7">
             <AnimatedSection animation="fadeInUp" delay={200}>
-              <h1 className="font-bold text-5xl md:text-7xl lg:text-8xl tracking-tighter mb-6 text-[#C5C5B5] leading-[0.9]">
+              {/* Updated Text Sizes: text-6xl on mobile up to text-9xl on desktop */}
+              <h1 className="font-bold text-6xl sm:text-7xl md:text-8xl lg:text-9xl tracking-tighter mb-6 text-[#C5C5B5] leading-[0.9]">
                 Live. Work. <br />
                 <span className="text-white italic">Belong.</span>
               </h1>
@@ -48,8 +52,8 @@ const Hero: React.FC = () => {
             </AnimatedSection>
           </div>
 
-          {/* Right: Floating Glass Cards */}
-          <div className="lg:col-span-5">
+          {/* Right: Floating Glass Cards (Hidden on mobile to save space, visible on desktop) */}
+          <div className="hidden lg:block lg:col-span-5">
             <AnimatedSection animation="fadeInUp" delay={500}>
               <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-2 rounded-3xl">
                 <div className="grid gap-2">
