@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { X } from 'lucide-react';
+import { X, Search } from 'lucide-react';
 import BookingBar from './BookingBar';
 
 const StickyBookingBar: React.FC = () => {
@@ -10,12 +10,11 @@ const StickyBookingBar: React.FC = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      // Get the hero section height (approximately viewport height)
-      const heroHeight = window.innerHeight;
+      // Show sticky bar when user scrolls past the hero section (approx 80vh)
+      const heroHeight = window.innerHeight * 0.8;
       const scrollPosition = window.scrollY;
       
-      // Show sticky bar when user scrolls past the hero section
-      setIsVisible(scrollPosition > heroHeight - 100);
+      setIsVisible(scrollPosition > heroHeight);
     };
 
     const handleOpenBookingModal = () => {
@@ -32,68 +31,103 @@ const StickyBookingBar: React.FC = () => {
     };
   }, []);
 
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
+  const openModal = () => {
+    setIsModalOpen(true);
+    document.body.style.overflow = 'hidden';
+  };
 
-  // Don't show booking bar on application page
+  const closeModal = () => {
+    setIsModalOpen(false);
+    document.body.style.overflow = 'auto';
+  };
+
+  // Don't show booking bar on application page or specific room pages
   if (location.pathname === '/apply' || location.pathname.startsWith('/room/')) {
     return null;
   }
 
-  // Don't show anything if not visible
-  if (!isVisible) return null;
-
   return (
     <>
-      {/* Desktop: Show full booking bar */}
-      <div className="hidden lg:block fixed top-20 left-0 right-0 z-40 bg-[#1E1F1E]/95 backdrop-blur-sm border-b border-[#C5C5B5]/20 shadow-lg">
-        <div className="container py-2">
+      {/* DESKTOP: Floating Glass Island 
+        Positioned just below the top nav (top-24)
+      */}
+      <div 
+        className={`hidden lg:block fixed top-28 left-1/2 -translate-x-1/2 z-30 w-full max-w-4xl px-4 transition-all duration-500 ease-[cubic-bezier(0.76,0,0.24,1)] ${
+          isVisible ? 'translate-y-0 opacity-100' : '-translate-y-8 opacity-0 pointer-events-none'
+        }`}
+      >
+        <div className="bg-[#1E1F1E]/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-1.5 ring-1 ring-black/5">
           <BookingBar isSticky={true} />
         </div>
       </div>
       
-      {/* Mobile/Tablet: Show "Find your place" button */}
-      <div className="lg:hidden fixed top-20 left-0 right-0 z-40 bg-[#1E1F1E]/95 backdrop-blur-sm border-b border-[#C5C5B5]/20 shadow-lg">
-        <div className="container py-3">
-          <button
-            onClick={openModal}
-            className="w-full bg-[#C5C5B5]/10 hover:bg-[#C5C5B5]/20 text-[#C5C5B5] px-6 py-4 rounded-2xl transition-all duration-300 border border-[#C5C5B5]/20 hover:border-[#C5C5B5]/40 text-left"
-          >
-            <span className="text-lg font-medium">Find your place</span>
-            <span className="block text-sm text-[#C5C5B5]/60 mt-1">Search available apartments</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile Search Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          {/* Backdrop */}
-          <div 
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={closeModal}
-          />
-          
-          {/* Modal Content */}
-          <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 bg-[#1E1F1E] rounded-3xl border border-[#C5C5B5]/20 shadow-2xl max-h-[80vh] overflow-y-auto">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-[#C5C5B5]/20">
-              <h2 className="text-2xl font-bold text-[#C5C5B5]">Find Your Place</h2>
-              <button
-                onClick={closeModal}
-                className="p-2 text-[#C5C5B5]/60 hover:text-[#C5C5B5] transition-colors"
-              >
-                <X className="w-6 h-6" />
-              </button>
+      {/* MOBILE: Floating Trigger Button
+        Appears at the bottom right or top. Kept at top to not interfere with content interaction.
+      */}
+      <div 
+        className={`lg:hidden fixed top-24 left-4 right-4 z-30 transition-all duration-500 ease-[cubic-bezier(0.76,0,0.24,1)] ${
+          isVisible ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0 pointer-events-none'
+        }`}
+      >
+        <button
+          onClick={openModal}
+          className="w-full bg-[#1E1F1E]/90 backdrop-blur-xl border border-white/10 text-white p-3 px-4 rounded-2xl shadow-2xl flex items-center justify-between group active:scale-95 transition-transform"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-[#C5C5B5] flex items-center justify-center text-[#1E1F1E] shadow-lg">
+              <Search className="w-5 h-5" />
             </div>
-            
-            {/* Modal Body */}
-            <div className="p-6">
-              <BookingBar onSearch={closeModal} />
+            <div className="text-left">
+              <span className="block text-sm font-bold text-white">Find your space</span>
+              <span className="block text-xs text-white/50">Check dates & availability</span>
             </div>
           </div>
+          <div className="bg-white/10 px-4 py-2 rounded-full text-xs font-bold text-[#C5C5B5] uppercase tracking-wider group-hover:bg-[#C5C5B5] group-hover:text-[#1E1F1E] transition-colors">
+            Search
+          </div>
+        </button>
+      </div>
+
+      {/* MOBILE DRAWER: Bottom Sheet 
+        Slides up from bottom for better mobile ergonomics
+      */}
+      <div 
+        className={`fixed inset-0 z-[60] lg:hidden transition-all duration-300 ${
+          isModalOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+      >
+        {/* Backdrop */}
+        <div 
+          className="absolute inset-0 bg-black/60 backdrop-blur-md transition-opacity duration-300"
+          onClick={closeModal}
+        />
+        
+        {/* Drawer Content */}
+        <div 
+          className={`absolute inset-x-0 bottom-0 bg-[#1E1F1E] border-t border-white/10 rounded-t-[2rem] shadow-[0_-10px_40px_rgba(0,0,0,0.5)] transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+            isModalOpen ? 'translate-y-0' : 'translate-y-full'
+          }`}
+        >
+          {/* Handle bar for visual affordance */}
+          <div className="w-full flex justify-center pt-3 pb-1" onClick={closeModal}>
+            <div className="w-12 h-1.5 bg-white/20 rounded-full" />
+          </div>
+
+          <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
+            <h2 className="text-xl font-bold text-white">Find Your Place</h2>
+            <button
+              onClick={closeModal}
+              className="p-2 bg-white/5 rounded-full text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          
+          <div className="p-6 pb-10">
+            <BookingBar onSearch={closeModal} />
+          </div>
         </div>
-      )}
+      </div>
     </>
   );
 };
