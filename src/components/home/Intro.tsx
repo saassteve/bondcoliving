@@ -1,105 +1,116 @@
+// components/Intro.tsx
 import React from 'react';
-import { ArrowRight, Users, Coffee, Home } from 'lucide-react';
+import { ArrowRight, Users, Wifi, Key, Star } from 'lucide-react';
 import AnimatedSection from '../AnimatedSection';
-
-const benefits = [
-  {
-    icon: Users,
-    title: 'Private Living',
-    description: 'Your own space with everything you need, thoughtfully designed for comfort and productivity.',
-  },
-  {
-    icon: Coffee,
-    title: 'Focused Work',
-    description: 'Professional workspace with enterprise-grade internet and all the tools for success.',
-  },
-  {
-    icon: Home,
-    title: 'Real Community',
-    description: 'Connect with like-minded professionals who value both independence and collaboration.',
-  },
-];
 
 const Intro: React.FC = () => {
   return (
-    <>
-      <section className="py-16 bg-[#1E1F1E]">
-        <div className="container">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <AnimatedSection animation="fadeInLeft">
-              <div>
-                <div className="inline-flex items-center px-4 py-2 rounded-full bg-[#C5C5B5]/5 text-[#C5C5B5]/80 text-sm uppercase tracking-wide mb-8">
-                  Welcome to Bond
+    <section className="py-24 bg-[#1E1F1E] text-[#C5C5B5]">
+      <div className="container">
+        <div className="flex flex-col lg:flex-row gap-16">
+          
+          {/* Left Side: Sticky Content */}
+          <div className="lg:w-1/3 lg:sticky lg:top-24 lg:h-fit z-10">
+            <AnimatedSection animation="fadeInUp">
+              <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#C5C5B5]/50 mb-4 block">
+                The Bond Difference
+              </span>
+              <h2 className="text-4xl md:text-5xl font-bold mb-6 text-white leading-tight">
+                Where Independence <br />
+                <span className="text-[#C5C5B5]/50">Meets Connection.</span>
+              </h2>
+              <p className="text-lg text-[#C5C5B5]/80 mb-8 leading-relaxed">
+                We combine the privacy of your own apartment with the energy of a curated community. No forced fun, just organic connection.
+              </p>
+              
+              <button 
+                onClick={() => document.getElementById('apartments-section')?.scrollIntoView({ behavior: 'smooth' })}
+                className="group flex items-center gap-4 text-white font-medium hover:gap-6 transition-all"
+              >
+                <span className="border-b border-white pb-1">Find your apartment</span>
+                <ArrowRight className="w-5 h-5" />
+              </button>
+            </AnimatedSection>
+          </div>
+
+          {/* Right Side: Bento Grid */}
+          <div className="lg:w-2/3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              
+              {/* Large Image Tile */}
+              <AnimatedSection animation="fadeInUp" delay={100} className="md:col-span-2">
+                <div className="relative aspect-[2/1] rounded-3xl overflow-hidden group">
+                   <img 
+                    src="https://ucarecdn.com/bf59726e-44a3-459e-91aa-3ae94ffbc465/friends_laughing_Madiera.png"
+                    alt="Community"
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                   />
+                   <div className="absolute bottom-0 left-0 p-8 bg-gradient-to-t from-black/80 to-transparent w-full">
+                      <h3 className="text-2xl font-bold text-white mb-1">Curated Community</h3>
+                      <p className="text-white/70">Connect with founders and creators.</p>
+                   </div>
                 </div>
-                <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                  <span className="bg-gradient-to-r from-[#C5C5B5] via-white to-[#C5C5B5] bg-clip-text text-transparent">
-                    Where Independence<br />Meets Connection
-                  </span>
-                </h2>
-                <div className="mb-8">
-                  <p className="text-sm uppercase tracking-[0.2em] text-[#C5C5B5]/60 font-medium">
-                    The Bond Difference
+              </AnimatedSection>
+
+              {/* Feature Tile 1 */}
+              <AnimatedSection animation="fadeInUp" delay={200}>
+                <div className="bg-[#C5C5B5]/5 border border-[#C5C5B5]/10 rounded-3xl p-8 h-full hover:bg-[#C5C5B5]/10 transition-colors">
+                  <div className="w-12 h-12 bg-[#C5C5B5] rounded-full flex items-center justify-center mb-6 text-[#1E1F1E]">
+                    <Key className="w-5 h-5" />
+                  </div>
+                  <h4 className="text-xl font-bold text-white mb-3">Private Living</h4>
+                  <p className="text-[#C5C5B5]/60 text-sm leading-relaxed">
+                    Your own kitchen, bathroom, and workspace. The sanctuary you need to recharge.
                   </p>
                 </div>
-                <p className="text-lg text-[#C5C5B5] mb-8 leading-relaxed">
-                  Bond is premium coliving designed specifically for digital nomads and remote workers. 
-                  Located in central Funchal, we combine private apartments with enterprise-grade WiFi, 
-                  dedicated coworking space, and a curated community. Everything you need to work 
-                  productively while living in paradise.
-                </p>
-                
-                <button 
-                  onClick={() => {
-                    const apartmentsSection = document.getElementById('apartments-section');
-                    apartmentsSection?.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                  className="btn-primary"
-                >
-                  See Available Apartments
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </button>
-              </div>
-            </AnimatedSection>
-            
-            <AnimatedSection animation="fadeInRight" delay={200}>
-              <div className="aspect-square bg-[#C5C5B5]/5 rounded-3xl overflow-hidden">
-                <img 
-                  src="https://ucarecdn.com/bf59726e-44a3-459e-91aa-3ae94ffbc465/friends_laughing_Madiera.png"
-                  alt="Modern apartment interior at Bond coliving space in Funchal, Madeira featuring contemporary design and natural lighting"
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
-              </div>
-            </AnimatedSection>
-          </div>
-        </div>
-        
-        {/* Benefits Grid - Simplified Animation */}
-        <div className="container mt-16">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-            {benefits.map((benefit, index) => {
-              const Icon = benefit.icon;
-              return (
-                <AnimatedSection
-                  key={index}
-                  animation="fadeInUp"
-                  delay={400 + (index * 150)}
-                  className="text-center group"
-                >
-                  <div className="mb-4">
-                    <div className="w-12 h-12 bg-[#C5C5B5]/10 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:bg-[#C5C5B5]/20 transition-colors">
-                      <Icon className="h-6 w-6 text-[#C5C5B5]" />
-                    </div>
+              </AnimatedSection>
+
+              {/* Feature Tile 2 */}
+              <AnimatedSection animation="fadeInUp" delay={300}>
+                <div className="bg-[#C5C5B5]/5 border border-[#C5C5B5]/10 rounded-3xl p-8 h-full hover:bg-[#C5C5B5]/10 transition-colors">
+                  <div className="w-12 h-12 bg-[#C5C5B5] rounded-full flex items-center justify-center mb-6 text-[#1E1F1E]">
+                    <Wifi className="w-5 h-5" />
                   </div>
-                  <h3 className="text-lg font-bold mb-2 text-[#C5C5B5]">{benefit.title}</h3>
-                  <p className="text-[#C5C5B5]/70 leading-relaxed">{benefit.description}</p>
-                </AnimatedSection>
-              );
-            })}
+                  <h4 className="text-xl font-bold text-white mb-3">Enterprise WiFi</h4>
+                  <p className="text-[#C5C5B5]/60 text-sm leading-relaxed">
+                    Fiber optic speeds in every room and dedicated coworking areas.
+                  </p>
+                </div>
+              </AnimatedSection>
+
+              {/* Stat/Review Tile */}
+              <AnimatedSection animation="fadeInUp" delay={400} className="md:col-span-2">
+                 <div className="bg-[#C5C5B5] rounded-3xl p-8 flex flex-col md:flex-row items-center justify-between gap-6 text-[#1E1F1E]">
+                    <div className="flex items-center gap-4">
+                      <div className="flex -space-x-4">
+                        {[1,2,3].map(i => (
+                          <div key={i} className="w-12 h-12 rounded-full border-2 border-[#C5C5B5] bg-gray-300 overflow-hidden">
+                            <img src={`https://i.pravatar.cc/100?img=${i+10}`} alt="User" />
+                          </div>
+                        ))}
+                      </div>
+                      <div>
+                        <div className="flex text-[#1E1F1E] gap-1">
+                          <Star className="w-4 h-4 fill-current" />
+                          <Star className="w-4 h-4 fill-current" />
+                          <Star className="w-4 h-4 fill-current" />
+                          <Star className="w-4 h-4 fill-current" />
+                          <Star className="w-4 h-4 fill-current" />
+                        </div>
+                        <p className="text-sm font-semibold mt-1">Loved by nomads</p>
+                      </div>
+                    </div>
+                    <p className="text-lg md:text-xl font-serif italic max-w-xs text-center md:text-right">
+                      "Feels like a boutique hotel with a soul."
+                    </p>
+                 </div>
+              </AnimatedSection>
+
+            </div>
           </div>
         </div>
-      </section>
-    </>
+      </div>
+    </section>
   );
 };
 
