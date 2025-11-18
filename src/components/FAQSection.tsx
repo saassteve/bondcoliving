@@ -1,170 +1,244 @@
 import React, { useState } from 'react';
-import { Plus, Minus } from 'lucide-react';
+import { Plus, Minus, Search, ArrowRight } from 'lucide-react';
 import AnimatedSection from './AnimatedSection';
+
+type Category = 'All' | 'Living' | 'Coworking' | 'Community' | 'Booking';
 
 interface FAQItem {
   question: string;
   answer: string;
+  category: Exclude<Category, 'All'>;
 }
 
 const faqData: FAQItem[] = [
+  // Living
   {
+    category: 'Living',
     question: "What's included in my apartment?",
-    answer: "Every apartment comes fully furnished with everything you need for comfortable living. This includes fresh bed linens and towels, a fully equipped kitchen with pots, pans, cutlery, crockery, and all cooking essentials. You'll also have a private bathroom with toiletries, high-speed WiFi, all utilities (electricity, water, heating), and access to our coworking space. We provide weekly cleaning service and fresh linens every fortnight."
+    answer: "Every apartment is fully furnished and move-in ready. You get a private ensuite bathroom, a fully equipped kitchenette with induction hob and fridge, a dedicated workspace with an ergonomic chair, and hotel-quality linens. Utilities, high-speed WiFi, and weekly cleaning are all included in the monthly rate."
   },
   {
-    question: "What's the minimum stay requirement?",
-    answer: "We require a minimum stay of one month (30 days). This allows you to properly settle into the community and experience the full benefits of coliving. Many of our residents stay for 3-6 months or longer, and we offer discounts for extended stays."
+    category: 'Living',
+    question: "Is cleaning service provided?",
+    answer: "Yes. We provide a thorough weekly cleaning of your apartment, which includes a change of bed linens and towels. We also clean the communal areas and coworking spaces daily to ensure a spotless environment."
   },
   {
-    question: "Is WiFi suitable for remote work?",
-    answer: "Absolutely. We provide enterprise-grade internet with speeds up to 1Gbps, perfect for video calls, large file uploads, and any professional requirements. Each apartment has dedicated WiFi access, and our coworking space has additional high-speed connections for backup."
-  },
-  {
-    question: "What cleaning services are provided?",
-    answer: "We provide bi-weekly professional cleaning service for all apartments, including fresh bed linens and towels. Common areas are cleaned daily. We also offer weekly laundry service for your personal items. All cleaning supplies and toiletries are restocked regularly."
-  },
-  {
-    question: "Where exactly are you located in Funchal?",
-    answer: "We're situated in central Funchal, just a 5-minute walk from the ocean promenade and city centre. You'll be within walking distance of cafes, restaurants, shops, and public transport. The location offers the perfect balance of urban convenience and coastal charm."
-  },
-  {
-    question: "What's included in the coworking space?",
-    answer: "Our coworking space (opening September 2025) features ergonomic workstations, high-speed WiFi, printing facilities, meeting rooms, and a coffee station. It's designed specifically for digital nomads and remote workers, with 24/7 access for monthly members. Day passes (€15), weekly passes (€68), monthly hot desks (€149), and dedicated desks (€199) will be available."
-  },
-  {
-    question: "Are there any additional fees?",
-    answer: "No hidden fees whatsoever. Your monthly rate includes absolutely everything: rent, all utilities, WiFi, cleaning service, laundry service, fresh linens, toiletries, coworking space access, and community events. The only additional cost might be personal items or dining out."
-  },
-  {
-    question: "What kind of community events do you organise?",
-    answer: "We host regular community events including weekend hikes exploring Madeira's levadas, skill-sharing sessions where residents teach each other, coffee and coworking mornings, photography walks around Funchal, and occasional social dinners. All events are optional and designed to foster genuine connections."
-  },
-  {
-    question: "Can I have guests or visitors?",
-    answer: "Yes, you can have guests visit during reasonable hours. For overnight guests, please let us know in advance so we can ensure it doesn't impact other residents. Extended guest stays may incur additional fees, which we'll discuss with you beforehand."
-  },
-  {
-    question: "What's the booking process?",
-    answer: "Simply fill out our booking form with your preferred dates and apartment choice. We'll confirm availability within 48 hours and send you a booking agreement. A deposit secures your space, with the balance due before arrival. We'll provide all arrival details, door codes, and local recommendations before you arrive."
-  },
-  {
-    question: "Do you provide airport transfers?",
-    answer: "We can arrange airport transfers for an additional fee, or provide detailed instructions for public transport (about 30 minutes by bus) or taxi services. Many residents find the bus journey a lovely introduction to the island."
-  },
-  {
-    question: "What if I need to cancel or change my booking?",
-    answer: "We understand plans can change. Cancellations made more than 30 days before arrival receive a full refund minus a small processing fee. Changes to dates are subject to availability. We'll work with you to find the best solution if circumstances change."
-  },
-  {
+    category: 'Living',
     question: "Is Bond suitable for couples?",
-    answer: "Absolutely! Many of our apartments are perfect for couples, with comfortable double beds and spacious layouts. Some apartments can accommodate two people, and we have options specifically designed for couples who want to experience coliving together."
+    answer: "Absolutely. Our apartments are designed to comfortably accommodate couples, with double beds and ample storage. There is a small surcharge for a second occupant to cover additional utility and amenity usage."
   },
   {
-    question: "What's the age range of residents?",
-    answer: "Our residents are typically between 25-45 years old, though we welcome anyone who shares our values of community, respect, and professional growth. What matters most is that you're a considerate person who values both independence and meaningful connections."
+    category: 'Living',
+    question: "Can I have guests or visitors?",
+    answer: "Yes, you are welcome to have guests. For overnight stays, we ask that you inform the community manager in advance. Guests can stay for a limited number of nights per month to maintain the balance of our community."
+  },
+  
+  // Coworking
+  {
+    category: 'Coworking',
+    question: "Is the WiFi suitable for remote work?",
+    answer: "It is our top priority. We use enterprise-grade fiber internet with 1Gbps speeds and redundancy lines to ensure 100% uptime. The signal is strong in both the private apartments and the coworking area, making it perfect for video calls and heavy data usage."
   },
   {
-    question: "Do I need a Portuguese visa or residency permit?",
-    answer: "Visa requirements depend on your nationality and length of stay. EU citizens can stay freely, whilst others may need tourist visas or Portugal's Digital Nomad Visa for longer stays. We're happy to provide accommodation letters for visa applications, but please check current requirements with Portuguese authorities."
+    category: 'Coworking',
+    question: "What is included in the coworking space?",
+    answer: "Residents have 24/7 access to our dedicated coworking floor. This includes ergonomic Herman Miller chairs, external monitors (subject to availability), soundproof phone booths for private calls, and a communal kitchen with unlimited specialty coffee and organic tea."
+  },
+  
+  // Community
+  {
+    category: 'Community',
+    question: "What kind of community events do you organize?",
+    answer: "We focus on organic connection rather than forced fun. Our weekly rhythm typically includes a community family-style dinner, sunset drinks on the rooftop, and a weekend activity like a levada hike or surf trip. All events are optional but highly recommended."
+  },
+  {
+    category: 'Community',
+    question: "What is the age range of residents?",
+    answer: "We don't curate by age, but by mindset. However, our average resident is typically between 28 and 45 years old. Most are working professionals, founders, or creatives who value focus during the day and social connection in the evenings."
+  },
+  
+  // Booking
+  {
+    category: 'Booking',
+    question: "What is the minimum stay requirement?",
+    answer: "To foster a genuine sense of community, we have a minimum stay policy of one month (30 days). This prevents the 'revolving door' feeling of hostels and allows residents to build real friendships."
+  },
+  {
+    category: 'Booking',
+    question: "Do I need a Portuguese visa?",
+    answer: "EU citizens do not need a visa. Non-EU citizens typically need a Schengen visa (90 days) or a Digital Nomad Visa for longer stays. We can provide proof of accommodation for your visa application once your booking is confirmed."
+  },
+  {
+    category: 'Booking',
+    question: "What if I need to cancel or change my booking?",
+    answer: "We offer flexible cancellation policies designed for nomads. If you cancel more than 30 days before arrival, you receive a full refund minus a small processing fee. For changes during your stay, we require 30 days notice."
+  },
+  {
+    category: 'Booking',
+    question: "Are there any additional fees?",
+    answer: "Transparency is key. Your monthly rate covers rent, all utilities (water, electricity, internet), cleaning, and coworking access. The only potential extra is a one-time end-of-stay deep cleaning fee of €50."
   }
 ];
 
-const FAQSection: React.FC = () => {
-  const [openItems, setOpenItems] = useState<number[]>([]);
+const FAQ: React.FC = () => {
+  const [activeCategory, setActiveCategory] = useState<Category>('All');
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const toggleItem = (index: number) => {
-    setOpenItems(prev => 
-      prev.includes(index) 
-        ? prev.filter(i => i !== index)
-        : [...prev, index]
-    );
+  const categories: Category[] = ['All', 'Living', 'Coworking', 'Community', 'Booking'];
+
+  const toggleAccordion = (index: number) => {
+    setOpenIndex(openIndex === index ? null : index);
   };
 
+  const filteredFAQs = faqData.filter((item) => {
+    const matchesCategory = activeCategory === 'All' || item.category === activeCategory;
+    const matchesSearch = item.question.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          item.answer.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
+
   return (
-    <section id="faq" className="py-24 bg-[#1E1F1E]">
-      <div className="container">
+    <section id="faq" className="py-24 bg-[#1E1F1E] relative overflow-hidden">
+      {/* Background Texture */}
+      <div className="absolute inset-0 opacity-[0.02] bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] pointer-events-none" />
+
+      <div className="container relative z-10">
+        
+        {/* Header */}
         <AnimatedSection animation="fadeInUp">
           <div className="max-w-3xl mx-auto text-center mb-16">
-            <div className="mb-8">
-              <p className="text-sm uppercase tracking-[0.2em] text-[#C5C5B5]/60 font-medium mb-4">
-                Questions & Answers
-              </p>
-              <h2 className="text-4xl md:text-5xl font-bold mb-6">
-                <span className="bg-gradient-to-r from-[#C5C5B5] via-white to-[#C5C5B5] bg-clip-text text-transparent">
-                  Frequently Asked Questions
-                </span>
-              </h2>
-            </div>
-            <p className="text-xl text-[#C5C5B5]/80">
-              Everything you need to know about living and working at Bond.
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+              Questions? <br />
+              <span className="text-[#C5C5B5]">We have answers.</span>
+            </h2>
+            <p className="text-xl text-white/60">
+              Everything you need to know about life at Bond.
             </p>
           </div>
         </AnimatedSection>
 
-        <div className="max-w-4xl mx-auto">
-          <div className="space-y-4">
-            {faqData.map((faq, index) => (
-              <AnimatedSection
-                key={index}
-                animation="fadeInUp"
-                delay={index * 100}
-                className="bg-[#C5C5B5]/5 rounded-2xl border border-[#C5C5B5]/10 overflow-hidden hover:bg-[#C5C5B5]/10 transition-all duration-300"
-              >
+        {/* Controls: Categories & Search */}
+        <AnimatedSection animation="fadeInUp" delay={200}>
+          <div className="max-w-4xl mx-auto mb-12 flex flex-col md:flex-row gap-6 justify-between items-center">
+            
+            {/* Category Tabs */}
+            <div className="flex flex-wrap justify-center gap-2">
+              {categories.map((cat) => (
                 <button
-                  onClick={() => toggleItem(index)}
-                  className="w-full px-6 md:px-8 py-6 text-left flex items-center justify-between focus:outline-none group"
+                  key={cat}
+                  onClick={() => {
+                    setActiveCategory(cat);
+                    setOpenIndex(null);
+                  }}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+                    activeCategory === cat
+                      ? 'bg-[#C5C5B5] text-[#1E1F1E]'
+                      : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white'
+                  }`}
                 >
-                  <h3 className="text-lg md:text-xl font-bold text-[#C5C5B5] pr-4 group-hover:text-white transition-colors">
-                    {faq.question}
-                  </h3>
-                  <div className="flex-shrink-0">
-                    {openItems.includes(index) ? (
-                      <Minus className="w-5 h-5 text-[#C5C5B5] group-hover:text-white transition-colors" />
-                    ) : (
-                      <Plus className="w-5 h-5 text-[#C5C5B5] group-hover:text-white transition-colors" />
-                    )}
-                  </div>
+                  {cat}
                 </button>
-                
-                <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                  openItems.includes(index) ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-                }`}>
-                  <div className="px-6 md:px-8 pb-6">
-                    <div className="border-t border-[#C5C5B5]/10 pt-4">
-                      <p className="text-[#C5C5B5]/80 leading-relaxed">
-                        {faq.answer}
-                      </p>
+              ))}
+            </div>
+
+            {/* Search Bar */}
+            <div className="relative w-full md:w-64">
+              <input
+                type="text"
+                placeholder="Search questions..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-full py-2 pl-10 pr-4 text-white text-sm focus:outline-none focus:border-[#C5C5B5]/50 transition-colors placeholder:text-white/30"
+              />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+            </div>
+          </div>
+        </AnimatedSection>
+
+        {/* FAQ List */}
+        <div className="max-w-3xl mx-auto space-y-4">
+          {filteredFAQs.length > 0 ? (
+            filteredFAQs.map((item, index) => {
+              const isOpen = openIndex === index;
+              return (
+                <AnimatedSection 
+                  key={index} 
+                  animation="fadeInUp" 
+                  delay={index * 50} // Staggered entrance
+                >
+                  <div 
+                    className={`group border rounded-2xl transition-all duration-300 overflow-hidden ${
+                      isOpen 
+                        ? 'bg-white/5 border-[#C5C5B5]/30' 
+                        : 'bg-transparent border-white/10 hover:border-white/20'
+                    }`}
+                  >
+                    <button
+                      onClick={() => toggleAccordion(index)}
+                      className="w-full flex items-start justify-between p-6 text-left"
+                    >
+                      <span className={`text-lg font-medium transition-colors duration-300 ${
+                        isOpen ? 'text-[#C5C5B5]' : 'text-white group-hover:text-white/90'
+                      }`}>
+                        {item.question}
+                      </span>
+                      <div className={`ml-4 p-1 rounded-full border transition-all duration-300 ${
+                        isOpen 
+                          ? 'bg-[#C5C5B5] border-[#C5C5B5] text-[#1E1F1E] rotate-180' 
+                          : 'border-white/20 text-white/50 group-hover:border-white/40 group-hover:text-white'
+                      }`}>
+                        {isOpen ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                      </div>
+                    </button>
+                    
+                    <div 
+                      className={`grid transition-[grid-template-rows] duration-300 ease-out ${
+                        isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+                      }`}
+                    >
+                      <div className="overflow-hidden">
+                        <div className="px-6 pb-6">
+                          <p className="text-white/70 leading-relaxed text-base">
+                            {item.answer}
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </AnimatedSection>
-            ))}
-          </div>
-
-          {/* Contact CTA */}
-          <AnimatedSection animation="fadeInUp" delay={faqData.length * 100 + 200}>
-            <div className="text-center mt-16">
-              <div className="bg-[#C5C5B5]/5 rounded-2xl p-8 border border-[#C5C5B5]/10">
-                <h3 className="text-2xl font-bold text-[#C5C5B5] mb-4">
-                  Still have questions?
-                </h3>
-                <p className="text-[#C5C5B5]/80 mb-6">
-                  We're here to help. Get in touch and we'll answer any questions about your stay.
-                </p>
-                <a 
-                  href="mailto:hello@stayatbond.com?subject=Question about Bond Coliving"
-                  className="inline-flex items-center px-8 py-4 bg-[#C5C5B5] text-[#1E1F1E] rounded-full hover:bg-white transition-all font-semibold text-sm uppercase tracking-wide shadow-lg hover:shadow-xl hover:scale-105"
-                >
-                  Contact Us
-                </a>
-              </div>
+                </AnimatedSection>
+              );
+            })
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-white/40">No questions found matching "{searchQuery}"</p>
+              <button 
+                onClick={() => setSearchQuery('')}
+                className="mt-4 text-[#C5C5B5] hover:underline text-sm"
+              >
+                Clear search
+              </button>
             </div>
-          </AnimatedSection>
+          )}
         </div>
+
+        {/* Contact CTA */}
+        <AnimatedSection animation="fadeInUp" delay={400}>
+          <div className="text-center mt-20">
+            <p className="text-white/60 mb-6">Still have questions?</p>
+            <a 
+              href="mailto:hello@stayatbond.com"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-white/10 bg-white/5 text-white hover:bg-white hover:text-[#1E1F1E] transition-all duration-300 group"
+            >
+              Contact Support 
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </a>
+          </div>
+        </AnimatedSection>
+
       </div>
     </section>
   );
 };
 
-export default FAQSection;
+export default FAQ;
