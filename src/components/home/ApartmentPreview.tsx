@@ -271,4 +271,110 @@ const ApartmentPreview: React.FC = () => {
             {canRight && (
               <button
                 onClick={() => scroll('right')}
-                className="absolute right-4 top-1/2 -translate
+                className="absolute right-4 top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-[#C5C5B5] text-[#1E1F1E] flex items-center justify-center shadow-lg shadow-black/20 hover:scale-110 transition-all opacity-0 group-hover/rail:opacity-100 translate-x-[10px] group-hover/rail:translate-x-0 duration-300"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            )}
+
+            <div
+              ref={railRef}
+              id="apartments-scroll"
+              className="flex gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-12 px-4 md:px-1 pt-4"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              <style>{`#apartments-scroll::-webkit-scrollbar{display:none}`}</style>
+
+              {sorted.map((a) => (
+                <Link
+                  key={a.id}
+                  to={`/room/${apartmentService.generateSlug(a.title)}`}
+                  className="group relative flex-none w-80 md:w-[400px] snap-center focus:outline-none"
+                >
+                  <div className="relative aspect-[4/5] rounded-3xl overflow-hidden bg-gray-900 border border-white/10 shadow-2xl transition-all duration-500 group-hover:shadow-[#C5C5B5]/10 group-focus:ring-2 ring-[#C5C5B5]/50">
+                    
+                    <AvailabilityBadge iso={a.available_from} />
+                    
+                    {/* Image Layer */}
+                    <img
+                      src={a.image_url}
+                      alt={a.title}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-90 group-hover:opacity-100"
+                      loading="lazy"
+                    />
+                    
+                    {/* Gradient Overlay - darker at bottom for text */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#1E1F1E] via-[#1E1F1E]/20 to-transparent opacity-80 group-hover:opacity-60 transition-opacity duration-500" />
+
+                    {/* Content Layer */}
+                    <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 translate-y-2 group-hover:translate-y-0 transition-transform duration-500 ease-out">
+                      <div className="flex justify-between items-end mb-3">
+                        <h3 className="text-2xl md:text-3xl font-bold text-white leading-none">{a.title}</h3>
+                        <div className="text-right shrink-0">
+                          <div className="text-xl font-bold text-[#C5C5B5]">{formatMoney(a.price, 'EUR')}</div>
+                          <div className="text-[10px] text-white/50 uppercase tracking-wider font-medium">/ month</div>
+                        </div>
+                      </div>
+
+                      {/* Description (clamped) */}
+                      <p className="text-white/70 text-sm leading-relaxed line-clamp-2 mb-4 group-hover:text-white/90 transition-colors">
+                        {a.description}
+                      </p>
+
+                      {/* Features - Reveal on Hover */}
+                      <div className="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-[grid-template-rows] duration-500 ease-out">
+                         <div className="overflow-hidden">
+                            <div className="flex flex-wrap gap-2 mb-4 pt-1">
+                              {a.features?.slice(0, 3).map((f, idx) => (
+                                <span key={idx} className="inline-flex items-center px-2.5 py-1 rounded-md bg-white/10 backdrop-blur-md border border-white/5 text-xs text-[#C5C5B5]">
+                                  {f.label}
+                                </span>
+                              ))}
+                            </div>
+                         </div>
+                      </div>
+
+                      {/* CTA */}
+                      <div className="flex items-center gap-2 text-white font-medium text-sm mt-2 group-hover:gap-4 transition-all">
+                        View Details <ArrowRight className="w-4 h-4 text-[#C5C5B5]" />
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+
+              {/* "Coming Soon" Teaser Card */}
+              <div className="flex-none snap-center w-80 md:w-[400px] aspect-[4/5] rounded-3xl overflow-hidden bg-[#1E1F1E] border border-dashed border-white/20 relative group">
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8">
+                  <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-6 text-4xl grayscale opacity-50">
+                    🏗️
+                  </div>
+                  <h3 className="text-2xl font-bold text-white mb-2">New Location</h3>
+                  <p className="text-white/50 text-sm mb-6">
+                    We are expanding our network in Madeira. Three new units coming soon.
+                  </p>
+                  <div className="px-4 py-2 rounded-full border border-white/10 text-xs text-[#C5C5B5] uppercase tracking-widest">
+                    Opening 2026
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </AnimatedSection>
+
+        <AnimatedSection animation="fadeInUp" delay={400}>
+           <div className="flex justify-center mt-12">
+              <Link to="/apply" className="group relative inline-flex items-center justify-center px-8 py-3 font-medium text-[#1E1F1E] transition-all duration-300 bg-[#C5C5B5] rounded-full hover:bg-white hover:shadow-[0_0_20px_rgba(197,197,181,0.3)]">
+                <span className="mr-2">Book your stay</span>
+                <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
+              </Link>
+           </div>
+        </AnimatedSection>
+
+      </div>
+    </section>
+  );
+};
+
+export default ApartmentPreview;
