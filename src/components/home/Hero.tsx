@@ -17,7 +17,7 @@ const Hero: React.FC = () => {
           loading="eager"
         />
         
-        {/* 1. Base Darkening Layer (New) - darkens entire image for contrast */}
+        {/* 1. Base Darkening Layer - darkens entire image for contrast */}
         <div className="absolute inset-0 bg-black/40"></div>
 
         {/* 2. Gradient Layer - ensures bottom text readability */}
@@ -30,7 +30,6 @@ const Hero: React.FC = () => {
           {/* Left: Typography */}
           <div className="lg:col-span-7">
             <AnimatedSection animation="fadeInUp" delay={200}>
-              {/* Updated Text Sizes: text-6xl on mobile up to text-9xl on desktop */}
               <h1 className="font-bold text-6xl sm:text-7xl md:text-8xl lg:text-9xl tracking-tighter mb-6 text-[#C5C5B5] leading-[0.9]">
                 Live. Work. <br />
                 <span className="text-white italic">Belong.</span>
@@ -52,42 +51,44 @@ const Hero: React.FC = () => {
             </AnimatedSection>
           </div>
 
-          {/* Right: Floating Glass Cards (Hidden on mobile to save space, visible on desktop) */}
-          <div className="hidden lg:block lg:col-span-5">
+          {/* Right: Floating Glass Cards */}
+          <div className="lg:col-span-5 w-full">
             <AnimatedSection animation="fadeInUp" delay={500}>
               <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-2 rounded-3xl">
-                <div className="grid gap-2">
+                {/* Grid: 2 columns on mobile (side-by-side), 1 column on desktop (stacked) */}
+                <div className="grid grid-cols-2 lg:grid-cols-1 gap-2">
+                  
                   {/* Apartment Card */}
                   <button
                     onClick={() => document.getElementById('apartments-section')?.scrollIntoView({ behavior: 'smooth' })}
-                    className="group relative overflow-hidden rounded-2xl bg-[#1E1F1E]/60 hover:bg-[#C5C5B5] transition-all duration-500 p-6 text-left border border-white/5"
+                    className="group relative overflow-hidden rounded-2xl bg-[#1E1F1E]/60 hover:bg-[#C5C5B5] transition-all duration-500 p-4 md:p-6 text-left border border-white/5 h-full flex flex-col justify-between"
                   >
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="p-3 bg-white/10 rounded-xl text-white group-hover:text-[#1E1F1E] transition-colors">
-                        <Home className="w-6 h-6" />
+                    <div className="flex justify-between items-start mb-2 md:mb-4">
+                      <div className="p-2 md:p-3 bg-white/10 rounded-xl text-white group-hover:text-[#1E1F1E] transition-colors">
+                        <Home className="w-5 h-5 md:w-6 md:h-6" />
                       </div>
-                      <ArrowDown className="-rotate-90 w-5 h-5 text-white/50 group-hover:text-[#1E1F1E] transition-colors" />
+                      <ArrowDown className="-rotate-90 w-4 h-4 md:w-5 md:h-5 text-white/50 group-hover:text-[#1E1F1E] transition-colors" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-white group-hover:text-[#1E1F1E] mb-1">Apartments</h3>
-                      <p className="text-sm text-white/60 group-hover:text-[#1E1F1E]/80">Private units from €1,500/mo</p>
+                      <h3 className="text-lg md:text-xl font-bold text-white group-hover:text-[#1E1F1E] mb-1">Apartments</h3>
+                      <p className="text-xs md:text-sm text-white/60 group-hover:text-[#1E1F1E]/80">Private units from €1,500/mo</p>
                     </div>
                   </button>
 
                   {/* Coworking Card */}
                   <button
                     onClick={() => navigate('/coworking')}
-                    className="group relative overflow-hidden rounded-2xl bg-[#1E1F1E]/60 hover:bg-[#C5C5B5] transition-all duration-500 p-6 text-left border border-white/5"
+                    className="group relative overflow-hidden rounded-2xl bg-[#1E1F1E]/60 hover:bg-[#C5C5B5] transition-all duration-500 p-4 md:p-6 text-left border border-white/5 h-full flex flex-col justify-between"
                   >
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="p-3 bg-white/10 rounded-xl text-white group-hover:text-[#1E1F1E] transition-colors">
-                        <Coffee className="w-6 h-6" />
+                    <div className="flex justify-between items-start mb-2 md:mb-4">
+                      <div className="p-2 md:p-3 bg-white/10 rounded-xl text-white group-hover:text-[#1E1F1E] transition-colors">
+                        <Coffee className="w-5 h-5 md:w-6 md:h-6" />
                       </div>
-                      <ArrowDown className="-rotate-90 w-5 h-5 text-white/50 group-hover:text-[#1E1F1E] transition-colors" />
+                      <ArrowDown className="-rotate-90 w-4 h-4 md:w-5 md:h-5 text-white/50 group-hover:text-[#1E1F1E] transition-colors" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-white group-hover:text-[#1E1F1E] mb-1">Coworking</h3>
-                      <p className="text-sm text-white/60 group-hover:text-[#1E1F1E]/80">Passes from €14/day</p>
+                      <h3 className="text-lg md:text-xl font-bold text-white group-hover:text-[#1E1F1E] mb-1">Coworking</h3>
+                      <p className="text-xs md:text-sm text-white/60 group-hover:text-[#1E1F1E]/80">Passes from €14/day</p>
                     </div>
                   </button>
                 </div>
