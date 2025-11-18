@@ -114,7 +114,7 @@ const AboutPage: React.FC = () => {
                   </p>
                   
                   <p>
-                    Steve's remote tech work brought him home, but it was their rekindled connection that inspired <strong className="text-white">BOND</strong> — a space where ambitious professionals can discover their own perfect blend of meaningful work and island living.
+                    Steve's remote tech work brought him home, but it was their rekindled connection that inspired <strong className="text-white">BOND</strong>: a space where ambitious professionals can discover their own perfect blend of meaningful work and island living.
                   </p>
                   
                   <p>
