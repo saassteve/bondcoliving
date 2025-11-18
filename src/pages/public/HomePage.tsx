@@ -45,6 +45,7 @@ const HomePage: React.FC = () => {
       </Helmet>
 
       <Hero />
+      <Marquee /> 
       <ApartmentPreview />
       <Intro />
       <ValueComparison />
