@@ -51,26 +51,3 @@ const Marquee: React.FC = () => {
 };
 
 export default Marquee;
-```
-
-### 2. How to Implement
-
-You should place this component **immediately after your Hero component** on your Homepage (likely `src/pages/public/HomePage.tsx` or `src/pages/Home.tsx`).
-
-Example usage:
-
-```tsx
-// src/pages/public/HomePage.tsx (Example)
-import Hero from '../../components/Hero';
-import Marquee from '../../components/Marquee'; // Import the new component
-import Intro from '../../components/Intro';
-
-const HomePage = () => {
-  return (
-    <>
-      <Hero />
-      <Marquee /> {/* Place it right here */}
-      <Intro />
-      {/* ... rest of page */}
-    </>
-  );
