@@ -1,5 +1,4 @@
-// components/Preloader.tsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Sparkles } from 'lucide-react';
 
 interface PreloaderProps {
@@ -14,14 +13,50 @@ const phrases = [
   "Welcome to Bond."
 ];
 
+// 1. Define critical assets here to ensure they are loaded before the curtain lifts
+const CRITICAL_IMAGES = [
+  "https://ucarecdn.com/958a4400-0486-4ba2-8e75-484d692d7df9/foundersbond.png", // Hero Image
+  "https://ucarecdn.com/8a70b6b2-1930-403f-b333-8234cda9ac93/BondTextOnly.png"  // Logo
+];
+
 const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
   const [progress, setProgress] = useState(0);
   const [phraseIndex, setPhraseIndex] = useState(0);
-  const [dimension, setDimension] = useState({ width: 0, height: 0 });
   const [isExiting, setIsExiting] = useState(false);
+  const [imagesLoaded, setImagesLoaded] = useState(false);
+  
+  // Use refs to track state inside intervals without dependencies
+  const progressRef = useRef(0);
+  const imagesLoadedRef = useRef(false);
 
   useEffect(() => {
-    setDimension({ width: window.innerWidth, height: window.innerHeight });
+    // 2. Preload Images Logic
+    let loadedCount = 0;
+    
+    const checkAllLoaded = () => {
+      loadedCount++;
+      if (loadedCount === CRITICAL_IMAGES.length) {
+        setImagesLoaded(true);
+        imagesLoadedRef.current = true;
+      }
+    };
+
+    CRITICAL_IMAGES.forEach((src) => {
+      const img = new Image();
+      img.src = src;
+      img.onload = checkAllLoaded;
+      img.onerror = checkAllLoaded; // Proceed even if one fails (fallback)
+    });
+
+    // Fallback: If images take too long (e.g. 5s), force proceed
+    const safetyTimer = setTimeout(() => {
+      if (!imagesLoadedRef.current) {
+        setImagesLoaded(true);
+        imagesLoadedRef.current = true;
+      }
+    }, 5000);
+
+    return () => clearTimeout(safetyTimer);
   }, []);
 
   useEffect(() => {
@@ -30,22 +65,41 @@ const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
       setPhraseIndex((prev) => (prev + 1) % phrases.length);
     }, 450);
 
-    // Progress Logic
+    // 3. Smart Progress Logic
     const timer = setInterval(() => {
       setProgress((oldProgress) => {
-        if (oldProgress === 100) {
+        const current = oldProgress;
+        let next = current;
+
+        // Phase 1: Fast load up to 30%
+        if (current < 30) {
+          next = current + Math.random() * 2 + 1; 
+        } 
+        // Phase 2: Moderate load up to 85%
+        else if (current < 85) {
+          next = current + Math.random() * 0.5;
+        } 
+        // Phase 3: The Wait - STALL at 85% until images are real-loaded
+        else if (current >= 85 && current < 99 && !imagesLoadedRef.current) {
+           // Increment extremely slowly or stop to wait for images
+           next = current + (Math.random() < 0.1 ? 0.1 : 0); 
+        }
+        // Phase 4: Completion - If images loaded, zip to 100%
+        else if (imagesLoadedRef.current) {
+          next = current + 2; // Fast finish
+        }
+
+        // Clamp to 100
+        if (next >= 100) {
+          next = 100;
           clearInterval(timer);
           clearInterval(phraseInterval);
-          return 100;
         }
         
-        // Logarithmic random increment: slows down as it gets closer to 100
-        const diff = 100 - oldProgress;
-        const inc = Math.random() * (diff / 5) + 1;
-        
-        return Math.min(oldProgress + inc, 100);
+        progressRef.current = next;
+        return next;
       });
-    }, 100);
+    }, 20); // Run faster tick for smoother animation
 
     return () => {
       clearInterval(timer);
@@ -55,10 +109,8 @@ const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
 
   useEffect(() => {
     if (progress >= 100) {
-      // Start exit animation sequence
       setTimeout(() => {
         setIsExiting(true);
-        // Notify parent after animation finishes
         setTimeout(onComplete, 800); 
       }, 200);
     }
@@ -84,7 +136,7 @@ const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
         {/* Left: Dynamic Phrase */}
         <div className="flex flex-col gap-2">
            <div className="flex items-center gap-2">
-             <div className="w-2 h-2 bg-[#C5C5B5] rounded-full animate-ping" />
+             <div className={`w-2 h-2 bg-[#C5C5B5] rounded-full ${progress < 100 ? 'animate-ping' : ''}`} />
              <span className="text-sm uppercase tracking-widest font-medium opacity-80 w-64 truncate">
                {progress === 100 ? "Ready" : phrases[phraseIndex]}
              </span>
@@ -98,15 +150,14 @@ const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
         </div>
       </div>
 
-      {/* Progress Bar (Minimal bottom line) */}
+      {/* Progress Bar */}
       <div className="absolute bottom-0 left-0 w-full h-1 bg-white/5">
         <div 
-          className="h-full bg-[#C5C5B5] transition-all duration-100 ease-out"
+          className="h-full bg-[#C5C5B5] transition-all duration-75 ease-linear"
           style={{ width: `${progress}%` }}
         />
       </div>
       
-      {/* Subtle texture overlay */}
       <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-[0.05] pointer-events-none"></div>
     </div>
   );
