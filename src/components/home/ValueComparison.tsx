@@ -1,128 +1,271 @@
-import React from 'react';
-import { Check, X, Minus } from 'lucide-react';
-// Fixed import: Go up one level to find AnimatedSection in src/components/
-import AnimatedSection from '../../AnimatedSection';
+import React, { useState, useEffect } from 'react';
+import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Menu, X, Book, Home, Coffee, ArrowRight, Instagram, Mail, MapPin } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
+import StickyBookingBar from '../components/StickyBookingBar';
 
-const features = [
-  { name: 'Private Kitchen & Bath', standard: true, bond: true },
-  { name: 'Utilities Included', standard: true, bond: true },
-  { name: 'WiFi Included', standard: true, bond: true },
-  { name: 'Bi-Weekly Cleaning', standard: false, bond: true },
-  { name: 'Weekly Laundry Service', standard: false, bond: true },
-  { name: 'Professional Workspace', standard: false, bond: true },
-  { name: 'Community & Events', standard: false, bond: true },
-  { name: 'Monthly Rates', standard: false, bond: true },
-];
+const MainLayout: React.FC = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const location = useLocation();
+  
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+  const closeMenu = () => setIsMenuOpen(false);
 
-const ValueComparison: React.FC = () => {
+  const isActive = (path: string) => location.pathname === path;
+
+  // Handle scroll effect for navbar background
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+    return () => { document.body.style.overflow = 'auto'; };
+  }, [isMenuOpen]);
+
+  const navLinks = [
+    { name: 'Home', path: '/', icon: Home },
+    { name: 'About', path: '/about', icon: Book },
+    { name: 'Coworking', path: '/coworking', icon: Coffee },
+  ];
+
+  const handleFAQClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (location.pathname !== '/') {
+      window.location.href = '/#faq';
+      return;
+    }
+    const faqSection = document.getElementById('faq');
+    if (faqSection) {
+      faqSection.scrollIntoView({ behavior: 'smooth' });
+    }
+    closeMenu();
+  };
+
   return (
-    <section className="py-32 bg-[#1E1F1E] relative overflow-hidden">
-       {/* Background decorations */}
-       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#C5C5B5]/5 rounded-full blur-[120px] pointer-events-none" />
+    <>
+      <Helmet>
+        <title>Bond - Premium Digital Nomad Coliving in Central Funchal, Madeira</title>
+        <meta name="description" content="Premium coliving for digital nomads in central Funchal, Madeira. Private apartments with enterprise-grade WiFi, coworking space, all amenities included. 5 minutes to ocean & city center." />
+      </Helmet>
 
-       <div className="container relative z-10">
-          <AnimatedSection animation="fadeInUp">
-             {/* Header */}
-             <div className="text-center max-w-3xl mx-auto mb-20">
-                <h2 className="text-4xl md:text-6xl font-bold text-white mb-6">
-                  The Bond <span className="text-[#C5C5B5]">Difference.</span>
-                </h2>
-                <p className="text-xl text-white/60">
-                  Why settle for a lonely apartment when you can have it all?
-                </p>
-             </div>
-          </AnimatedSection>
+      <div className="flex flex-col min-h-screen bg-[#1E1F1E] text-white selection:bg-[#C5C5B5] selection:text-[#1E1F1E]">
+        
+        {/* --- FLOATING NAVIGATION BAR --- */}
+        <header 
+          className={`fixed top-0 left-0 right-0 z-50 px-4 md:px-8 transition-all duration-300 ${
+            scrolled ? 'pt-4' : 'pt-6 md:pt-8'
+          }`}
+        >
+          <div 
+            className={`mx-auto max-w-5xl rounded-full border transition-all duration-300 ${
+              scrolled 
+                ? 'bg-[#1E1F1E]/90 backdrop-blur-xl border-white/10 shadow-2xl py-3 px-6' 
+                : 'bg-black/30 backdrop-blur-md border-white/5 py-4 px-6'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              {/* Logo */}
+              <Link to="/" className="relative z-50 flex items-center gap-2 group" onClick={closeMenu}>
+                <img 
+                  src="https://ucarecdn.com/8a70b6b2-1930-403f-b333-8234cda9ac93/BondTextOnly.png" 
+                  alt="Bond" 
+                  className="h-6 md:h-7 w-auto opacity-90 group-hover:opacity-100 transition-opacity"
+                />
+              </Link>
 
-          {/* Comparison Table/Grid */}
-          <div className="max-w-5xl mx-auto">
-             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
-                
-                {/* Labels Column (Hidden on mobile, visible on desktop) */}
-                <div className="hidden md:block space-y-6 py-8">
-                   <div className="h-12"></div> {/* Spacer for headers */}
-                   {features.map((f, i) => (
-                      <div key={i} className="h-12 flex items-center text-white/50 font-medium text-sm uppercase tracking-wide">
-                         {f.name}
-                      </div>
-                   ))}
-                </div>
+              {/* Desktop Nav */}
+              <nav className="hidden md:flex items-center gap-1">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+                      isActive(link.path)
+                        ? 'bg-white/10 text-white'
+                        : 'text-white/80 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    {link.name}
+                  </Link>
+                ))}
+                <button
+                  onClick={handleFAQClick}
+                  className="px-5 py-2 rounded-full text-sm font-medium text-white/80 hover:text-white hover:bg-white/5 transition-all"
+                >
+                  FAQ
+                </button>
+              </nav>
 
-                {/* Competitor Card */}
-                <AnimatedSection animation="fadeInUp" delay={100} className="relative">
-                   <div className="bg-white/5 border border-white/10 rounded-3xl p-8 text-center">
-                      <h3 className="text-xl font-bold text-white/60 mb-2">Typical Rental</h3>
-                      <p className="text-xs uppercase tracking-widest text-white/30 mb-10">Short-term Platforms</p>
-                      
-                      <div className="space-y-6 md:space-y-0">
-                         {features.map((f, i) => (
-                            <div key={i} className="h-12 flex items-center justify-between md:justify-center border-b border-white/5 md:border-none pb-2 md:pb-0">
-                               <span className="md:hidden text-white/50 text-sm">{f.name}</span>
-                               {f.standard ? (
-                                  <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
-                                    <Check className="w-4 h-4 text-white/50" />
-                                  </div>
-                               ) : (
-                                  <div className="w-8 h-8 rounded-full flex items-center justify-center">
-                                    <Minus className="w-4 h-4 text-white/10" />
-                                  </div>
-                               )}
-                            </div>
-                         ))}
-                      </div>
-                   </div>
-                </AnimatedSection>
+              {/* CTA & Mobile Toggle */}
+              <div className="flex items-center gap-3">
+                <Link
+                  to="/apply"
+                  className={`hidden md:flex items-center gap-2 px-6 py-2.5 rounded-full font-bold text-sm transition-all duration-300 hover:scale-105 ${
+                    scrolled 
+                      ? 'bg-[#C5C5B5] text-[#1E1F1E] hover:bg-white' 
+                      : 'bg-white text-[#1E1F1E] hover:bg-[#C5C5B5]'
+                  }`}
+                >
+                  Stay with Us
+                </Link>
 
-                {/* Bond Card (Highlighted) */}
-                <AnimatedSection animation="scaleIn" delay={200} className="relative">
-                   {/* Glow effect behind */}
-                   <div className="absolute -inset-1 bg-gradient-to-b from-[#C5C5B5]/20 to-transparent rounded-[2.5rem] blur-xl opacity-50 pointer-events-none" />
-                   
-                   <div className="bg-[#C5C5B5] text-[#1E1F1E] rounded-[2rem] p-8 text-center relative shadow-2xl transform md:scale-105 border border-white/20">
-                      <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#1E1F1E] text-[#C5C5B5] text-xs font-bold uppercase tracking-widest py-2 px-6 rounded-full shadow-lg border border-[#C5C5B5]/50">
-                         Best Value
-                      </div>
-                      
-                      <h3 className="text-2xl font-bold mb-2">Bond</h3>
-                      <p className="text-xs uppercase tracking-widest text-[#1E1F1E]/60 mb-10">Premium Coliving</p>
-                      
-                      <div className="space-y-6 md:space-y-0">
-                         {features.map((f, i) => (
-                            <div key={i} className="h-12 flex items-center justify-between md:justify-center border-b border-[#1E1F1E]/10 md:border-none pb-2 md:pb-0">
-                               <span className="md:hidden text-[#1E1F1E]/70 text-sm font-medium">{f.name}</span>
-                               {f.bond ? (
-                                  <div className="w-8 h-8 bg-[#1E1F1E] rounded-full flex items-center justify-center shadow-md">
-                                     <Check className="w-4 h-4 text-[#C5C5B5]" />
-                                  </div>
-                               ) : (
-                                  <X className="w-5 h-5 text-[#1E1F1E]/20" />
-                               )}
-                            </div>
-                         ))}
-                      </div>
-                   </div>
-                </AnimatedSection>
-
-             </div>
+                {/* Mobile Burger */}
+                <button
+                  className="md:hidden relative z-50 p-2 rounded-full bg-black/20 backdrop-blur-md text-white hover:bg-white/20 transition-colors"
+                  onClick={toggleMenu}
+                  aria-label="Toggle menu"
+                >
+                  {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                </button>
+              </div>
+            </div>
           </div>
+        </header>
 
-          {/* Summary Box */}
-          <AnimatedSection animation="fadeInUp" delay={400}>
-             <div className="mt-24 text-center max-w-3xl mx-auto">
-               <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 md:p-10 border border-white/10 shadow-xl">
-                  <p className="text-lg md:text-xl text-white/80 leading-relaxed font-light">
-                     While short-term rentals charge <span className="text-white font-bold">€70-100+ per night</span> without amenities, 
-                     Bond offers all-inclusive monthly rates from <span className="text-[#C5C5B5] font-bold">€1,600</span>. 
-                  </p>
-                  <div className="mt-6 text-sm text-[#C5C5B5]/70 uppercase tracking-wide font-medium">
-                     Enterprise WiFi • Workspace • Cleaning Included
+        {/* --- MOBILE MENU OVERLAY --- */}
+        <div 
+          className={`fixed inset-0 z-40 bg-[#1E1F1E] transition-transform duration-500 ease-[cubic-bezier(0.76,0,0.24,1)] ${
+            isMenuOpen ? 'translate-y-0' : '-translate-y-full'
+          }`}
+        >
+          <div className="flex flex-col items-center justify-center h-full gap-8 p-8">
+            {navLinks.map((link) => (
+              <Link
+                key={link.path}
+                to={link.path}
+                onClick={closeMenu}
+                className="text-4xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60 hover:to-white transition-all"
+              >
+                {link.name}
+              </Link>
+            ))}
+            <button
+              onClick={handleFAQClick}
+              className="text-4xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60 hover:to-white transition-all"
+            >
+              FAQ
+            </button>
+            
+            <div className="mt-8 w-full max-w-xs h-px bg-white/10" />
+            
+            <Link
+              to="/apply"
+              onClick={closeMenu}
+              className="flex items-center gap-2 text-[#C5C5B5] text-xl uppercase tracking-widest hover:text-white transition-colors"
+            >
+              Book Now <ArrowRight className="w-5 h-5" />
+            </Link>
+          </div>
+        </div>
+
+        {/* Sticky Booking Bar Integration */}
+        <StickyBookingBar />
+
+        {/* Main Content */}
+        <main className="flex-grow pt-0">
+          <Outlet />
+        </main>
+
+        {/* --- CINEMATIC FOOTER --- */}
+        <footer className="relative bg-[#050505] pt-24 pb-12 overflow-hidden mt-24">
+          {/* Background Texture */}
+          <div className="absolute inset-0 opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] pointer-events-none" />
+          
+          <div className="container relative z-10">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-12 mb-24">
+              
+              {/* Column 1: Brand Statement */}
+              <div className="md:col-span-5">
+                <div className="flex items-center gap-3 mb-6">
+                  <img 
+                    src="https://ucarecdn.com/8a70b6b2-1930-403f-b333-8234cda9ac93/BondTextOnly.png" 
+                    alt="Bond Logo" 
+                    className="h-6 w-auto opacity-80"
+                  />
+                </div>
+                <p className="text-white/50 text-lg max-w-sm leading-relaxed mb-8">
+                  A sanctuary for digital nomads in the heart of Funchal. Where independence meets connection.
+                </p>
+                <div className="flex gap-4">
+                  <a href="#" aria-label="Instagram" className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-white/60 hover:bg-[#C5C5B5] hover:text-[#1E1F1E] transition-all border border-white/5 hover:border-[#C5C5B5]">
+                    <Instagram className="w-5 h-5" />
+                  </a>
+                  <a href="mailto:hello@stayatbond.com" aria-label="Email" className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-white/60 hover:bg-[#C5C5B5] hover:text-[#1E1F1E] transition-all border border-white/5 hover:border-[#C5C5B5]">
+                    <Mail className="w-5 h-5" />
+                  </a>
+                </div>
+              </div>
+
+              {/* Column 2: Navigation */}
+              <div className="md:col-span-3">
+                <h4 className="text-white font-bold mb-6 text-sm uppercase tracking-widest">Explore</h4>
+                <ul className="space-y-4">
+                  {navLinks.map(link => (
+                    <li key={link.name}>
+                      <Link to={link.path} className="text-white/50 hover:text-[#C5C5B5] transition-colors">
+                        {link.name}
+                      </Link>
+                    </li>
+                  ))}
+                  <li>
+                     <Link to="/apply" className="text-white/50 hover:text-[#C5C5B5] transition-colors">Apply to Stay</Link>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Column 3: Contact */}
+              <div className="md:col-span-4">
+                <h4 className="text-white font-bold mb-6 text-sm uppercase tracking-widest">Visit Us</h4>
+                <address className="not-italic text-white/50 space-y-4 mb-6">
+                  <div className="flex items-start gap-3">
+                    <MapPin className="w-5 h-5 text-[#C5C5B5] shrink-0" />
+                    <p>Rua da Carreira<br />Funchal, Madeira<br />Portugal</p>
                   </div>
-               </div>
-             </div>
-          </AnimatedSection>
+                </address>
+                <a href="mailto:hello@stayatbond.com" className="text-[#C5C5B5] hover:text-white transition-colors hover:underline block">
+                  hello@stayatbond.com
+                </a>
+              </div>
+            </div>
 
-       </div>
-    </section>
+            {/* Massive Brand Typography */}
+            <div className="border-t border-white/10 pt-12">
+              <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
+                <p className="text-white/30 text-sm">
+                  © {new Date().getFullYear()} Bond Coliving.
+                </p>
+                <div className="flex gap-6 text-sm text-white/30">
+                  <Link to="/privacy" className="hover:text-white transition-colors">Privacy</Link>
+                  <Link to="/terms" className="hover:text-white transition-colors">Terms</Link>
+                  <Link to="/login" className="hover:text-white transition-colors">Admin</Link>
+                </div>
+              </div>
+              
+              {/* The "Site Ender" Typography */}
+              <div className="relative select-none overflow-hidden">
+                <h1 className="text-[18vw] font-bold text-[#1E1F1E] leading-none text-center tracking-tighter" style={{ textShadow: '-1px -1px 0 #333, 1px -1px 0 #333, -1px 1px 0 #333, 1px 1px 0 #333' }}>
+                  BOND
+                </h1>
+                {/* Optional: Overlay gradient to make it fade into the bottom */}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#050505] to-transparent opacity-50"></div>
+              </div>
+            </div>
+          </div>
+        </footer>
+      </div>
+    </>
   );
 };
 
-export default ValueComparison;
+export default MainLayout;
