@@ -125,7 +125,7 @@ const AboutPage: React.FC = () => {
                     <img 
                       src="https://ucarecdn.com/331fb650-499a-4d2b-b2ce-d0fcdc9eafa6/S_A_signatures.png" 
                       alt="Signatures" 
-                      className="h-16 opacity-50 invert filter brightness-0" // Placeholder for actual signature if you have one
+                      className="h-20 opacity-50 invert filter brightness-0" // Placeholder for actual signature if you have one
                     />
                   </div>
                 </div>
