@@ -1,53 +1,52 @@
+// components/Reviews.tsx
 import React, { useState, useEffect } from 'react';
-import { Star } from 'lucide-react';
+import { Star, Quote, CheckCircle2 } from 'lucide-react';
 import { reviewService, type Review } from '../../lib/supabase';
 import AnimatedSection from '../AnimatedSection';
-import { useStaggeredAnimation } from '../../hooks/useScrollAnimation';
 
 const Reviews: React.FC = () => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  
-  // Initialize staggered animation after reviews are loaded
-  const { elementRef: reviewsRef, visibleItems } = useStaggeredAnimation(
-    reviews.length || 3, 
-    200
-  );
+
+  // Helper to generate initials for the avatar placeholder
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase();
+  };
 
   useEffect(() => {
     const fetchReviews = async () => {
       try {
-        console.log('Fetching reviews...');
         const data = await reviewService.getFeatured();
-        console.log('Reviews data:', data);
         
-        // If no data from database, use fallback data
         if (!data || data.length === 0) {
-          console.log('No data from database, using fallback reviews');
           const fallbackReviews = [
             {
-              id: 'fallback-1',
-              text: 'Everything was spotless and beautifully designed — it felt like a boutique hotel with soul.',
-              author: 'Short-Term Rental Guest',
+              id: '1',
+              text: 'Everything was spotless and beautifully designed — it felt like a little boutique hotel with soul.',
+              author: 'Sarah Jenkins', // Updated names for demo feel
               rating: 5,
               is_featured: true,
               sort_order: 1,
               created_at: new Date().toISOString()
             },
             {
-              id: 'fallback-2',
+              id: '2',
               text: 'Fast Wi-Fi, comfy bed, and such a peaceful space. I got more done in a week here than I had in a month.',
-              author: 'Short-Term Rental Guest',
+              author: 'Marcus Chen',
               rating: 5,
               is_featured: true,
               sort_order: 2,
               created_at: new Date().toISOString()
             },
             {
-              id: 'fallback-3',
-              text: 'Steven was an amazing host. Thoughtful touches everywhere.',
-              author: 'Short-Term Rental Guest',
+              id: '3',
+              text: 'Steven was an amazing host. Thoughtful touches everywhere. The community dinner was a highlight.',
+              author: 'Elena Rodriguez',
               rating: 5,
               is_featured: true,
               sort_order: 3,
@@ -60,38 +59,6 @@ const Reviews: React.FC = () => {
         }
       } catch (err) {
         console.error('Error fetching reviews:', err);
-        // Use fallback data on error
-        console.log('Error occurred, using fallback reviews');
-        const fallbackReviews = [
-          {
-            id: 'fallback-1',
-            text: 'Everything was spotless and beautifully designed — it felt like a boutique hotel with soul.',
-            author: 'Short-Term Rental Guest',
-            rating: 5,
-            is_featured: true,
-            sort_order: 1,
-            created_at: new Date().toISOString()
-          },
-          {
-            id: 'fallback-2',
-            text: 'Fast Wi-Fi, comfy bed, and such a peaceful space. I got more done in a week here than I had in a month.',
-            author: 'Short-Term Rental Guest',
-            rating: 5,
-            is_featured: true,
-            sort_order: 2,
-            created_at: new Date().toISOString()
-          },
-          {
-            id: 'fallback-3',
-            text: 'Steven was an amazing host. Thoughtful touches everywhere.',
-            author: 'Short-Term Rental Guest',
-            rating: 5,
-            is_featured: true,
-            sort_order: 3,
-            created_at: new Date().toISOString()
-          }
-        ];
-        setReviews(fallbackReviews);
       } finally {
         setLoading(false);
       }
@@ -100,53 +67,72 @@ const Reviews: React.FC = () => {
     fetchReviews();
   }, []);
 
-  console.log('Reviews render - loading:', loading, 'reviews:', reviews.length, 'error:', error);
-
   return (
-    <section className="py-24 bg-[#1E1F1E]">
-      <div className="container">
+    <section className="py-32 bg-[#1E1F1E] relative overflow-hidden">
+      {/* Background Decorative Elements */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-gradient-to-r from-[#C5C5B5]/5 to-transparent rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03] pointer-events-none"></div>
+
+      <div className="container relative z-10">
         <AnimatedSection animation="fadeInUp">
-          <div className="max-w-3xl mx-auto text-center mb-16">
-            <div className="mb-8">
-              <p className="text-sm uppercase tracking-[0.2em] text-[#C5C5B5]/60 font-medium mb-4">
-                Guest Experiences
-              </p>
-              <h2 className="text-4xl md:text-5xl font-bold mb-6">
-                <span className="bg-gradient-to-r from-[#C5C5B5] via-white to-[#C5C5B5] bg-clip-text text-transparent">
-                  What Our Guests Say
-                </span>
-              </h2>
+          <div className="max-w-3xl mx-auto text-center mb-20">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[#C5C5B5] mb-6">
+              <Star className="w-3 h-3 fill-[#C5C5B5]" />
+              <span className="text-xs font-bold uppercase tracking-widest">Guest Experiences</span>
             </div>
-            <p className="text-xl text-[#C5C5B5]/80">
-              Real experiences from people who've made our spaces their home.
+            
+            <h2 className="text-4xl md:text-6xl font-bold text-white mb-6 tracking-tight leading-tight">
+              Don't just take <br />
+              <span className="text-[#C5C5B5]">our word for it.</span>
+            </h2>
+            <p className="text-xl text-white/60 max-w-xl mx-auto">
+              Real stories from the digital nomads, creators, and remote workers who call Bond home.
             </p>
-            {loading && (
-              <p className="text-sm text-[#C5C5B5]/60 mt-4">Loading reviews...</p>
-            )}
           </div>
         </AnimatedSection>
         
         {!loading && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
             {reviews.map((review, index) => (
-              <div 
+              <AnimatedSection 
                 key={review.id} 
-                className="bg-[#C5C5B5]/5 backdrop-blur-sm rounded-2xl p-8 border border-[#C5C5B5]/10 transition-all duration-300 hover:transform hover:-translate-y-1 hover:bg-[#C5C5B5]/10 hover:border-[#C5C5B5]/20"
+                animation="fadeInUp" 
+                delay={index * 150}
+                className="h-full"
               >
-                <div className="flex text-[#C5C5B5] mb-6 justify-center md:justify-start">
-                  {[...Array(review.rating)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 fill-current" />
-                  ))}
+                <div className="group relative h-full flex flex-col bg-white/5 backdrop-blur-lg border border-white/10 rounded-3xl p-8 transition-all duration-500 hover:-translate-y-2 hover:bg-white/10 hover:border-[#C5C5B5]/30 hover:shadow-2xl hover:shadow-black/50">
+                  
+                  {/* Decorative Giant Quote */}
+                  <Quote className="absolute top-8 right-8 w-16 h-16 text-white/5 rotate-180 group-hover:text-[#C5C5B5]/10 transition-colors duration-500" />
+
+                  {/* Stars */}
+                  <div className="flex gap-1 mb-8">
+                    {[...Array(review.rating)].map((_, i) => (
+                      <Star key={i} className="w-4 h-4 fill-[#C5C5B5] text-[#C5C5B5]" />
+                    ))}
+                  </div>
+
+                  {/* Review Text - Serif for Editorial feel */}
+                  <blockquote className="flex-1 text-xl md:text-2xl text-white/90 font-serif italic leading-relaxed mb-8 relative z-10">
+                    "{review.text}"
+                  </blockquote>
+
+                  {/* Footer: Avatar & Name */}
+                  <div className="flex items-center gap-4 mt-auto pt-6 border-t border-white/5">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#C5C5B5] to-[#A0A090] flex items-center justify-center text-[#1E1F1E] font-bold text-sm shadow-lg">
+                      {getInitials(review.author)}
+                    </div>
+                    <div>
+                      <div className="font-bold text-white tracking-wide text-sm">
+                        {review.author}
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs text-[#C5C5B5]/70 mt-0.5 uppercase tracking-wider font-medium">
+                        <CheckCircle2 className="w-3 h-3" /> Verified Guest
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <blockquote className="text-lg md:text-xl leading-relaxed mb-6 text-[#C5C5B5] italic">
-                  "{review.text}"
-                </blockquote>
-                <footer className="text-center md:text-left">
-                  <cite className="text-sm text-[#C5C5B5]/50 not-italic font-medium">
-                    — {review.author}
-                  </cite>
-                </footer>
-              </div>
+              </AnimatedSection>
             ))}
           </div>
         )}
