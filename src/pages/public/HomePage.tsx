@@ -1,6 +1,7 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import Hero from '../../components/home/Hero';
+import Marquee from '../../components/Marquee'; // Import the new component
 import Intro from '../../components/home/Intro';
 import ApartmentPreview from '../../components/home/ApartmentPreview';
 import ValueComparison from '../../components/home/ValueComparison';
