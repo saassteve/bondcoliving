@@ -1,3 +1,4 @@
+// components/ApartmentPreview.tsx
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ChevronLeft, ChevronRight, RefreshCw, Sparkles } from 'lucide-react';
@@ -11,11 +12,11 @@ type ApartmentWithExtras = Apartment & {
   available_from?: string | null;
 };
 
-const GBP_PER_EUR = 0.85; // keep in sync with your pricing util
+const GBP_PER_EUR = 0.85;
 const USD_PER_EUR = 1.05;
 
 const formatMoney = (amount: number, currency: 'EUR' | 'GBP' | 'USD') =>
-  new Intl.NumberFormat('en-GB', { style: 'currency', currency }).format(amount);
+  new Intl.NumberFormat('en-GB', { style: 'currency', currency, maximumFractionDigits: 0 }).format(amount);
 
 const humanAvailability = (iso?: string | null) => {
   if (!iso) return null;
@@ -39,11 +40,13 @@ const AvailabilityBadge: React.FC<{ iso?: string | null }> = ({ iso }) => {
   })();
 
   return (
-    <div className="absolute top-3 right-3 z-10">
+    <div className="absolute top-4 right-4 z-20">
       <div
         className={[
-          'px-3 py-1 rounded-full text-xs font-medium backdrop-blur border',
-          soon ? 'bg-emerald-900/50 text-emerald-100 border-emerald-400/20' : 'bg-black/55 text-white border-white/10',
+          'px-3 py-1.5 rounded-full text-xs font-medium backdrop-blur-md border shadow-lg',
+          soon 
+            ? 'bg-emerald-500/20 text-emerald-100 border-emerald-500/30' 
+            : 'bg-black/40 text-white border-white/10',
         ].join(' ')}
       >
         {copy}
@@ -53,34 +56,18 @@ const AvailabilityBadge: React.FC<{ iso?: string | null }> = ({ iso }) => {
 };
 
 const SkeletonCard: React.FC = () => (
-  <div className="flex-none snap-center w-80 md:w-[28rem] rounded-2xl overflow-hidden bg-[#1E1F1E] ring-1 ring-black/10">
-    <div className="aspect-video bg-[#2A2B2A] animate-pulse" />
-    <div className="p-5">
-      <div className="h-6 w-48 bg-[#2A2B2A] rounded mb-3 animate-pulse" />
-      <div className="h-4 w-24 bg-[#2A2B2A] rounded mb-5 animate-pulse" />
-      <div className="grid grid-cols-2 gap-3 mb-6">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-4 bg-[#2A2B2A] rounded animate-pulse" />
-        ))}
+  <div className="flex-none snap-center w-80 md:w-[400px] aspect-[4/5] rounded-3xl overflow-hidden bg-[#2A2B2A] ring-1 ring-white/5 relative">
+    <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/50" />
+    <div className="absolute bottom-0 left-0 right-0 p-6">
+      <div className="h-8 w-48 bg-white/10 rounded mb-4 animate-pulse" />
+      <div className="flex gap-2 mb-6">
+        <div className="h-6 w-16 bg-white/5 rounded animate-pulse" />
+        <div className="h-6 w-16 bg-white/5 rounded animate-pulse" />
       </div>
-      <div className="h-4 w-40 bg-[#2A2B2A] rounded animate-pulse" />
+      <div className="h-10 w-full bg-white/5 rounded animate-pulse" />
     </div>
   </div>
 );
-
-const PriceBlock: React.FC<{ eur: number }> = ({ eur }) => {
-  const gbp = Math.round(eur * GBP_PER_EUR);
-  const usd = Math.round(eur * USD_PER_EUR);
-  return (
-    <div className="text-right">
-      <div className="text-lg md:text-xl font-bold text-[#C5C5B5]">{formatMoney(eur, 'EUR')}</div>
-      <div className="text-xs text-[#C5C5B5]/60">
-        {formatMoney(usd, 'USD')} • {formatMoney(gbp, 'GBP')}
-      </div>
-      <div className="text-xs text-[#C5C5B5]/60">per month</div>
-    </div>
-  );
-};
 
 const ApartmentPreview: React.FC = () => {
   const [apartments, setApartments] = useState<ApartmentWithExtras[]>([]);
@@ -92,7 +79,6 @@ const ApartmentPreview: React.FC = () => {
   const railRef = useRef<HTMLDivElement>(null);
   const [canLeft, setCanLeft] = useState(false);
   const [canRight, setCanRight] = useState(false);
-  const [activeIdx, setActiveIdx] = useState(0);
 
   const enrich = async (a: Apartment): Promise<ApartmentWithExtras> => {
     try {
@@ -134,7 +120,7 @@ const ApartmentPreview: React.FC = () => {
     fetchAll();
   }, [fetchAll]);
 
-  // Refresh on tab visibility if stale for more than 60s
+  // Refresh on tab visibility
   useEffect(() => {
     const onVis = () => {
       if (document.visibilityState === 'visible' && Date.now() - lastFetch > 60_000) {
@@ -162,23 +148,6 @@ const ApartmentPreview: React.FC = () => {
     const eps = 2;
     setCanLeft(el.scrollLeft > eps);
     setCanRight(el.scrollLeft + el.clientWidth < el.scrollWidth - eps);
-
-    // Active card: closest to rail centre
-    const children = Array.from(el.children) as HTMLElement[];
-    const railRect = el.getBoundingClientRect();
-    const centre = railRect.left + railRect.width / 2;
-    let bestIdx = 0;
-    let bestDist = Number.POSITIVE_INFINITY;
-    children.forEach((node, i) => {
-      const r = node.getBoundingClientRect();
-      const mid = r.left + r.width / 2;
-      const d = Math.abs(mid - centre);
-      if (d < bestDist) {
-        bestDist = d;
-        bestIdx = i;
-      }
-    });
-    setActiveIdx(bestIdx);
   }, []);
 
   useEffect(() => {
@@ -195,15 +164,6 @@ const ApartmentPreview: React.FC = () => {
     };
   }, [sorted, updateScrollState]);
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') scroll('left');
-      if (e.key === 'ArrowRight') scroll('right');
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, []);
-
   const scroll = (dir: 'left' | 'right') => {
     const el = railRef.current;
     if (!el) return;
@@ -211,96 +171,82 @@ const ApartmentPreview: React.FC = () => {
     el.scrollBy({ left: dir === 'left' ? -delta : delta, behavior: 'smooth' });
   };
 
+  // Loading State
   if (loading) {
     return (
-      <section id="apartments-section" className="py-24 bg-[#C5C5B5]">
-        <div className="container">
-          <div className="max-w-3xl mx-auto text-center mb-10">
-            <p className="text-sm uppercase tracking-[0.2em] text-[#1E1F1E]/60 font-medium mb-3">Your Space, Your Way</p>
-            <h2 className="text-4xl md:text-5xl font-bold">
-              <span className="bg-gradient-to-r from-[#1E1F1E] via-[#1E1F1E]/60 to-[#1E1F1E] bg-clip-text text-transparent">
-                Private Apartments
-              </span>
-            </h2>
-            <p className="mt-4 text-lg text-[#1E1F1E]/80">Loading apartments...</p>
+      <section id="apartments-section" className="py-24 bg-[#1E1F1E]">
+        <div className="container overflow-hidden">
+          <div className="mb-12 pl-4 border-l-2 border-[#C5C5B5]/20">
+             <h2 className="text-4xl md:text-5xl font-bold text-white">Loading Spaces...</h2>
           </div>
-
-          <div className="relative">
-            <div
-              ref={railRef}
-              id="apartments-scroll"
-              className="flex gap-4 md:gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 px-1"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-            >
-              <style>{`#apartments-scroll::-webkit-scrollbar{display:none}`}</style>
-              <SkeletonCard />
-              <SkeletonCard />
-              <SkeletonCard />
-            </div>
+          <div className="flex gap-6 overflow-hidden px-1">
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
           </div>
         </div>
       </section>
     );
   }
 
+  // Error State
   if (error) {
     return (
-      <section id="apartments-section" className="py-24 bg-[#C5C5B5]">
+      <section id="apartments-section" className="py-24 bg-[#1E1F1E] text-center">
         <div className="container">
-          <div className="max-w-3xl mx-auto text-center mb-12">
-            <p className="text-sm uppercase tracking-[0.2em] text-[#1E1F1E]/60 font-medium mb-4">Your Space, Your Way</p>
-            <h2 className="text-4xl md:text-5xl font-bold">
-              <span className="bg-gradient-to-r from-[#1E1F1E] via-[#1E1F1E]/60 to-[#1E1F1E] bg-clip-text text-transparent">
-                Private Apartments
-              </span>
-            </h2>
-            <p className="text-lg text-[#1E1F1E]/80">{error}</p>
-          </div>
+          <h2 className="text-3xl text-white mb-4">Something went wrong</h2>
+          <p className="text-[#C5C5B5] mb-6">{error}</p>
+          <button onClick={fetchAll} className="px-6 py-2 bg-[#C5C5B5] text-[#1E1F1E] rounded-full">
+            Try Again
+          </button>
         </div>
       </section>
     );
   }
 
   return (
-    <section id="apartments-section" className="py-16 bg-[#C5C5B5]">
-      <div className="container">
+    <section id="apartments-section" className="py-24 bg-[#1E1F1E] relative overflow-hidden">
+      {/* Ambient Background Glow */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#C5C5B5]/5 rounded-full blur-[120px] pointer-events-none" />
+      
+      <div className="container relative z-10">
+        
+        {/* Section Header & Controls */}
         <AnimatedSection animation="fadeInUp">
-          <div className="max-w-3xl mx-auto text-center mb-10">
-            <p className="text-sm uppercase tracking-[0.2em] text-[#1E1F1E]/60 font-medium mb-3">Your Space, Your Way</p>
-            <h2 className="text-4xl md:text-5xl font-bold">
-              <span className="bg-gradient-to-r from-[#1E1F1E] via-[#1E1F1E]/60 to-[#1E1F1E] bg-clip-text text-transparent">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+            <div className="max-w-2xl">
+              <p className="text-xs uppercase tracking-[0.2em] text-[#C5C5B5]/60 font-medium mb-4">
+                Your Space, Your Way
+              </p>
+              <h2 className="text-4xl md:text-6xl font-bold text-white tracking-tight">
                 Private Apartments
-              </span>
-            </h2>
-            <p className="mt-4 text-lg text-[#1E1F1E]/80">
-              Choose a private unit designed for deep work and easy living in the centre of Funchal.
-            </p>
-          </div>
-        </AnimatedSection>
-
-        <AnimatedSection animation="fadeInUp" delay={120}>
-          <div className="mb-5 md:mb-7 flex items-center justify-between gap-3">
-            <div className="text-[#1E1F1E]/70 text-sm">
-              {`${sorted.length} apartment${sorted.length !== 1 ? 's' : ''} available`}
+              </h2>
             </div>
 
-            <div className="flex items-center gap-2">
-              <label className="text-[#1E1F1E]/70 text-sm" htmlFor="apt-sort">Sort</label>
-              <select
-                id="apt-sort"
-                value={sort}
-                onChange={e => setSort(e.target.value as 'soonest' | 'priceAsc')}
-                className="text-sm bg-white/80 text-[#1E1F1E] border border-[#1E1F1E]/20 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#1E1F1E]/30"
-              >
-                <option value="soonest">Soonest availability</option>
-                <option value="priceAsc">Price low to high</option>
-              </select>
+            {/* Controls */}
+            <div className="flex items-center gap-3 bg-white/5 backdrop-blur-sm p-1.5 rounded-2xl border border-white/10">
+              <div className="relative">
+                <select
+                  id="apt-sort"
+                  value={sort}
+                  onChange={e => setSort(e.target.value as 'soonest' | 'priceAsc')}
+                  className="appearance-none bg-transparent text-[#C5C5B5] text-sm pl-4 pr-8 py-2 rounded-xl focus:outline-none focus:bg-white/5 hover:bg-white/5 transition-colors cursor-pointer"
+                >
+                  <option value="soonest" className="bg-[#1E1F1E]">Soonest availability</option>
+                  <option value="priceAsc" className="bg-[#1E1F1E]">Price: Low to High</option>
+                </select>
+                {/* Custom chevron for select */}
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[#C5C5B5]/50">
+                   <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </div>
+              </div>
+
+              <div className="w-px h-6 bg-white/10" />
 
               <button
                 onClick={fetchAll}
-                aria-label="Refresh apartments"
-                className="inline-flex items-center justify-center rounded-md border border-[#1E1F1E]/20 bg-white/80 text-[#1E1F1E] p-2 hover:bg-white"
-                title="Refresh"
+                className="p-2 text-[#C5C5B5] hover:text-white hover:bg-white/10 rounded-xl transition-all"
+                title="Refresh list"
               >
                 <RefreshCw className="w-4 h-4" />
               </button>
@@ -308,150 +254,21 @@ const ApartmentPreview: React.FC = () => {
           </div>
         </AnimatedSection>
 
-        <AnimatedSection animation="fadeInUp" delay={220}>
-          <div className="relative">
-            {/* Edge fades */}
-            <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-8 md:w-12 bg-gradient-to-r from-[#C5C5B5] to-transparent" />
-            <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 md:w-12 bg-gradient-to-l from-[#C5C5B5] to-transparent" />
-
-            {/* Rail */}
-            <div
-              ref={railRef}
-              id="apartments-scroll"
-              className="flex gap-4 md:gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 px-1"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-            >
-              <style>{`#apartments-scroll::-webkit-scrollbar{display:none}`}</style>
-
-              {sorted.map((a, i) => {
-                const availCopy = humanAvailability(a.available_from);
-                const active = i === activeIdx;
-
-                return (
-                  <Link
-                    key={a.id}
-                    to={`/room/${apartmentService.generateSlug(a.title)}`}
-                    className="outline-none focus:ring-2 focus:ring-[#1E1F1E]/40 rounded-2xl"
-                    aria-label={`View ${a.title}`}
-                  >
-                    <div
-                      className={[
-                        'flex-none snap-center w-80 md:w-[28rem] rounded-2xl overflow-hidden bg-[#1E1F1E] ring-1 transition-all',
-                        active ? 'ring-[#C5C5B5]/30 scale-[1.02] opacity-100' : 'ring-white/5 opacity-95',
-                      ].join(' ')}
-                    >
-                      <div className="relative aspect-video overflow-hidden group">
-                        <AvailabilityBadge iso={a.available_from} />
-                        <img
-                          src={a.image_url}
-                          alt={a.title}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                          loading="lazy"
-                          decoding="async"
-                        />
-                        <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-black/0 via-black/0 to-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <div className="absolute left-3 bottom-3">
-                          <div className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#C5C5B5]/90 text-[#1E1F1E] shadow">
-                            {formatMoney(a.price, 'EUR')} pm
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="p-5">
-                        <div className="flex items-start justify-between gap-3 mb-2">
-                          <h3 className="text-lg md:text-xl font-bold text-[#C5C5B5]">{a.title}</h3>
-                          <PriceBlock eur={a.price} />
-                        </div>
-
-                        <p className="text-[#C5C5B5]/80 text-sm leading-relaxed line-clamp-3 min-h-[3.5rem]">
-                          {a.description}
-                        </p>
-
-                        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
-                          {a.features?.slice(0, 4).map((f, idx) => {
-                            const Icon = getIconComponent(f.icon);
-                            return (
-                              <div key={idx} className="flex items-center text-[#C5C5B5]/70">
-                                <Icon className="w-4 h-4 mr-2 flex-shrink-0" />
-                                <span className="text-sm truncate">{f.label}</span>
-                              </div>
-                            );
-                          })}
-                        </div>
-
-                        <div className="mt-4 flex items-center justify-between">
-                          <span className="text-sm text-[#C5C5B5]/70">{a.size}</span>
-                          <span className="inline-flex items-center text-[#C5C5B5] text-xs md:text-sm uppercase tracking-wide group-hover:text-white">
-                            View details
-                            <ArrowRight className="ml-2 h-4 w-4" />
-                          </span>
-                        </div>
-
-                        {availCopy && (
-                          <div className="mt-3 text-xs text-[#C5C5B5]/70 flex items-center gap-1">
-                            <Sparkles className="w-3.5 h-3.5" /> {availCopy}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
-
-              {/* Teaser card */}
-              <div className="flex-none snap-center w-80 md:w-[28rem] rounded-2xl overflow-hidden bg-gradient-to-br from-[#1E1F1E]/40 to-[#1E1F1E]/20 ring-1 ring-[#1E1F1E]/20">
-                <div className="aspect-video grid place-items-center relative">
-                  <div className="text-6xl">🏗️</div>
-                  <div className="absolute bottom-3 right-3 bg-[#1E1F1E]/80 text-[#C5C5B5] px-3 py-1 rounded-full text-xs border border-[#C5C5B5]/20">
-                    New location 2026
-                  </div>
-                </div>
-                <div className="p-5">
-                  <h3 className="text-lg md:text-xl font-bold text-[#1E1F1E] mb-1">Second building</h3>
-                  <p className="text-[#1E1F1E]/70 text-sm leading-relaxed">
-                    Three new premium apartments bringing the Bond experience to a second address in Funchal.
-                  </p>
-                  <div className="mt-4 text-sm text-[#1E1F1E]/70">Opening 2026</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Arrows */}
+        {/* Horizontal Scroll Rail */}
+        <AnimatedSection animation="fadeInUp" delay={200}>
+          <div className="relative -mx-4 md:-mx-0 group/rail">
+            
+            {/* Navigation Buttons - Visible on hover of rail area */}
             {canLeft && (
               <button
                 onClick={() => scroll('left')}
-                aria-label="Scroll apartments left"
-                className="absolute -left-2 md:-left-3 top-1/2 -translate-y-1/2 rounded-full bg-white/85 text-[#1E1F1E] p-2 shadow hover:bg-white"
+                className="absolute left-4 top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-[#C5C5B5] text-[#1E1F1E] flex items-center justify-center shadow-lg shadow-black/20 hover:scale-110 transition-all opacity-0 group-hover/rail:opacity-100 translate-x-[-10px] group-hover/rail:translate-x-0 duration-300"
               >
-                <ChevronLeft className="w-5 h-5" />
+                <ChevronLeft className="w-6 h-6" />
               </button>
             )}
+            
             {canRight && (
               <button
                 onClick={() => scroll('right')}
-                aria-label="Scroll apartments right"
-                className="absolute -right-2 md:-right-3 top-1/2 -translate-y-1/2 rounded-full bg-white/85 text-[#1E1F1E] p-2 shadow hover:bg-white"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
-            )}
-          </div>
-        </AnimatedSection>
-
-        <AnimatedSection animation="fadeInUp" delay={320}>
-          <div className="text-center mt-8 md:mt-12">
-            <Link
-              to="/apply"
-              className="inline-flex items-center text-[#1E1F1E] hover:text-[#1E1F1E]/80 font-medium text-base md:text-lg"
-            >
-              Ready to join our community?
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
-          </div>
-        </AnimatedSection>
-      </div>
-    </section>
-  );
-};
-
-export default ApartmentPreview;
+                className="absolute right-4 top-1/2 -translate
