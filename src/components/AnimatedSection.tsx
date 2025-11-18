@@ -14,11 +14,11 @@ const AnimatedSection: React.FC<AnimatedSectionProps> = ({
   className = '',
   animation = 'fadeInUp',
   delay = 0,
-  duration = 600, // Reduced duration for snappier animations
+  duration = 600,
 }) => {
   const { elementRef, isVisible } = useScrollAnimation({
-    threshold: 0.05, // Lower threshold for earlier triggering
-    rootMargin: '50px' // Positive margin to trigger before element is fully visible
+    threshold: 0.05,
+    rootMargin: '50px'
   });
 
   const getAnimationClasses = () => {
@@ -27,13 +27,13 @@ const AnimatedSection: React.FC<AnimatedSectionProps> = ({
     if (!isVisible) {
       switch (animation) {
         case 'fadeInUp':
-          return `${baseClasses} opacity-0 translate-y-6`; // Reduced translate distance
+          return `${baseClasses} opacity-0 translate-y-6`;
         case 'fadeInLeft':
           return `${baseClasses} opacity-0 -translate-x-6`;
         case 'fadeInRight':
           return `${baseClasses} opacity-0 translate-x-6`;
         case 'scaleIn':
-          return `${baseClasses} opacity-0 scale-98`; // Less dramatic scale
+          return `${baseClasses} opacity-0 scale-95`;
         case 'fadeIn':
         default:
           return `${baseClasses} opacity-0`;
