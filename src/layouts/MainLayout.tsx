@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Menu, X, Book, Home, Coffee, ArrowRight, Instagram, Mail } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
-import StickyBookingBar from '../components/StickyBookingBar';
 
 const MainLayout: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
