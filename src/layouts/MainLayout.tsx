@@ -70,19 +70,18 @@ const MainLayout: React.FC = () => {
           <div 
             className={`mx-auto max-w-5xl rounded-full border transition-all duration-300 ${
               scrolled 
-                ? 'bg-[#1E1F1E]/80 backdrop-blur-xl border-white/10 shadow-2xl py-3 px-6' 
-                : 'bg-transparent border-transparent py-4 px-4'
+                ? 'bg-[#1E1F1E]/90 backdrop-blur-xl border-white/10 shadow-2xl py-3 px-6' 
+                : 'bg-black/30 backdrop-blur-md border-white/5 py-4 px-6' // Added dark glass background for contrast on hero
             }`}
           >
             <div className="flex items-center justify-between">
               {/* Logo */}
               <Link to="/" className="relative z-50 flex items-center gap-2 group" onClick={closeMenu}>
-                <div className="w-8 h-8 bg-[#C5C5B5] rounded-lg flex items-center justify-center text-[#1E1F1E] font-bold text-sm group-hover:rotate-3 transition-transform">
-                  B
-                </div>
-                <span className={`font-bold text-xl tracking-tight transition-colors ${scrolled || isMenuOpen ? 'text-white' : 'text-white'}`}>
-                  Bond
-                </span>
+                <img 
+                  src="https://ucarecdn.com/8a70b6b2-1930-403f-b333-8234cda9ac93/BondTextOnly.png" 
+                  alt="Bond" 
+                  className="h-6 md:h-7 w-auto opacity-90 group-hover:opacity-100 transition-opacity"
+                />
               </Link>
 
               {/* Desktop Nav */}
@@ -94,7 +93,7 @@ const MainLayout: React.FC = () => {
                     className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
                       isActive(link.path)
                         ? 'bg-white/10 text-white'
-                        : 'text-white/70 hover:text-white hover:bg-white/5'
+                        : 'text-white/80 hover:text-white hover:bg-white/5'
                     }`}
                   >
                     {link.name}
@@ -102,7 +101,7 @@ const MainLayout: React.FC = () => {
                 ))}
                 <button
                   onClick={handleFAQClick}
-                  className="px-5 py-2 rounded-full text-sm font-medium text-white/70 hover:text-white hover:bg-white/5 transition-all"
+                  className="px-5 py-2 rounded-full text-sm font-medium text-white/80 hover:text-white hover:bg-white/5 transition-all"
                 >
                   FAQ
                 </button>
@@ -123,7 +122,7 @@ const MainLayout: React.FC = () => {
 
                 {/* Mobile Burger */}
                 <button
-                  className="md:hidden relative z-50 p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
+                  className="md:hidden relative z-50 p-2 rounded-full bg-black/20 backdrop-blur-md text-white hover:bg-white/20 transition-colors"
                   onClick={toggleMenu}
                   aria-label="Toggle menu"
                 >
