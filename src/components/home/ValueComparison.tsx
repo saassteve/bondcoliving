@@ -1,6 +1,7 @@
 import React from 'react';
 import { Check, X, Minus } from 'lucide-react';
-import AnimatedSection from './AnimatedSection';
+// Fixed import: Go up one level to find AnimatedSection in src/components/
+import AnimatedSection from '../AnimatedSection';
 
 const features = [
   { name: 'Private Kitchen & Bath', standard: true, bond: true },
