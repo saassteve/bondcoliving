@@ -123,7 +123,7 @@ const AboutPage: React.FC = () => {
                   
                   <div className="pt-8">
                     <img 
-                      src="https://upload.wikimedia.org/wikipedia/commons/e/e4/Signature_sample.svg" 
+                      src="https://ucarecdn.com/331fb650-499a-4d2b-b2ce-d0fcdc9eafa6/S_A_signatures.png" 
                       alt="Signatures" 
                       className="h-16 opacity-50 invert filter brightness-0" // Placeholder for actual signature if you have one
                     />
