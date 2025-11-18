@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Menu, X, Book, Home, Coffee, ArrowRight, Instagram, Mail, MapPin } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
+import StickyBookingBar from '../components/StickyBookingBar';
 
 const MainLayout: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -168,9 +169,12 @@ const MainLayout: React.FC = () => {
           </div>
         </div>
 
+        {/* Sticky Booking Bar Integration */}
+        <StickyBookingBar />
 
         {/* Main Content */}
-        <main className="flex-grow pt-0">
+        {/* UPDATED: Added 'pt-28' for mobile to prevent overlap, keeping 'md:pt-0' for immersive desktop experience */}
+        <main className="flex-grow pt-28 md:pt-0">
           <Outlet />
         </main>
 
