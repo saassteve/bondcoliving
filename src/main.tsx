@@ -37,9 +37,12 @@ import AdminAccountPage from './pages/admin/AdminAccountPage';
 import AdminICalPage from './pages/admin/AdminICalPage';
 
 const App = () => {
-  const [isLoading, setIsLoading] = useState(true);
+  // Check if preloader has already been shown in this session
+  const hasShownPreloader = sessionStorage.getItem('preloaderShown');
+  const [isLoading, setIsLoading] = useState(!hasShownPreloader);
 
   const handleLoadingComplete = () => {
+    sessionStorage.setItem('preloaderShown', 'true');
     setIsLoading(false);
   };
 
