@@ -147,8 +147,10 @@ Deno.serve(async (req: Request) => {
     });
 
     // Send email via Resend
+    // Use onboarding@resend.dev for testing until stayatbond.com domain is verified
+    // TODO: Change back to "Bond Coliving <hello@stayatbond.com>" after domain verification
     const { data: resendData, error: resendError } = await resend.emails.send({
-      from: "Bond Coliving <hello@stayatbond.com>",
+      from: "Bond Coliving <onboarding@resend.dev>",
       to: toEmail,
       subject: emailContent.subject,
       html: emailContent.html,
@@ -287,8 +289,9 @@ async function handleResendEmail(supabase: any, resend: any, bookingId: string) 
   });
 
   // Send email
+  // Use onboarding@resend.dev for testing until stayatbond.com domain is verified
   const { data: resendData, error: resendError } = await resend.emails.send({
-    from: "Bond Coliving <hello@stayatbond.com>",
+    from: "Bond Coliving <onboarding@resend.dev>",
     to: booking.customer_email,
     subject: emailContent.subject,
     html: emailContent.html,

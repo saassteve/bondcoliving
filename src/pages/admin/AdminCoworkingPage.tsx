@@ -84,6 +84,8 @@ const AdminCoworkingPage: React.FC = () => {
         }
       });
 
+      console.log('Edge function response:', { data, error });
+
       if (error) {
         console.error('Edge function error:', error);
 
@@ -93,8 +95,23 @@ const AdminCoworkingPage: React.FC = () => {
           errorMessage += '\n\nError: ' + error.message;
         }
 
-        if (error.context?.error) {
-          errorMessage += '\n\nDetails: ' + error.context.error;
+        if (error.context) {
+          console.error('Error context:', error.context);
+          if (typeof error.context === 'string') {
+            try {
+              const contextObj = JSON.parse(error.context);
+              if (contextObj.error) {
+                errorMessage += '\n\nDetails: ' + contextObj.error;
+              }
+              if (contextObj.code) {
+                errorMessage += '\n\nError Code: ' + contextObj.code;
+              }
+            } catch {
+              errorMessage += '\n\nContext: ' + error.context;
+            }
+          } else if (error.context.error) {
+            errorMessage += '\n\nDetails: ' + error.context.error;
+          }
         }
 
         alert(errorMessage);
@@ -103,12 +120,24 @@ const AdminCoworkingPage: React.FC = () => {
 
       if (data?.error) {
         console.error('Email function returned error:', data);
-        alert('Failed to send access code email.\n\nError: ' + (data.error || 'Unknown error'));
+        let errorMessage = 'Failed to send access code email.\n\nError: ' + data.error;
+        if (data.code) {
+          errorMessage += '\n\nError Code: ' + data.code;
+        }
+        if (data.details) {
+          errorMessage += '\n\nDetails: ' + JSON.stringify(data.details, null, 2);
+        }
+        alert(errorMessage);
         return;
       }
 
-      alert('Access code email sent successfully!\n\nThe customer will receive their access code shortly.');
-      await fetchData();
+      if (data?.success) {
+        alert('Access code email sent successfully!\n\nThe customer will receive their access code shortly.');
+        await fetchData();
+      } else {
+        console.warn('Unexpected response format:', data);
+        alert('Email may have been sent, but received unexpected response. Check email logs.');
+      }
     } catch (error) {
       console.error('Error sending access code email:', error);
 
