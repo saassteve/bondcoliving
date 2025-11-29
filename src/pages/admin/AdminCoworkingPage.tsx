@@ -85,14 +85,42 @@ const AdminCoworkingPage: React.FC = () => {
       });
 
       if (error) {
-        throw error;
+        console.error('Edge function error:', error);
+
+        let errorMessage = 'Failed to send access code email.';
+
+        if (error.message) {
+          errorMessage += '\n\nError: ' + error.message;
+        }
+
+        if (error.context?.error) {
+          errorMessage += '\n\nDetails: ' + error.context.error;
+        }
+
+        alert(errorMessage);
+        return;
       }
 
-      alert('Access code email sent successfully!');
+      if (data?.error) {
+        console.error('Email function returned error:', data);
+        alert('Failed to send access code email.\n\nError: ' + (data.error || 'Unknown error'));
+        return;
+      }
+
+      alert('Access code email sent successfully!\n\nThe customer will receive their access code shortly.');
       await fetchData();
     } catch (error) {
       console.error('Error sending access code email:', error);
-      alert('Failed to send access code email. Check console for details.');
+
+      let errorMessage = 'Failed to send access code email.';
+
+      if (error instanceof Error) {
+        errorMessage += '\n\nError: ' + error.message;
+      }
+
+      errorMessage += '\n\nPlease check:\n- Resend API key is configured\n- Service role key is in vault\n- Booking has an access code';
+
+      alert(errorMessage);
     } finally {
       setSendingEmail(null);
     }
