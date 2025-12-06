@@ -23,7 +23,9 @@ const PromotionBanner: React.FC = () => {
 
   useEffect(() => {
     const updateBannerHeight = () => {
-      if (bannerRef.current && activeBanners.length > 0) {
+      const currentActiveBanners = banners.filter((banner) => !dismissedBanners.has(banner.id));
+
+      if (bannerRef.current && currentActiveBanners.length > 0) {
         const height = bannerRef.current.offsetHeight;
         document.documentElement.style.setProperty('--banner-height', `${height}px`);
       } else {
@@ -38,7 +40,7 @@ const PromotionBanner: React.FC = () => {
       window.removeEventListener('resize', updateBannerHeight);
       document.documentElement.style.setProperty('--banner-height', '0px');
     };
-  }, [activeBanners]);
+  }, [banners, dismissedBanners]);
 
   const loadDismissedBanners = () => {
     const dismissed = localStorage.getItem('dismissedBanners');

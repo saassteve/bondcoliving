@@ -176,19 +176,20 @@ const MainLayout: React.FC = () => {
 
         {/* Main Content */}
         {/* UPDATED: Account for banner and nav height on mobile, only banner on desktop for immersive experience */}
-        <main className="flex-grow">
-          <div
-            className="md:hidden"
-            style={{ paddingTop: 'calc(7rem + var(--banner-height, 0px))' }}
-          >
-            <Outlet />
-          </div>
-          <div
-            className="hidden md:block"
-            style={{ paddingTop: 'var(--banner-height, 0px)' }}
-          >
-            <Outlet />
-          </div>
+        <main
+          className="flex-grow"
+          style={{
+            paddingTop: 'calc(7rem + var(--banner-height, 0px))',
+          }}
+        >
+          <style>{`
+            @media (min-width: 768px) {
+              main {
+                padding-top: var(--banner-height, 0px) !important;
+              }
+            }
+          `}</style>
+          <Outlet />
         </main>
 
         {/* --- CINEMATIC FOOTER --- */}
