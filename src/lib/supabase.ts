@@ -78,21 +78,6 @@ export interface FeatureHighlight {
   created_at?: string
 }
 
-export interface Application {
-  id: string
-  name: string
-  email: string
-  phone?: string
-  arrival_date: string
-  departure_date: string
-  apartment_preference?: string
-  about: string
-  heard_from?: string
-  status?: 'pending' | 'approved' | 'declined'
-  created_at?: string
-  updated_at?: string
-}
-
 export interface SiteSetting {
   id: string
   key: string
@@ -373,58 +358,6 @@ export class ApartmentService {
   }
 }
 
-export class ApplicationService {
-  static async create(application: Omit<Application, 'id' | 'created_at' | 'updated_at' | 'status'>): Promise<Application> {
-    console.log('Creating application with data:', application);
-    
-    // No authentication required for application submission
-    const { data, error } = await supabase
-      .from('applications')
-      .insert(application)
-      .select()
-      .single()
-    
-    if (error) {
-      console.error('Error creating application:', error);
-      throw new Error(`Failed to submit application: ${error.message}`);
-    }
-    
-    console.log('Application created successfully:', data);
-    return data
-  }
-
-  static async getAll(): Promise<Application[]> {
-    const { data, error } = await supabase
-      .from('applications')
-      .select('*')
-      .order('created_at', { ascending: false })
-    
-    if (error) throw error
-    return data || []
-  }
-
-  static async updateStatus(id: string, status: Application['status']): Promise<Application> {
-    const { data, error } = await supabase
-      .from('applications')
-      .update({ status })
-      .eq('id', id)
-      .select()
-      .single()
-    
-    if (error) throw error
-    return data
-  }
-
-  static async delete(id: string): Promise<void> {
-    const { error } = await supabase
-      .from('applications')
-      .delete()
-      .eq('id', id)
-    
-    if (error) throw error
-  }
-}
-
 export class ReviewService {
   static async getFeatured(): Promise<Review[]> {
     console.log('ReviewService.getFeatured() called');
@@ -580,7 +513,6 @@ export class SiteSettingService {
 
 // Convenience exports
 export const apartmentService = ApartmentService
-export const applicationService = ApplicationService
 export const reviewService = ReviewService
 export const featureHighlightService = FeatureHighlightService
 export const siteSettingService = SiteSettingService

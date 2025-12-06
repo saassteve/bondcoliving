@@ -1,18 +1,47 @@
 import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { Menu, X, Home, Users, Building, Coffee, LogOut, LayoutDashboard, Settings, Calendar, CalendarCheck, Megaphone, UserCheck, Bell, PartyPopper, MapPin, Wrench, MessageSquare } from 'lucide-react';
+import { Menu, X, Home, Building, Coffee, LogOut, LayoutDashboard, Settings, Calendar, CalendarCheck, Megaphone, UserCheck, Bell, PartyPopper, MapPin, Wrench, MessageSquare, ChevronDown, ChevronRight } from 'lucide-react';
 import { authService, useAuth } from '../lib/auth';
+
+interface NavItem {
+  name: string;
+  path?: string;
+  icon: any;
+  children?: NavItem[];
+}
 
 const AdminLayout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
   const location = useLocation();
   const { user } = useAuth();
-  
+
+  // Load expanded state from localStorage
+  const [expandedItems, setExpandedItems] = React.useState<Record<string, boolean>>(() => {
+    const saved = localStorage.getItem('adminMenuExpanded');
+    return saved ? JSON.parse(saved) : { 'Guest Platform': true };
+  });
+
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
   const closeSidebar = () => setIsSidebarOpen(false);
 
+  const toggleExpanded = (itemName: string) => {
+    setExpandedItems(prev => {
+      const newState = { ...prev, [itemName]: !prev[itemName] };
+      localStorage.setItem('adminMenuExpanded', JSON.stringify(newState));
+      return newState;
+    });
+  };
+
   const isActive = (path: string) => location.pathname === path;
+
+  const isParentActive = (item: NavItem): boolean => {
+    if (item.path && isActive(item.path)) return true;
+    if (item.children) {
+      return item.children.some(child => child.path && isActive(child.path));
+    }
+    return false;
+  };
 
   const handleLogout = async () => {
     if (window.confirm('Are you sure you want to log out?')) {
@@ -20,20 +49,25 @@ const AdminLayout: React.FC = () => {
     }
   };
 
-  const navItems = [
+  const navItems: NavItem[] = [
     { name: 'Dashboard', path: '/admin', icon: LayoutDashboard },
-    { name: 'Applications', path: '/admin/applications', icon: Users },
     { name: 'Bookings', path: '/admin/bookings', icon: Calendar },
     { name: 'Rooms', path: '/admin/rooms', icon: Building },
     { name: 'iCal Sync', path: '/admin/ical', icon: CalendarCheck },
     { name: 'Coworking', path: '/admin/coworking', icon: Coffee },
-    { name: 'Guest Platform', path: '/admin/guests', icon: UserCheck },
-    { name: 'Guest Messages', path: '/admin/messages', icon: MessageSquare },
-    { name: 'Announcements', path: '/admin/announcements', icon: Bell },
-    { name: 'Events', path: '/admin/events', icon: PartyPopper },
-    { name: 'Local Info', path: '/admin/local-info', icon: MapPin },
-    { name: 'Services', path: '/admin/services', icon: Wrench },
-    { name: 'Promotions', path: '/admin/promotions', icon: Megaphone },
+    {
+      name: 'Guest Platform',
+      icon: UserCheck,
+      children: [
+        { name: 'Guest Directory', path: '/admin/guests', icon: UserCheck },
+        { name: 'Guest Messages', path: '/admin/messages', icon: MessageSquare },
+        { name: 'Announcements', path: '/admin/announcements', icon: Bell },
+        { name: 'Events', path: '/admin/events', icon: PartyPopper },
+        { name: 'Local Info', path: '/admin/local-info', icon: MapPin },
+        { name: 'Services', path: '/admin/services', icon: Wrench },
+        { name: 'Promotions', path: '/admin/promotions', icon: Megaphone },
+      ]
+    },
     { name: 'Account', path: '/admin/account', icon: Settings },
   ];
 
@@ -57,12 +91,62 @@ const AdminLayout: React.FC = () => {
           <nav className="mt-5 px-2 space-y-1">
             {navItems.map((item) => {
               const Icon = item.icon;
+              const hasChildren = item.children && item.children.length > 0;
+              const isExpanded = expandedItems[item.name];
+
+              if (hasChildren) {
+                return (
+                  <div key={item.name}>
+                    <button
+                      onClick={() => toggleExpanded(item.name)}
+                      className={`flex items-center justify-between w-full px-4 py-3 text-sm font-medium rounded-md transition-colors ${
+                        isParentActive(item)
+                          ? 'bg-gray-800 text-white'
+                          : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                      }`}
+                    >
+                      <div className="flex items-center">
+                        <Icon className="w-5 h-5 mr-3" aria-hidden="true" />
+                        {item.name}
+                      </div>
+                      {isExpanded ? (
+                        <ChevronDown className="w-4 h-4" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4" />
+                      )}
+                    </button>
+                    {isExpanded && (
+                      <div className="mt-1 space-y-1">
+                        {item.children!.map((child) => {
+                          const ChildIcon = child.icon;
+                          return (
+                            <Link
+                              key={child.path}
+                              to={child.path!}
+                              className={`flex items-center pl-12 pr-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                                isActive(child.path!)
+                                  ? 'bg-gray-800 text-white'
+                                  : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                              }`}
+                              onClick={closeSidebar}
+                            >
+                              <ChildIcon className="w-4 h-4 mr-3" aria-hidden="true" />
+                              {child.name}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
               return (
                 <Link
                   key={item.path}
-                  to={item.path}
+                  to={item.path!}
                   className={`flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${
-                    isActive(item.path)
+                    isActive(item.path!)
                       ? 'bg-gray-800 text-white'
                       : 'text-gray-300 hover:bg-gray-700 hover:text-white'
                   }`}

@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
-import { Users, Building, Coffee, Calendar, TrendingUp, AlertCircle, CheckCircle, Clock, DollarSign } from 'lucide-react';
-import { apartmentService, applicationService, reviewService, featureHighlightService, bookingService, type Booking } from '../../lib/supabase';
+import { Building, Coffee, Calendar, Clock, DollarSign } from 'lucide-react';
+import { apartmentService, reviewService, featureHighlightService, bookingService, type Booking } from '../../lib/supabase';
 
 const AdminDashboardPage: React.FC = () => {
   const [stats, setStats] = useState({
     totalApartments: 0,
     availableApartments: 0,
-    pendingApplications: 0,
-    totalApplications: 0,
     featuredReviews: 0,
     activeFeatures: 0,
     totalBookings: 0,
@@ -18,7 +16,6 @@ const AdminDashboardPage: React.FC = () => {
     upcomingCheckIns: 0,
     monthlyRevenue: 0,
   });
-  const [recentApplications, setRecentApplications] = useState<any[]>([]);
   const [recentBookings, setRecentBookings] = useState<Booking[]>([]);
   const [upcomingBookings, setUpcomingBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,9 +29,8 @@ const AdminDashboardPage: React.FC = () => {
       setLoading(true);
 
       // Fetch all data in parallel
-      const [apartments, applications, reviews, features, bookings] = await Promise.all([
+      const [apartments, reviews, features, bookings] = await Promise.all([
         apartmentService.getAll(),
-        applicationService.getAll(),
         reviewService.getFeatured(),
         featureHighlightService.getActive(),
         bookingService.getAll(),
@@ -42,7 +38,6 @@ const AdminDashboardPage: React.FC = () => {
 
       // Calculate stats
       const availableApartments = apartments.filter(apt => apt.status === 'available').length;
-      const pendingApplications = applications.filter(app => app.status === 'pending').length;
       const confirmedBookings = bookings.filter(booking => booking.status === 'confirmed').length;
       const checkedInBookings = bookings.filter(booking => booking.status === 'checked_in').length;
 
@@ -70,8 +65,6 @@ const AdminDashboardPage: React.FC = () => {
       setStats({
         totalApartments: apartments.length,
         availableApartments,
-        pendingApplications,
-        totalApplications: applications.length,
         featuredReviews: reviews.length,
         activeFeatures: features.length,
         totalBookings: bookings.length,
@@ -80,9 +73,6 @@ const AdminDashboardPage: React.FC = () => {
         upcomingCheckIns,
         monthlyRevenue,
       });
-
-      // Get recent applications (last 5)
-      setRecentApplications(applications.slice(0, 5));
 
       // Get recent bookings (last 5)
       setRecentBookings(bookings.slice(0, 5));
@@ -112,17 +102,6 @@ const AdminDashboardPage: React.FC = () => {
     });
   };
 
-  const getStatusBadgeClass = (status: string) => {
-    switch(status) {
-      case 'approved':
-        return 'bg-green-100 text-green-800';
-      case 'declined':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-yellow-100 text-yellow-800';
-    }
-  };
-
   const dashboardStats = [
     {
       name: 'Total Apartments',
@@ -137,13 +116,6 @@ const AdminDashboardPage: React.FC = () => {
       icon: Calendar,
       color: 'bg-green-500',
       subtext: `${stats.checkedInBookings} checked in`
-    },
-    {
-      name: 'Pending Applications',
-      value: stats.pendingApplications.toString(),
-      icon: AlertCircle,
-      color: 'bg-yellow-500',
-      subtext: `${stats.totalApplications} total`
     },
     {
       name: 'Upcoming Check-ins',
@@ -222,23 +194,18 @@ const AdminDashboardPage: React.FC = () => {
                 )}
               </Link>
               <Link
-                to="/admin/applications"
-                className="flex items-center p-3 bg-indigo-900/30 text-indigo-300 rounded-md hover:bg-indigo-900/50 transition-colors border border-indigo-700"
-              >
-                <Users className="h-5 w-5 mr-3" />
-                Review Applications
-                {stats.pendingApplications > 0 && (
-                  <span className="ml-auto bg-indigo-600 text-white text-xs px-2 py-1 rounded-full font-medium">
-                    {stats.pendingApplications}
-                  </span>
-                )}
-              </Link>
-              <Link
                 to="/admin/rooms"
                 className="flex items-center p-3 bg-slate-700 text-slate-200 rounded-md hover:bg-slate-600 transition-colors border border-slate-600"
               >
                 <Building className="h-5 w-5 mr-3" />
                 Manage Apartments
+              </Link>
+              <Link
+                to="/admin/coworking"
+                className="flex items-center p-3 bg-slate-700 text-slate-200 rounded-md hover:bg-slate-600 transition-colors border border-slate-600"
+              >
+                <Coffee className="h-5 w-5 mr-3" />
+                Manage Coworking
               </Link>
             </div>
           </div>
@@ -288,41 +255,6 @@ const AdminDashboardPage: React.FC = () => {
             <div className="mt-4 text-right">
               <Link to="/admin/bookings" className="text-sm text-indigo-400 hover:text-indigo-300 font-medium">
                 View all bookings →
-              </Link>
-            </div>
-          </div>
-
-          {/* Recent Applications */}
-          <div className="bg-slate-800 rounded-lg shadow-sm p-6 border border-slate-700">
-            <h2 className="text-lg font-semibold mb-4 text-slate-100">Recent Applications</h2>
-            {recentApplications.length > 0 ? (
-              <div className="space-y-3">
-                {recentApplications.slice(0, 5).map((application) => (
-                  <div key={application.id} className="p-3 bg-slate-700 rounded-lg border border-slate-600">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <div className="font-medium text-slate-100">{application.name}</div>
-                        <div className="text-sm text-slate-400">{application.email}</div>
-                      </div>
-                      <div className="text-right">
-                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeClass(application.status)}`}>
-                          {application.status.charAt(0).toUpperCase() + application.status.slice(1)}
-                        </span>
-                        <div className="text-xs text-slate-400 mt-1">{formatDate(application.created_at)}</div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-slate-400">
-                <div className="text-slate-400 mb-2">No applications yet</div>
-                <div className="text-sm text-slate-500">New applications will appear here</div>
-              </div>
-            )}
-            <div className="mt-4 text-right">
-              <Link to="/admin/applications" className="text-sm text-indigo-400 hover:text-indigo-300 font-medium">
-                View all applications →
               </Link>
             </div>
           </div>
@@ -433,13 +365,8 @@ const AdminDashboardPage: React.FC = () => {
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-slate-300 font-medium">Application Approval Rate</span>
-                <span className="text-sm font-semibold text-slate-100">
-                  {stats.totalApplications > 0
-                    ? Math.round((recentApplications.filter(app => app.status === 'approved').length / stats.totalApplications) * 100)
-                    : 0
-                  }%
-                </span>
+                <span className="text-sm text-slate-300 font-medium">Total Bookings</span>
+                <span className="text-sm font-semibold text-slate-100">{stats.totalBookings}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-slate-300 font-medium">Average Response Time</span>
