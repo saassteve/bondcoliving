@@ -8,11 +8,13 @@ import './index.css';
 // Components
 import ScrollToTop from './components/ScrollToTop';
 import ProtectedRoute from './components/ProtectedRoute';
+import GuestProtectedRoute from './components/GuestProtectedRoute';
 import Preloader from './components/Preloader';
 
 // Layouts
 import MainLayout from './layouts/MainLayout';
 import AdminLayout from './layouts/AdminLayout';
+import GuestLayout from './layouts/GuestLayout';
 
 // Public Pages
 import HomePage from './pages/public/HomePage';
@@ -35,9 +37,25 @@ import AdminApplicationsPage from './pages/admin/AdminApplicationsPage';
 import AdminBookingsPage from './pages/admin/AdminBookingsPage';
 import AdminRoomsPage from './pages/admin/AdminRoomsPage';
 import AdminCoworkingPage from './pages/admin/AdminCoworkingPage';
+import AdminGuestsPage from './pages/admin/AdminGuestsPage';
 import AdminPromotionsPage from './pages/admin/AdminPromotionsPage';
 import AdminAccountPage from './pages/admin/AdminAccountPage';
 import AdminICalPage from './pages/admin/AdminICalPage';
+
+// Guest Pages
+import GuestRegisterPage from './pages/guest/GuestRegisterPage';
+import GuestLoginPage from './pages/guest/GuestLoginPage';
+import GuestDashboardPage from './pages/guest/GuestDashboardPage';
+import GuestCommunityPage from './pages/guest/GuestCommunityPage';
+import GuestProfilePage from './pages/guest/GuestProfilePage';
+import GuestEventsPage from './pages/guest/GuestEventsPage';
+import GuestMessagesPage from './pages/guest/GuestMessagesPage';
+import GuestLocalInfoPage from './pages/guest/GuestLocalInfoPage';
+import GuestServicesPage from './pages/guest/GuestServicesPage';
+import GuestExtendStayPage from './pages/guest/GuestExtendStayPage';
+import GuestAnnouncementsPage from './pages/guest/GuestAnnouncementsPage';
+import GuestNotificationsPage from './pages/guest/GuestNotificationsPage';
+import GuestSettingsPage from './pages/guest/GuestSettingsPage';
 
 const App = () => {
   // Check if preloader has already been shown in this session
@@ -85,12 +103,33 @@ const App = () => {
             <Route path="rooms" element={<ProtectedRoute><AdminRoomsPage /></ProtectedRoute>} />
             <Route path="ical" element={<ProtectedRoute><AdminICalPage /></ProtectedRoute>} />
             <Route path="coworking" element={<ProtectedRoute><AdminCoworkingPage /></ProtectedRoute>} />
+            <Route path="guests" element={<ProtectedRoute><AdminGuestsPage /></ProtectedRoute>} />
             <Route path="promotions" element={<ProtectedRoute><AdminPromotionsPage /></ProtectedRoute>} />
             <Route path="account" element={<ProtectedRoute><AdminAccountPage /></ProtectedRoute>} />
             {/* Admin catch-all */}
             <Route path="*" element={<Navigate to="/admin" replace />} />
           </Route>
-          
+
+          {/* Guest Routes - Public */}
+          <Route path="/guest/register" element={<GuestRegisterPage />} />
+          <Route path="/guest/login" element={<GuestLoginPage />} />
+
+          {/* Guest Routes - Protected */}
+          <Route path="/guest" element={<GuestProtectedRoute><GuestLayout /></GuestProtectedRoute>}>
+            <Route index element={<Navigate to="/guest/dashboard" replace />} />
+            <Route path="dashboard" element={<GuestDashboardPage />} />
+            <Route path="community" element={<GuestCommunityPage />} />
+            <Route path="community/:userId" element={<GuestProfilePage />} />
+            <Route path="events" element={<GuestEventsPage />} />
+            <Route path="messages" element={<GuestMessagesPage />} />
+            <Route path="local-info" element={<GuestProtectedRoute requiredUserType="overnight"><GuestLocalInfoPage /></GuestProtectedRoute>} />
+            <Route path="services" element={<GuestProtectedRoute requiredUserType="overnight"><GuestServicesPage /></GuestProtectedRoute>} />
+            <Route path="extend-stay" element={<GuestProtectedRoute requiredUserType="overnight"><GuestExtendStayPage /></GuestProtectedRoute>} />
+            <Route path="announcements" element={<GuestAnnouncementsPage />} />
+            <Route path="notifications" element={<GuestNotificationsPage />} />
+            <Route path="settings" element={<GuestSettingsPage />} />
+          </Route>
+
           {/* Global catch-all - redirect to home */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
