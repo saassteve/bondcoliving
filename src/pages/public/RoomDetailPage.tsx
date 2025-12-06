@@ -157,11 +157,11 @@ const RoomDetailPage: React.FC = () => {
           <OptimizedImage
             src={displayImageUrl}
             alt={apartment.title}
-            className="transition-transform duration-700 ease-out scale-105"
+            className="transition-transform duration-700 ease-out"
             width={1920}
             height={1280}
             priority={true}
-            objectFit="cover"
+            objectFit="contain"
           />
 
           {/* Navigation Arrows */}

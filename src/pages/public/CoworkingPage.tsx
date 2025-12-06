@@ -82,7 +82,7 @@ const CoworkingPage: React.FC = () => {
             width={1920}
             height={1080}
             priority={true}
-            objectFit="cover"
+            objectFit="contain"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#1E1F1E] via-[#1E1F1E]/80 to-transparent" />
         </div>
@@ -318,7 +318,7 @@ const CoworkingPage: React.FC = () => {
                    className="transition-transform duration-700 group-hover:scale-105"
                    width={1200}
                    height={675}
-                   objectFit="cover"
+                   objectFit="contain"
                  />
                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                </div>
