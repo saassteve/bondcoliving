@@ -314,7 +314,7 @@ const ApartmentPreview: React.FC = () => {
                       <OptimizedImage
                         src={a.image_url}
                         alt={a.title}
-                        className="transition-transform duration-1000 ease-out group-hover:scale-105 opacity-80 group-hover:opacity-100"
+                        className="scale-[0.85] group-hover:scale-100 transition-transform duration-1000 ease-out opacity-80 group-hover:opacity-100"
                         width={800}
                         height={1000}
                         objectFit="cover"
