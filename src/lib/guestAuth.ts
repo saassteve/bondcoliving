@@ -60,73 +60,47 @@ export async function registerGuestUser(
     profilePhotoUrl?: string;
   }
 ) {
-  const { data: authData, error: authError } = await supabase.auth.signUp({
-    email: invitation.email,
-    password,
-    options: {
-      data: {
-        full_name: invitation.full_name,
-        user_type: 'guest',
+  try {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+    const response = await fetch(`${supabaseUrl}/functions/v1/guest-register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${supabaseAnonKey}`,
       },
-    },
-  });
+      body: JSON.stringify({
+        invitationCode: invitation.invitation_code,
+        password,
+        bio: profileData?.bio,
+        interests: profileData?.interests?.join(', '),
+      }),
+    });
 
-  if (authError || !authData.user) {
-    console.error('Error creating auth user:', authError);
-    return { success: false, error: authError?.message || 'Failed to create account' };
-  }
+    const result = await response.json();
 
-  const { error: guestUserError } = await supabase
-    .from('guest_users')
-    .insert({
-      user_id: authData.user.id,
-      user_type: invitation.user_type,
-      booking_id: invitation.booking_id,
+    if (!response.ok || !result.success) {
+      console.error('Error creating guest account:', result.error);
+      return { success: false, error: result.error || 'Failed to create account' };
+    }
+
+    // Sign in the user after successful registration
+    const { error: signInError } = await supabase.auth.signInWithPassword({
       email: invitation.email,
-      full_name: invitation.full_name,
-      access_start_date: invitation.access_start_date,
-      access_end_date: invitation.access_end_date,
-      status: 'active',
+      password,
     });
 
-  if (guestUserError) {
-    console.error('Error creating guest user:', guestUserError);
-    return { success: false, error: guestUserError.message };
+    if (signInError) {
+      console.error('Error signing in after registration:', signInError);
+      return { success: false, error: 'Account created but failed to sign in. Please try logging in manually.' };
+    }
+
+    return { success: true, error: null };
+  } catch (error) {
+    console.error('Error during registration:', error);
+    return { success: false, error: 'An unexpected error occurred. Please try again.' };
   }
-
-  const { data: guestUser } = await supabase
-    .from('guest_users')
-    .select('id')
-    .eq('user_id', authData.user.id)
-    .single();
-
-  if (guestUser) {
-    await supabase.from('guest_profiles').insert({
-      guest_user_id: guestUser.id,
-      bio: profileData?.bio || null,
-      interests: profileData?.interests || [],
-      profile_photo_url: profileData?.profilePhotoUrl || null,
-      show_in_directory: true,
-    });
-
-    await supabase.from('messaging_preferences').insert({
-      guest_user_id: guestUser.id,
-      allow_messages: true,
-      email_notifications: true,
-      push_notifications: true,
-    });
-  }
-
-  await supabase
-    .from('guest_invitations')
-    .update({
-      used: true,
-      used_at: new Date().toISOString(),
-      used_by_user_id: authData.user.id,
-    })
-    .eq('id', invitation.id);
-
-  return { success: true, error: null };
 }
 
 export async function getCurrentGuestUser(): Promise<GuestUser | null> {
