@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
@@ -14,11 +14,31 @@ interface PromotionBannerData {
 const PromotionBanner: React.FC = () => {
   const [banners, setBanners] = useState<PromotionBannerData[]>([]);
   const [dismissedBanners, setDismissedBanners] = useState<Set<string>>(new Set());
+  const bannerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchBanners();
     loadDismissedBanners();
   }, []);
+
+  useEffect(() => {
+    const updateBannerHeight = () => {
+      if (bannerRef.current && activeBanners.length > 0) {
+        const height = bannerRef.current.offsetHeight;
+        document.documentElement.style.setProperty('--banner-height', `${height}px`);
+      } else {
+        document.documentElement.style.setProperty('--banner-height', '0px');
+      }
+    };
+
+    updateBannerHeight();
+    window.addEventListener('resize', updateBannerHeight);
+
+    return () => {
+      window.removeEventListener('resize', updateBannerHeight);
+      document.documentElement.style.setProperty('--banner-height', '0px');
+    };
+  }, [activeBanners]);
 
   const loadDismissedBanners = () => {
     const dismissed = localStorage.getItem('dismissedBanners');
@@ -64,7 +84,7 @@ const PromotionBanner: React.FC = () => {
   }
 
   return (
-    <div className="promotion-banners">
+    <div ref={bannerRef} className="promotion-banners fixed top-0 left-0 right-0 z-[60] w-full">
       {activeBanners.map((banner) => (
         <div
           key={banner.id}
@@ -92,7 +112,7 @@ const PromotionBanner: React.FC = () => {
             </p>
             <button
               onClick={() => dismissBanner(banner.id)}
-              className="p-1 hover:opacity-70 transition-opacity"
+              className="p-1 hover:opacity-70 transition-opacity shrink-0"
               aria-label="Dismiss banner"
             >
               <X className="w-4 h-4" />

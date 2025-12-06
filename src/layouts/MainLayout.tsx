@@ -65,10 +65,11 @@ const MainLayout: React.FC = () => {
         <PromotionBanner />
 
         {/* --- FLOATING NAVIGATION BAR --- */}
-        <header 
-          className={`fixed top-0 left-0 right-0 z-50 px-4 md:px-8 transition-all duration-300 ${
+        <header
+          className={`fixed left-0 right-0 z-50 px-4 md:px-8 transition-all duration-300 ${
             scrolled ? 'pt-4' : 'pt-6 md:pt-8'
           }`}
+          style={{ top: 'var(--banner-height, 0px)' }}
         >
           <div 
             className={`mx-auto max-w-5xl rounded-full border transition-all duration-300 ${
@@ -174,9 +175,20 @@ const MainLayout: React.FC = () => {
 
 
         {/* Main Content */}
-        {/* UPDATED: Added 'pt-28' for mobile to prevent overlap, keeping 'md:pt-0' for immersive desktop experience */}
-        <main className="flex-grow pt-28 md:pt-0">
-          <Outlet />
+        {/* UPDATED: Account for banner and nav height on mobile, only banner on desktop for immersive experience */}
+        <main className="flex-grow">
+          <div
+            className="md:hidden"
+            style={{ paddingTop: 'calc(7rem + var(--banner-height, 0px))' }}
+          >
+            <Outlet />
+          </div>
+          <div
+            className="hidden md:block"
+            style={{ paddingTop: 'var(--banner-height, 0px)' }}
+          >
+            <Outlet />
+          </div>
         </main>
 
         {/* --- CINEMATIC FOOTER --- */}
