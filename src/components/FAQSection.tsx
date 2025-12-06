@@ -42,7 +42,7 @@ const faqData: FAQItem[] = [
   {
     category: 'Coworking',
     question: "What is included in the coworking space?",
-    answer: "Residents have 24/7 access to our dedicated coworking floor. This includes ergonomic Herman Miller chairs, external monitors (subject to availability), soundproof phone booths for private calls, and a communal kitchen with unlimited specialty coffee and organic tea."
+    answer: "Residents have daily access (8am-8pm) to our dedicated coworking floor. This includes ergonomic Herman Miller chairs, external monitors (subject to availability), soundproof phone booths for private calls, and a communal kitchen with unlimited specialty coffee and organic tea."
   },
   
   // Community

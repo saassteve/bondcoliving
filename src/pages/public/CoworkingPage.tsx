@@ -90,7 +90,7 @@ const CoworkingPage: React.FC = () => {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                 </span>
-                <span className="text-xs font-bold uppercase tracking-widest">Open 24/7 for Members</span>
+                <span className="text-xs font-bold uppercase tracking-widest">Open 8am-8pm Daily</span>
               </div>
 
               <h1 className="text-6xl md:text-8xl font-bold text-white tracking-tighter mb-6 leading-[0.9]">

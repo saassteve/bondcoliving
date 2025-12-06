@@ -50,7 +50,7 @@ const iconMap: Record<string, LucideIcon> = {
   Flower, // Balcony/terrace
   
   // Utilities & Services
-  Clock, // 24/7 access
+  Clock, // 8am-8pm daily access
   Phone, // Phone service
   Mail, // Mail service
   Globe, // International

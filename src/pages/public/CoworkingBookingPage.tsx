@@ -143,6 +143,12 @@ const CoworkingBookingPage: React.FC = () => {
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+
+      const contactSection = document.getElementById('contact-details');
+      if (contactSection) {
+        contactSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
       return;
     }
 
@@ -264,7 +270,7 @@ const CoworkingBookingPage: React.FC = () => {
                 </section>
 
                 {/* Section 2: Details */}
-                <section>
+                <section id="contact-details">
                   <div className="flex items-center gap-4 mb-6">
                     <div className="w-8 h-8 rounded-full bg-[#C5C5B5] text-[#1E1F1E] flex items-center justify-center font-bold text-sm">2</div>
                     <h2 className="text-2xl font-bold text-white">Your details</h2>
@@ -393,7 +399,7 @@ const CoworkingBookingPage: React.FC = () => {
                             <Coffee className="w-4 h-4 opacity-60" /> Specialty Coffee & Tea
                           </li>
                           <li className="flex items-center gap-2 text-sm">
-                            <ShieldCheck className="w-4 h-4 opacity-60" /> 24/7 Access
+                            <ShieldCheck className="w-4 h-4 opacity-60" /> 8am-8pm Daily Access
                           </li>
                         </ul>
                       </div>
