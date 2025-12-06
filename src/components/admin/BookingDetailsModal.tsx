@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Edit, Trash2, Mail, Phone } from 'lucide-react';
+import { X, Edit, Trash2, Mail, Phone, UserPlus } from 'lucide-react';
 import { type Booking } from '../../lib/supabase';
 
 interface BookingDetailsModalProps {
@@ -7,6 +7,7 @@ interface BookingDetailsModalProps {
   onClose: () => void;
   onEdit: (booking: Booking) => void;
   onDelete: (id: string) => void;
+  onCreateGuestInvitation?: (booking: Booking) => void;
   getApartmentTitle: (apartmentId: string) => string;
   formatDate: (dateString: string) => string;
 }
@@ -16,6 +17,7 @@ const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
   onClose,
   onEdit,
   onDelete,
+  onCreateGuestInvitation,
   getApartmentTitle,
   formatDate
 }) => {
@@ -124,21 +126,32 @@ const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
             )}
           </div>
           
-          <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-600">
-            <button
-              onClick={() => onEdit(booking)}
-              className="btn bg-indigo-600 text-white hover:bg-indigo-700"
-            >
-              <Edit className="w-4 h-4 mr-1" />
-              Edit
-            </button>
-            <button
-              onClick={() => onDelete(booking.id)}
-              className="btn bg-red-600 text-white hover:bg-red-700"
-            >
-              <Trash2 className="w-4 h-4 mr-1" />
-              Delete
-            </button>
+          <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-600">
+            {onCreateGuestInvitation && (
+              <button
+                onClick={() => onCreateGuestInvitation(booking)}
+                className="btn bg-green-600 text-white hover:bg-green-700 flex items-center"
+              >
+                <UserPlus className="w-4 h-4 mr-1" />
+                Create Guest Invitation
+              </button>
+            )}
+            <div className="flex space-x-3 ml-auto">
+              <button
+                onClick={() => onEdit(booking)}
+                className="btn bg-indigo-600 text-white hover:bg-indigo-700 flex items-center"
+              >
+                <Edit className="w-4 h-4 mr-1" />
+                Edit
+              </button>
+              <button
+                onClick={() => onDelete(booking.id)}
+                className="btn bg-red-600 text-white hover:bg-red-700 flex items-center"
+              >
+                <Trash2 className="w-4 h-4 mr-1" />
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       </div>

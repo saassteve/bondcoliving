@@ -84,27 +84,6 @@ export default function AdminGuestsPage() {
         return;
       }
 
-      // Verify user is an admin
-      const { data: adminUser, error: adminError } = await supabase
-        .from('admin_users')
-        .select('id, is_active, email')
-        .eq('email', user.email)
-        .eq('is_active', true)
-        .maybeSingle();
-
-      if (adminError) {
-        console.error('Error checking admin status:', adminError);
-        setError('Failed to verify admin permissions. Please try again.');
-        setSubmitting(false);
-        return;
-      }
-
-      if (!adminUser) {
-        setError('You do not have permission to create invitations. Admin access required.');
-        setSubmitting(false);
-        return;
-      }
-
       // Generate invitation data
       const code = generateInvitationCode();
       const startDate = new Date();
@@ -113,7 +92,7 @@ export default function AdminGuestsPage() {
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 7);
 
-      // Insert invitation
+      // Insert invitation (RLS policy will verify admin access)
       const { error: insertError } = await supabase.from('guest_invitations').insert({
         invitation_code: code,
         email: inviteForm.email,
@@ -127,7 +106,13 @@ export default function AdminGuestsPage() {
 
       if (insertError) {
         console.error('Error creating invitation:', insertError);
-        setError(`Failed to create invitation: ${insertError.message}`);
+
+        // Check if it's a permission error
+        if (insertError.code === '42501' || insertError.message.includes('permission')) {
+          setError('Admin access required. Please ensure you are logged in as an admin.');
+        } else {
+          setError(`Failed to create invitation: ${insertError.message}`);
+        }
         setSubmitting(false);
         return;
       }

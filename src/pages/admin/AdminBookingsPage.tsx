@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Plus, Download, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Download, ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { bookingService, apartmentService, availabilityService, type Booking, type Apartment } from '../../lib/supabase';
+import { supabase } from '../../lib/supabase';
+import { generateInvitationCode } from '../../lib/guestAuth';
 import BookingForm from '../../components/admin/BookingForm';
 import BookingTimeline from '../../components/admin/BookingTimeline';
 import BookingCalendar from '../../components/admin/BookingCalendar';
@@ -28,6 +30,8 @@ const AdminBookingsPage: React.FC = () => {
     checkedOut: 0,
     cancelled: 0,
   });
+  const [guestInviteSuccess, setGuestInviteSuccess] = useState<string | null>(null);
+  const [guestInviteError, setGuestInviteError] = useState<string | null>(null);
 
   const filteredBookings = bookings.filter(booking => {
     if (filter === 'all') return true;
@@ -107,6 +111,66 @@ const AdminBookingsPage: React.FC = () => {
     } catch (error) {
       console.error('Error deleting booking:', error);
       alert('Failed to delete booking');
+    }
+  };
+
+  const handleCreateGuestInvitation = async (booking: Booking) => {
+    try {
+      setGuestInviteError(null);
+      setGuestInviteSuccess(null);
+
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setGuestInviteError('You must be logged in');
+        return;
+      }
+
+      // Check if guest_email is available
+      if (!booking.guest_email) {
+        setGuestInviteError('Cannot create invitation: booking has no guest email');
+        return;
+      }
+
+      // Generate invitation code
+      const code = generateInvitationCode();
+
+      // Use booking dates for access period
+      const startDate = new Date(booking.check_in_date);
+      const endDate = new Date(booking.check_out_date);
+
+      // Invitation expires 7 days from now
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7);
+
+      // Create invitation
+      const { error: insertError } = await supabase.from('guest_invitations').insert({
+        invitation_code: code,
+        email: booking.guest_email,
+        full_name: booking.guest_name,
+        user_type: 'overnight',
+        booking_id: booking.id,
+        access_start_date: startDate.toISOString(),
+        access_end_date: endDate.toISOString(),
+        expires_at: expiresAt.toISOString(),
+        created_by: user.id,
+      });
+
+      if (insertError) {
+        console.error('Error creating guest invitation:', insertError);
+        setGuestInviteError(`Failed to create invitation: ${insertError.message}`);
+        return;
+      }
+
+      // Success!
+      setGuestInviteSuccess(`Guest invitation created successfully for ${booking.guest_name}`);
+      setSelectedBooking(null);
+
+      // Clear success message after 5 seconds
+      setTimeout(() => setGuestInviteSuccess(null), 5000);
+    } catch (error) {
+      console.error('Unexpected error creating guest invitation:', error);
+      setGuestInviteError('An unexpected error occurred');
     }
   };
 
@@ -212,6 +276,19 @@ const AdminBookingsPage: React.FC = () => {
       </Helmet>
       
       <div className="space-y-6">
+        {/* Success/Error Messages */}
+        {guestInviteSuccess && (
+          <div className="p-4 bg-green-900/50 border border-green-700 rounded-lg text-green-200 flex items-center">
+            <Check className="h-5 w-5 mr-2" />
+            {guestInviteSuccess}
+          </div>
+        )}
+        {guestInviteError && (
+          <div className="p-4 bg-red-900/50 border border-red-700 rounded-lg text-red-200">
+            {guestInviteError}
+          </div>
+        )}
+
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <h1 className="text-2xl font-bold">Bookings Management</h1>
           
@@ -349,6 +426,7 @@ const AdminBookingsPage: React.FC = () => {
             onClose={() => setSelectedBooking(null)}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            onCreateGuestInvitation={handleCreateGuestInvitation}
             getApartmentTitle={getApartmentTitle}
             formatDate={formatDate}
           />
