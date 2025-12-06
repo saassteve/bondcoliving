@@ -80,6 +80,14 @@ export default function GuestLoginPage() {
               placeholder="Enter your password"
               required
             />
+            <div className="mt-2 text-right">
+              <Link
+                to="/guest/forgot-password"
+                className="text-sm text-[#C5C5B5]/60 hover:text-[#C5C5B5] transition-colors"
+              >
+                Forgot password?
+              </Link>
+            </div>
           </div>
 
           <button

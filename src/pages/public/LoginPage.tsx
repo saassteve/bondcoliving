@@ -126,6 +126,14 @@ const LoginPage: React.FC = () => {
                     className="w-full px-4 py-4 bg-[#C5C5B5]/5 border-2 border-[#C5C5B5]/20 rounded-2xl text-[#C5C5B5] placeholder-[#C5C5B5]/40 focus:outline-none focus:border-[#C5C5B5] transition-all disabled:opacity-50"
                     placeholder="Enter your password"
                   />
+                  <div className="mt-2 text-right">
+                    <Link
+                      to="/admin/forgot-password"
+                      className="text-sm text-[#C5C5B5]/60 hover:text-[#C5C5B5] transition-colors"
+                    >
+                      Forgot password?
+                    </Link>
+                  </div>
                 </div>
                 
                 <div className="pt-4">

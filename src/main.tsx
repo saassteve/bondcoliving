@@ -45,6 +45,8 @@ import AdminAnnouncementsPage from './pages/admin/AdminAnnouncementsPage';
 import AdminEventsPage from './pages/admin/AdminEventsPage';
 import AdminLocalInfoPage from './pages/admin/AdminLocalInfoPage';
 import AdminServicesPage from './pages/admin/AdminServicesPage';
+import AdminForgotPasswordPage from './pages/admin/AdminForgotPasswordPage';
+import AdminResetPasswordPage from './pages/admin/AdminResetPasswordPage';
 
 // Guest Pages
 import GuestRegisterPage from './pages/guest/GuestRegisterPage';
@@ -60,6 +62,8 @@ import GuestExtendStayPage from './pages/guest/GuestExtendStayPage';
 import GuestAnnouncementsPage from './pages/guest/GuestAnnouncementsPage';
 import GuestNotificationsPage from './pages/guest/GuestNotificationsPage';
 import GuestSettingsPage from './pages/guest/GuestSettingsPage';
+import GuestForgotPasswordPage from './pages/guest/GuestForgotPasswordPage';
+import GuestResetPasswordPage from './pages/guest/GuestResetPasswordPage';
 
 const App = () => {
   // Check if preloader has already been shown in this session
@@ -99,7 +103,12 @@ const App = () => {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
           
-          {/* Admin Routes */}
+          {/* Admin Routes - Public */}
+          <Route path="/admin/login" element={<LoginPage />} />
+          <Route path="/admin/forgot-password" element={<AdminForgotPasswordPage />} />
+          <Route path="/admin/reset-password" element={<AdminResetPasswordPage />} />
+
+          {/* Admin Routes - Protected */}
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<ProtectedRoute><AdminDashboardPage /></ProtectedRoute>} />
             <Route path="applications" element={<ProtectedRoute><AdminApplicationsPage /></ProtectedRoute>} />
@@ -121,6 +130,8 @@ const App = () => {
           {/* Guest Routes - Public */}
           <Route path="/guest/register" element={<GuestRegisterPage />} />
           <Route path="/guest/login" element={<GuestLoginPage />} />
+          <Route path="/guest/forgot-password" element={<GuestForgotPasswordPage />} />
+          <Route path="/guest/reset-password" element={<GuestResetPasswordPage />} />
 
           {/* Guest Routes - Protected */}
           <Route path="/guest" element={<GuestProtectedRoute><GuestLayout /></GuestProtectedRoute>}>
