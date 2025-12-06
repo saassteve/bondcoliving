@@ -8,6 +8,7 @@ interface OptimizedImageProps {
   height?: number;
   priority?: boolean;
   objectFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
+  objectPosition?: string;
   onLoad?: () => void;
   draggable?: boolean;
 }
@@ -20,6 +21,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   height,
   priority = false,
   objectFit = 'cover',
+  objectPosition = 'center',
   onLoad,
   draggable = false,
 }) => {
@@ -120,6 +122,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
             decoding={priority ? 'sync' : 'async'}
             style={{
               objectFit,
+              objectPosition,
               width: '100%',
               height: '100%',
               opacity: isLoaded ? 1 : 0,
