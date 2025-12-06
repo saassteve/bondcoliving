@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Lock, Eye, EyeOff, Check, X } from 'lucide-react';
 import { validateResetToken, resetPasswordWithToken } from '../../lib/auth';
+import bondLogo from '../../assets/bond_logo_main.png';
 
 const AdminResetPasswordPage: React.FC = () => {
   const navigate = useNavigate();
@@ -185,7 +186,7 @@ const AdminResetPasswordPage: React.FC = () => {
             <div className="bg-[#1E1F1E]/90 backdrop-blur-sm rounded-3xl p-8 md:p-12 border border-[#C5C5B5]/10">
               <div className="text-center mb-8">
                 <img
-                  src="https://iili.io/FcjToIp.png"
+                  src={bondLogo}
                   alt="Bond"
                   className="h-12 w-auto mx-auto mb-6"
                 />

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { getCurrentGuestUser, signOutGuest, type GuestUser } from '../lib/guestAuth';
 import { Home, Users, Calendar, MessageSquare, FileText, Bell, Settings, Menu, X, Wrench, Clock } from 'lucide-react';
+import bondLogo from '../assets/bond_logo_main.png';
 
 export default function GuestLayout() {
   const location = useLocation();
@@ -60,7 +61,7 @@ export default function GuestLayout() {
               </button>
               <Link to="/guest/dashboard" className="flex items-center ml-2 lg:ml-0">
                 <img
-                  src="https://iili.io/FcjToIp.png"
+                  src={bondLogo}
                   alt="Bond"
                   className="h-8 w-auto"
                 />

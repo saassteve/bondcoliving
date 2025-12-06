@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { validateInvitationCode, registerGuestUser, GuestInvitation } from '../../lib/guestAuth';
+import bondLogo from '../../assets/bond_logo_main.png';
 
 export default function GuestRegisterPage() {
   const [searchParams] = useSearchParams();
@@ -101,7 +102,7 @@ export default function GuestRegisterPage() {
       <div className="relative z-10 bg-[#1E1F1E]/90 backdrop-blur-xl border border-[#C5C5B5]/20 rounded-3xl shadow-2xl p-8 md:p-12 max-w-md w-full">
         <div className="text-center mb-8">
           <img
-            src="https://iili.io/FcjToIp.png"
+            src={bondLogo}
             alt="Bond"
             className="h-12 w-auto mx-auto mb-6"
           />

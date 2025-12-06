@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Sparkles } from 'lucide-react';
+import bondLogo from '../assets/bond_logo_main.png';
 
 interface PreloaderProps {
   onComplete: () => void;
@@ -16,7 +17,8 @@ const phrases = [
 // 1. Define critical assets here to ensure they are loaded before the curtain lifts
 const CRITICAL_IMAGES = [
   "https://ucarecdn.com/958a4400-0486-4ba2-8e75-484d692d7df9/foundersbond.png", // Hero Image
-  "https://ucarecdn.com/8a70b6b2-1930-403f-b333-8234cda9ac93/BondTextOnly.png"  // Logo
+  "https://ucarecdn.com/8a70b6b2-1930-403f-b333-8234cda9ac93/BondTextOnly.png", // Main nav logo
+  bondLogo  // Bond logo for guest platform
 ];
 
 const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {

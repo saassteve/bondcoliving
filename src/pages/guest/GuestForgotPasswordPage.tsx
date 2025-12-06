@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Mail } from 'lucide-react';
 import { requestPasswordReset } from '../../lib/guestAuth';
+import bondLogo from '../../assets/bond_logo_main.png';
 
 const GuestForgotPasswordPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -46,7 +47,7 @@ const GuestForgotPasswordPage: React.FC = () => {
         <div className="bg-[#1E1F1E]/90 backdrop-blur-xl border border-[#C5C5B5]/20 rounded-3xl shadow-2xl p-8 md:p-12">
           <div className="text-center mb-8">
             <img
-              src="https://iili.io/FcjToIp.png"
+              src={bondLogo}
               alt="Bond"
               className="h-12 w-auto mx-auto mb-6"
             />

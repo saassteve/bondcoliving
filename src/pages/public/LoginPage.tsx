@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { useNavigate, Navigate, Link } from 'react-router-dom';
 import { LogIn, ArrowLeft } from 'lucide-react';
 import { authService, useAuth } from '../../lib/auth';
+import bondLogo from '../../assets/bond_logo_main.png';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -70,9 +71,9 @@ const LoginPage: React.FC = () => {
             {/* Login Card */}
             <div className="bg-[#1E1F1E]/90 backdrop-blur-sm rounded-3xl p-8 md:p-12 border border-[#C5C5B5]/10">
               <div className="text-center mb-8">
-                <img 
-                  src="https://iili.io/FcjToIp.png" 
-                  alt="Bond" 
+                <img
+                  src={bondLogo}
+                  alt="Bond"
                   className="h-12 w-auto mx-auto mb-6"
                 />
                 <h1 className="text-3xl md:text-4xl font-bold mb-4">
