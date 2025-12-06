@@ -51,15 +51,15 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
   const statusBadgeClass = (status: string) => {
     switch(status) {
       case 'confirmed':
-        return 'bg-blue-900/50 text-blue-300 border-blue-200';
+        return 'bg-blue-900/50 text-blue-200 border-blue-400';
       case 'checked_in':
-        return 'bg-green-900/50 text-green-300 border-green-200';
+        return 'bg-green-900/50 text-green-200 border-green-400';
       case 'checked_out':
-        return 'bg-gray-700 text-gray-800 border-gray-600';
+        return 'bg-gray-700 text-gray-200 border-gray-500';
       case 'cancelled':
-        return 'bg-red-900/50 text-red-300 border-red-200';
+        return 'bg-red-900/50 text-red-200 border-red-400';
       default:
-        return 'bg-gray-700 text-gray-800 border-gray-600';
+        return 'bg-gray-700 text-gray-200 border-gray-500';
     }
   };
 
@@ -142,8 +142,8 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
                   }}
                   className={`text-xs p-1.5 rounded-md truncate border transition-all ${item.type === 'booking' ? 'cursor-pointer hover:shadow-sm hover:scale-105' : ''} ${
                     item.type === 'booking' ? statusBadgeClass(item.status) : (
-                      item.status === 'booked' ? 'bg-orange-100 text-orange-900 border-orange-200' :
-                      'bg-yellow-100 text-yellow-900 border-yellow-200'
+                      item.status === 'booked' ? 'bg-orange-900/50 text-orange-200 border-orange-400' :
+                      'bg-yellow-900/50 text-yellow-200 border-yellow-400'
                     )
                   }`}
                   title={
