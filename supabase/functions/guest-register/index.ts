@@ -43,7 +43,7 @@ Deno.serve(async (req: Request) => {
       .from("guest_invitations")
       .select("*")
       .eq("invitation_code", invitationCode.toUpperCase())
-      .eq("status", "pending")
+      .eq("used", false)
       .maybeSingle();
 
     if (invitationError || !invitation) {
@@ -133,11 +133,10 @@ Deno.serve(async (req: Request) => {
       push_notifications: true,
     });
 
-    // Mark invitation as accepted
+    // Mark invitation as used
     await supabaseAdmin
       .from("guest_invitations")
       .update({
-        status: "accepted",
         used: true,
         used_at: new Date().toISOString(),
         used_by_user_id: authData.user.id,
