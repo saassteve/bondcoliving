@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { generateInvitationCode } from '../../lib/guestAuth';
+import { checkAdminPermissions, safeDelete } from '../../lib/adminPermissions';
 import { Users, Plus, Mail, Copy, Check, Calendar, Trash2, X } from 'lucide-react';
 
 interface GuestUser {
@@ -37,6 +38,7 @@ export default function AdminGuestsPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'guest' | 'invitation'; id: string; name: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [permissionWarning, setPermissionWarning] = useState<string | null>(null);
 
   const [inviteForm, setInviteForm] = useState({
     email: '',
@@ -47,7 +49,20 @@ export default function AdminGuestsPage() {
 
   useEffect(() => {
     loadData();
+    checkAdminPermissionsStatus();
   }, [activeTab]);
+
+  const checkAdminPermissionsStatus = async () => {
+    const result = await checkAdminPermissions();
+
+    console.log('Admin permission check:', result);
+
+    if (result.warning) {
+      setPermissionWarning(result.warning);
+    } else {
+      setPermissionWarning(null);
+    }
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -166,36 +181,32 @@ export default function AdminGuestsPage() {
     setSuccess(null);
 
     try {
-      if (deleteConfirm.type === 'guest') {
-        // Delete guest user (cascade will handle related records)
-        const { error: deleteError } = await supabase
-          .from('guest_users')
-          .delete()
-          .eq('id', deleteConfirm.id);
+      const tableName = deleteConfirm.type === 'guest' ? 'guest_users' : 'guest_invitations';
+      const itemType = deleteConfirm.type === 'guest' ? 'guest' : 'invitation';
 
-        if (deleteError) {
-          console.error('Error deleting guest:', deleteError);
-          setError(`Failed to delete guest: ${deleteError.message}`);
-        } else {
-          setSuccess(`Successfully deleted guest: ${deleteConfirm.name}`);
-          await loadData();
-        }
-      } else {
-        // Delete invitation
-        const { error: deleteError } = await supabase
-          .from('guest_invitations')
-          .delete()
-          .eq('id', deleteConfirm.id);
+      // Use safe delete utility with automatic validation and audit logging
+      const result = await safeDelete({
+        table: tableName,
+        id: deleteConfirm.id,
+        identifier: deleteConfirm.name,
+      });
 
-        if (deleteError) {
-          console.error('Error deleting invitation:', deleteError);
-          setError(`Failed to delete invitation: ${deleteError.message}`);
-        } else {
-          setSuccess(`Successfully deleted invitation for: ${deleteConfirm.name}`);
-          await loadData();
-        }
+      if (!result.success) {
+        console.error(`Failed to delete ${itemType}:`, result.error);
+        setError(result.error || `Failed to delete ${itemType}.`);
+        setDeleting(false);
+        return;
       }
 
+      // Success!
+      setSuccess(
+        deleteConfirm.type === 'guest'
+          ? `Successfully deleted guest: ${deleteConfirm.name}`
+          : `Successfully deleted invitation for: ${deleteConfirm.name}`
+      );
+
+      // Reload data and close modal
+      await loadData();
       setDeleteConfirm(null);
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
@@ -208,6 +219,20 @@ export default function AdminGuestsPage() {
 
   return (
     <div className="p-8">
+      {permissionWarning && (
+        <div className="mb-6 p-4 bg-yellow-900/50 border border-yellow-700 rounded-lg text-yellow-200 flex items-start">
+          <div className="flex-shrink-0 mr-3 mt-0.5">
+            <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <p className="font-medium">Permission Warning</p>
+            <p className="text-sm mt-1">{permissionWarning}</p>
+          </div>
+        </div>
+      )}
+
       {success && (
         <div className="mb-6 p-4 bg-green-900/50 border border-green-700 rounded-lg text-green-200 flex items-center">
           <Check className="h-5 w-5 mr-2" />
