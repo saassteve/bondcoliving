@@ -314,10 +314,10 @@ const ApartmentPreview: React.FC = () => {
                       <OptimizedImage
                         src={a.image_url}
                         alt={a.title}
-                        className="transition-opacity duration-1000 ease-out opacity-80 group-hover:opacity-100"
+                        className="w-full h-full opacity-80 group-hover:opacity-100 transition-opacity duration-500"
                         width={800}
                         height={1000}
-                        objectFit="contain"
+                        objectFit="cover"
                         objectPosition="center"
                         draggable={false}
                       />
