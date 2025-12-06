@@ -92,17 +92,19 @@ export default function GuestProfilePage() {
 
   if (!profile) {
     return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-xl shadow-sm p-12 text-center">
-          <User className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Profile not found</h3>
-          <p className="text-gray-600 mb-6">This profile may not be visible or doesn't exist</p>
-          <button
-            onClick={() => navigate('/guest/community')}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-          >
-            Back to Community
-          </button>
+      <div className="min-h-screen bg-[#1E1F1E]">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="bg-[#C5C5B5]/5 border border-[#C5C5B5]/20 rounded-2xl p-12 text-center backdrop-blur-sm">
+            <User className="h-16 w-16 text-[#C5C5B5]/40 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-white mb-2">Profile not found</h3>
+            <p className="text-[#C5C5B5]/60 mb-6">This profile may not be visible or doesn't exist</p>
+            <button
+              onClick={() => navigate('/guest/community')}
+              className="px-6 py-3 bg-[#C5C5B5] text-[#1E1F1E] rounded-xl hover:bg-white transition-all duration-300"
+            >
+              Back to Community
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -111,128 +113,130 @@ export default function GuestProfilePage() {
   const isOwnProfile = guestUser?.id === profile.guest_user_id;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 lg:pb-8">
-      <button
-        onClick={() => navigate('/guest/community')}
-        className="flex items-center text-gray-600 hover:text-gray-900 mb-6"
-      >
-        <ArrowLeft className="h-5 w-5 mr-2" />
-        Back to Community
-      </button>
+    <div className="min-h-screen bg-[#1E1F1E]">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 lg:pb-8">
+        <button
+          onClick={() => navigate('/guest/community')}
+          className="flex items-center text-[#C5C5B5] hover:text-white mb-6 transition-colors"
+        >
+          <ArrowLeft className="h-5 w-5 mr-2" />
+          Back to Community
+        </button>
 
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-12 sm:px-8">
-          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-            {profile.profile_photo_url ? (
-              <img
-                src={profile.profile_photo_url}
-                alt={profile.guest_user.full_name}
-                className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover"
-              />
-            ) : (
-              <div className="w-32 h-32 rounded-full border-4 border-white shadow-lg bg-white flex items-center justify-center text-blue-600 font-bold text-4xl">
-                {getInitials(profile.guest_user.full_name)}
+        <div className="bg-[#C5C5B5]/5 border border-[#C5C5B5]/20 rounded-2xl overflow-hidden backdrop-blur-sm">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-[#C5C5B5] to-[#C5C5B5]/80 px-6 py-12 sm:px-8">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+              {profile.profile_photo_url ? (
+                <img
+                  src={profile.profile_photo_url}
+                  alt={profile.guest_user.full_name}
+                  className="w-32 h-32 rounded-full border-4 border-[#1E1F1E] shadow-lg object-cover"
+                />
+              ) : (
+                <div className="w-32 h-32 rounded-full border-4 border-[#1E1F1E] shadow-lg bg-[#1E1F1E] flex items-center justify-center text-[#C5C5B5] font-bold text-4xl">
+                  {getInitials(profile.guest_user.full_name)}
+                </div>
+              )}
+
+              <div className="flex-1 text-center sm:text-left">
+                <h1 className="text-3xl font-bold text-[#1E1F1E] mb-2">
+                  {profile.guest_user.full_name}
+                </h1>
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 mb-4">
+                  <span className="px-3 py-1 bg-[#1E1F1E]/20 backdrop-blur-sm text-[#1E1F1E] rounded-full text-sm font-medium">
+                    {profile.guest_user.user_type === 'overnight' ? 'Overnight Guest' : 'Coworking Member'}
+                  </span>
+                  <span className="flex items-center text-[#1E1F1E]/80 text-sm">
+                    <Calendar className="h-4 w-4 mr-1" />
+                    Joined {getJoinedDate(profile.guest_user.created_at)}
+                  </span>
+                </div>
+
+                {!isOwnProfile && (
+                  <button
+                    onClick={handleSendMessage}
+                    className="px-6 py-3 bg-[#1E1F1E] text-[#C5C5B5] rounded-xl font-semibold hover:bg-[#1E1F1E]/90 transition-all duration-300 flex items-center mx-auto sm:mx-0"
+                  >
+                    <MessageSquare className="h-5 w-5 mr-2" />
+                    Send Message
+                  </button>
+                )}
+
+                {isOwnProfile && (
+                  <button
+                    onClick={() => navigate('/guest/settings')}
+                    className="px-6 py-3 bg-[#1E1F1E] text-[#C5C5B5] rounded-xl font-semibold hover:bg-[#1E1F1E]/90 transition-all duration-300 mx-auto sm:mx-0"
+                  >
+                    Edit Profile
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="px-6 py-8 sm:px-8">
+            {profile.bio && (
+              <div className="mb-8">
+                <h2 className="text-lg font-semibold text-white mb-3">About</h2>
+                <p className="text-[#C5C5B5]/80 leading-relaxed">{profile.bio}</p>
               </div>
             )}
 
-            <div className="flex-1 text-center sm:text-left">
-              <h1 className="text-3xl font-bold text-white mb-2">
-                {profile.guest_user.full_name}
-              </h1>
-              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 mb-4">
-                <span className="px-3 py-1 bg-white/20 backdrop-blur-sm text-white rounded-full text-sm font-medium">
-                  {profile.guest_user.user_type === 'overnight' ? 'Overnight Guest' : 'Coworking Member'}
-                </span>
-                <span className="flex items-center text-white/90 text-sm">
-                  <Calendar className="h-4 w-4 mr-1" />
-                  Joined {getJoinedDate(profile.guest_user.created_at)}
-                </span>
+            {profile.interests && profile.interests.length > 0 && (
+              <div className="mb-8">
+                <h2 className="text-lg font-semibold text-white mb-3">Interests</h2>
+                <div className="flex flex-wrap gap-2">
+                  {profile.interests.map((interest, idx) => (
+                    <span
+                      key={idx}
+                      className="px-4 py-2 bg-[#C5C5B5]/20 text-[#C5C5B5] rounded-full text-sm font-medium"
+                    >
+                      {interest}
+                    </span>
+                  ))}
+                </div>
               </div>
+            )}
 
-              {!isOwnProfile && (
-                <button
-                  onClick={handleSendMessage}
-                  className="px-6 py-3 bg-white text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition flex items-center mx-auto sm:mx-0"
-                >
-                  <MessageSquare className="h-5 w-5 mr-2" />
-                  Send Message
-                </button>
-              )}
+            {profile.social_links && Object.keys(profile.social_links).length > 0 && (
+              <div>
+                <h2 className="text-lg font-semibold text-white mb-3">Connect</h2>
+                <div className="flex flex-wrap gap-3">
+                  {Object.entries(profile.social_links).map(([platform, url]) => (
+                    <a
+                      key={platform}
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-4 py-2 bg-[#C5C5B5]/10 text-[#C5C5B5] rounded-xl hover:bg-[#C5C5B5]/20 transition-all duration-300 text-sm font-medium capitalize border border-[#C5C5B5]/20"
+                    >
+                      {platform}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
 
-              {isOwnProfile && (
-                <button
-                  onClick={() => navigate('/guest/settings')}
-                  className="px-6 py-3 bg-white text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition mx-auto sm:mx-0"
-                >
-                  Edit Profile
-                </button>
-              )}
-            </div>
+            {!profile.bio && (!profile.interests || profile.interests.length === 0) && (
+              <div className="text-center py-8 text-[#C5C5B5]/60">
+                {isOwnProfile ? (
+                  <>
+                    <p className="mb-4">Your profile is empty. Add some information about yourself!</p>
+                    <button
+                      onClick={() => navigate('/guest/settings')}
+                      className="px-6 py-3 bg-[#C5C5B5] text-[#1E1F1E] rounded-xl hover:bg-white transition-all duration-300"
+                    >
+                      Complete Your Profile
+                    </button>
+                  </>
+                ) : (
+                  <p>This member hasn't added any information to their profile yet.</p>
+                )}
+              </div>
+            )}
           </div>
-        </div>
-
-        {/* Content */}
-        <div className="px-6 py-8 sm:px-8">
-          {profile.bio && (
-            <div className="mb-8">
-              <h2 className="text-lg font-semibold text-gray-900 mb-3">About</h2>
-              <p className="text-gray-700 leading-relaxed">{profile.bio}</p>
-            </div>
-          )}
-
-          {profile.interests && profile.interests.length > 0 && (
-            <div className="mb-8">
-              <h2 className="text-lg font-semibold text-gray-900 mb-3">Interests</h2>
-              <div className="flex flex-wrap gap-2">
-                {profile.interests.map((interest, idx) => (
-                  <span
-                    key={idx}
-                    className="px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-sm font-medium"
-                  >
-                    {interest}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {profile.social_links && Object.keys(profile.social_links).length > 0 && (
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-3">Connect</h2>
-              <div className="flex flex-wrap gap-3">
-                {Object.entries(profile.social_links).map(([platform, url]) => (
-                  <a
-                    key={platform}
-                    href={url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-sm font-medium capitalize"
-                  >
-                    {platform}
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {!profile.bio && (!profile.interests || profile.interests.length === 0) && (
-            <div className="text-center py-8 text-gray-500">
-              {isOwnProfile ? (
-                <>
-                  <p className="mb-4">Your profile is empty. Add some information about yourself!</p>
-                  <button
-                    onClick={() => navigate('/guest/settings')}
-                    className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                  >
-                    Complete Your Profile
-                  </button>
-                </>
-              ) : (
-                <p>This member hasn't added any information to their profile yet.</p>
-              )}
-            </div>
-          )}
         </div>
       </div>
     </div>

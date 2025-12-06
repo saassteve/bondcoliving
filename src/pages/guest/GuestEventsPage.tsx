@@ -98,7 +98,7 @@ export default function GuestEventsPage() {
   };
 
   const EventCard = ({ event }: { event: Event }) => (
-    <div className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition">
+    <div className="bg-[#C5C5B5]/5 border border-[#C5C5B5]/20 rounded-2xl overflow-hidden hover:bg-[#C5C5B5]/10 hover:border-[#C5C5B5]/30 transition-all duration-300 backdrop-blur-sm">
       {event.image_url && (
         <img
           src={event.image_url}
@@ -109,14 +109,14 @@ export default function GuestEventsPage() {
 
       <div className="p-6">
         <div className="flex items-start justify-between mb-3">
-          <h3 className="text-xl font-bold text-gray-900 flex-1">{event.title}</h3>
+          <h3 className="text-xl font-bold text-white flex-1">{event.title}</h3>
           {event.user_rsvp && (
             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
               event.user_rsvp.status === 'going'
-                ? 'bg-green-100 text-green-800'
+                ? 'bg-green-500/20 text-green-400'
                 : event.user_rsvp.status === 'maybe'
-                ? 'bg-yellow-100 text-yellow-800'
-                : 'bg-gray-100 text-gray-800'
+                ? 'bg-yellow-500/20 text-yellow-400'
+                : 'bg-[#C5C5B5]/20 text-[#C5C5B5]'
             }`}>
               {event.user_rsvp.status === 'going' ? 'Going' : event.user_rsvp.status === 'maybe' ? 'Maybe' : 'Not Going'}
             </span>
@@ -124,16 +124,16 @@ export default function GuestEventsPage() {
         </div>
 
         <div className="space-y-2 mb-4">
-          <div className="flex items-center text-gray-600 text-sm">
+          <div className="flex items-center text-[#C5C5B5]/80 text-sm">
             <Clock className="h-4 w-4 mr-2" />
             {formatEventDate(event.event_date, event.end_date)}
           </div>
-          <div className="flex items-center text-gray-600 text-sm">
+          <div className="flex items-center text-[#C5C5B5]/80 text-sm">
             <MapPin className="h-4 w-4 mr-2" />
             {event.location}
           </div>
           {event.rsvp_count !== undefined && (
-            <div className="flex items-center text-gray-600 text-sm">
+            <div className="flex items-center text-[#C5C5B5]/80 text-sm">
               <Users className="h-4 w-4 mr-2" />
               {event.rsvp_count} {event.rsvp_count === 1 ? 'person' : 'people'} attending
               {event.max_attendees && ` (${event.max_attendees} max)`}
@@ -141,36 +141,36 @@ export default function GuestEventsPage() {
           )}
         </div>
 
-        <p className="text-gray-700 mb-6 line-clamp-3">{event.description}</p>
+        <p className="text-[#C5C5B5]/70 mb-6 line-clamp-3">{event.description}</p>
 
         {activeTab === 'upcoming' && (
           <div className="flex gap-2">
             <button
               onClick={() => handleRSVP(event.id, 'going')}
-              className={`flex-1 py-2 px-4 rounded-lg font-medium transition ${
+              className={`flex-1 py-2 px-4 rounded-xl font-medium transition-all duration-300 ${
                 event.user_rsvp?.status === 'going'
-                  ? 'bg-green-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-green-50 hover:text-green-700'
+                  ? 'bg-green-500 text-white'
+                  : 'bg-[#C5C5B5]/10 text-[#C5C5B5] hover:bg-green-500/20 hover:text-green-400 border border-[#C5C5B5]/20'
               }`}
             >
               Going
             </button>
             <button
               onClick={() => handleRSVP(event.id, 'maybe')}
-              className={`flex-1 py-2 px-4 rounded-lg font-medium transition ${
+              className={`flex-1 py-2 px-4 rounded-xl font-medium transition-all duration-300 ${
                 event.user_rsvp?.status === 'maybe'
-                  ? 'bg-yellow-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-yellow-50 hover:text-yellow-700'
+                  ? 'bg-yellow-500 text-white'
+                  : 'bg-[#C5C5B5]/10 text-[#C5C5B5] hover:bg-yellow-500/20 hover:text-yellow-400 border border-[#C5C5B5]/20'
               }`}
             >
               Maybe
             </button>
             <button
               onClick={() => handleRSVP(event.id, 'not_going')}
-              className={`flex-1 py-2 px-4 rounded-lg font-medium transition ${
+              className={`flex-1 py-2 px-4 rounded-xl font-medium transition-all duration-300 ${
                 event.user_rsvp?.status === 'not_going'
-                  ? 'bg-gray-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-[#C5C5B5] text-[#1E1F1E]'
+                  : 'bg-[#C5C5B5]/10 text-[#C5C5B5] hover:bg-[#C5C5B5]/20 border border-[#C5C5B5]/20'
               }`}
             >
               Can't Go
@@ -192,57 +192,59 @@ export default function GuestEventsPage() {
   const events = activeTab === 'upcoming' ? upcomingEvents : pastEvents;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 lg:pb-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center">
-          <Calendar className="h-8 w-8 mr-3 text-green-600" />
-          Community Events
-        </h1>
-        <p className="text-gray-600">Join us for events, activities, and gatherings</p>
-      </div>
-
-      <div className="flex gap-4 mb-6 border-b border-gray-200">
-        <button
-          onClick={() => setActiveTab('upcoming')}
-          className={`px-6 py-3 font-semibold transition border-b-2 ${
-            activeTab === 'upcoming'
-              ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-gray-600 hover:text-gray-900'
-          }`}
-        >
-          Upcoming ({upcomingEvents.length})
-        </button>
-        <button
-          onClick={() => setActiveTab('past')}
-          className={`px-6 py-3 font-semibold transition border-b-2 ${
-            activeTab === 'past'
-              ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-gray-600 hover:text-gray-900'
-          }`}
-        >
-          Past Events ({pastEvents.length})
-        </button>
-      </div>
-
-      {events.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm p-12 text-center">
-          <Calendar className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            {activeTab === 'upcoming' ? 'No upcoming events' : 'No past events'}
-          </h3>
-          <p className="text-gray-600">
-            {activeTab === 'upcoming'
-              ? 'Check back soon for new events!'
-              : 'Past events will appear here'}
-          </p>
+    <div className="min-h-screen bg-[#1E1F1E]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 lg:pb-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-white mb-2 flex items-center">
+            <Calendar className="h-8 w-8 mr-3 text-[#C5C5B5]" />
+            Community Events
+          </h1>
+          <p className="text-[#C5C5B5]/80">Join us for events, activities, and gatherings</p>
         </div>
-      ) : (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {events.map((event) => (
-            <EventCard key={event.id} event={event} />
-          ))}
+
+        <div className="flex gap-4 mb-6 border-b border-[#C5C5B5]/20">
+          <button
+            onClick={() => setActiveTab('upcoming')}
+            className={`px-6 py-3 font-semibold transition-all duration-300 border-b-2 ${
+              activeTab === 'upcoming'
+                ? 'border-[#C5C5B5] text-white'
+                : 'border-transparent text-[#C5C5B5]/60 hover:text-[#C5C5B5]'
+            }`}
+          >
+            Upcoming ({upcomingEvents.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('past')}
+            className={`px-6 py-3 font-semibold transition-all duration-300 border-b-2 ${
+              activeTab === 'past'
+                ? 'border-[#C5C5B5] text-white'
+                : 'border-transparent text-[#C5C5B5]/60 hover:text-[#C5C5B5]'
+            }`}
+          >
+            Past Events ({pastEvents.length})
+          </button>
         </div>
-      )}
+
+        {events.length === 0 ? (
+          <div className="bg-[#C5C5B5]/5 border border-[#C5C5B5]/20 rounded-2xl p-12 text-center backdrop-blur-sm">
+            <Calendar className="h-16 w-16 text-[#C5C5B5]/40 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-white mb-2">
+              {activeTab === 'upcoming' ? 'No upcoming events' : 'No past events'}
+            </h3>
+            <p className="text-[#C5C5B5]/60">
+              {activeTab === 'upcoming'
+                ? 'Check back soon for new events!'
+                : 'Past events will appear here'}
+            </p>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {events.map((event) => (
+              <EventCard key={event.id} event={event} />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
