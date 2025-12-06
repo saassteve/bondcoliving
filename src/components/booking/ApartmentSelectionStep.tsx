@@ -254,7 +254,9 @@ const ApartmentSelectionStep: React.FC<ApartmentSelectionStepProps> = ({
                       <OptimizedImage
                         src={apartmentImages[apartment.id]}
                         alt={apartment.title}
-                        className="w-16 h-16 object-cover rounded-lg"
+                        width={64}
+                        height={64}
+                        className="object-cover rounded-lg"
                       />
                     </div>
                   )}
@@ -330,7 +332,9 @@ const ApartmentSelectionStep: React.FC<ApartmentSelectionStepProps> = ({
                             <OptimizedImage
                               src={apartmentImages[segment.apartment.id]}
                               alt={segment.apartment.title}
-                              className="w-12 h-12 object-cover rounded-lg"
+                              width={48}
+                              height={48}
+                              className="object-cover rounded-lg"
                             />
                           </div>
                         )}
