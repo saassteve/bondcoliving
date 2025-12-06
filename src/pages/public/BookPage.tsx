@@ -272,7 +272,7 @@ const BookPage: React.FC = () => {
               </div>
 
               <div className="lg:col-span-1">
-                <div className="bg-[#C5C5B5]/5 rounded-2xl p-6 border border-[#C5C5B5]/10 sticky top-8">
+                <div className="bg-[#C5C5B5]/5 rounded-2xl p-6 border border-[#C5C5B5]/10 sticky top-24">
                   <h3 className="text-xl font-bold text-[#C5C5B5] mb-4">Booking Summary</h3>
 
                   {bookingData.checkInDate && bookingData.checkOutDate && (

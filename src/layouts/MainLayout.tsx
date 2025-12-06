@@ -179,13 +179,13 @@ const MainLayout: React.FC = () => {
         <main
           className="flex-grow"
           style={{
-            paddingTop: 'calc(7rem + var(--banner-height, 0px))',
+            paddingTop: 'calc(8rem + var(--banner-height, 0px))',
           }}
         >
           <style>{`
             @media (min-width: 768px) {
               main {
-                padding-top: var(--banner-height, 0px) !important;
+                padding-top: calc(6rem + var(--banner-height, 0px)) !important;
               }
             }
           `}</style>
