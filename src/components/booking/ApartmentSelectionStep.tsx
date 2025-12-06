@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ArrowRight, ArrowLeft, Home, Calendar, AlertCircle, Loader, Users, Maximize2 } from 'lucide-react';
 import { apartmentService, availabilityService, apartmentBookingService, type Apartment } from '../../lib/supabase';
 import { getIconComponent } from '../../lib/iconUtils';
+import OptimizedImage from '../OptimizedImage';
 
 interface ApartmentSelectionStepProps {
   checkInDate: string;
@@ -43,6 +44,7 @@ const ApartmentSelectionStep: React.FC<ApartmentSelectionStepProps> = ({
   const [selectedOption, setSelectedOption] = useState<'single' | 'split'>('single');
   const [selectedApartment, setSelectedApartment] = useState<Apartment | null>(null);
   const [selectedSplitIndex, setSelectedSplitIndex] = useState<number>(0);
+  const [apartmentImages, setApartmentImages] = useState<Record<string, string>>({});
 
   useEffect(() => {
     loadAvailability();
@@ -90,6 +92,8 @@ const ApartmentSelectionStep: React.FC<ApartmentSelectionStepProps> = ({
 
       setAvailableApartments(available);
 
+      const allApartmentsInOptions: Apartment[] = [...available];
+
       if (available.length === 0 && enableSplitStays) {
         const splitOptions = await apartmentBookingService.findSplitStayOptions(
           checkInDate,
@@ -99,8 +103,30 @@ const ApartmentSelectionStep: React.FC<ApartmentSelectionStepProps> = ({
         setSplitStayOptions(splitOptions);
         if (splitOptions.length > 0) {
           setSelectedOption('split');
+          splitOptions.forEach(option => {
+            option.forEach(seg => {
+              if (!allApartmentsInOptions.find(apt => apt.id === seg.apartment.id)) {
+                allApartmentsInOptions.push(seg.apartment);
+              }
+            });
+          });
         }
       }
+
+      const imageMap: Record<string, string> = {};
+      await Promise.all(
+        allApartmentsInOptions.map(async (apartment) => {
+          try {
+            const images = await apartmentService.getImages(apartment.id);
+            const featuredImage = images.find(img => img.is_featured);
+            imageMap[apartment.id] = featuredImage?.image_url || images[0]?.image_url || apartment.image_url || '';
+          } catch (err) {
+            console.error(`Error loading image for apartment ${apartment.id}:`, err);
+            imageMap[apartment.id] = apartment.image_url || '';
+          }
+        })
+      );
+      setApartmentImages(imageMap);
     } catch (error) {
       console.error('Error loading availability:', error);
     } finally {
@@ -222,27 +248,40 @@ const ApartmentSelectionStep: React.FC<ApartmentSelectionStepProps> = ({
                     : 'bg-[#C5C5B5]/5 border-[#C5C5B5]/20 hover:bg-[#C5C5B5]/10'
                 }`}
               >
-                <div className="flex justify-between items-start mb-3">
-                  <div>
-                    <h3 className="text-lg font-bold text-[#C5C5B5]">{apartment.title}</h3>
-                    <p className="text-sm text-[#C5C5B5]/60">{apartment.size} • {apartment.capacity}</p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xl font-bold text-[#C5C5B5]">{formatCurrency(price)}</div>
-                    <div className="text-sm text-[#C5C5B5]/60">total</div>
-                  </div>
-                </div>
-                <p className="text-sm text-[#C5C5B5]/80 mb-3">{apartment.description}</p>
-                <div className="flex flex-wrap gap-2">
-                  {apartment.features?.slice(0, 3).map((feature, index) => {
-                    const Icon = getIconComponent(feature.icon);
-                    return (
-                      <div key={index} className="flex items-center text-xs text-[#C5C5B5]/60">
-                        <Icon className="w-3 h-3 mr-1" />
-                        {feature.label}
+                <div className="flex gap-4">
+                  {apartmentImages[apartment.id] && (
+                    <div className="flex-shrink-0">
+                      <OptimizedImage
+                        src={apartmentImages[apartment.id]}
+                        alt={apartment.title}
+                        className="w-24 h-24 object-cover rounded-lg"
+                      />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h3 className="text-lg font-bold text-[#C5C5B5]">{apartment.title}</h3>
+                        <p className="text-sm text-[#C5C5B5]/60">{apartment.size} • {apartment.capacity}</p>
                       </div>
-                    );
-                  })}
+                      <div className="text-right ml-4">
+                        <div className="text-xl font-bold text-[#C5C5B5]">{formatCurrency(price)}</div>
+                        <div className="text-sm text-[#C5C5B5]/60">total</div>
+                      </div>
+                    </div>
+                    <p className="text-sm text-[#C5C5B5]/80 mb-3">{apartment.description}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {apartment.features?.slice(0, 3).map((feature, index) => {
+                        const Icon = getIconComponent(feature.icon);
+                        return (
+                          <div key={index} className="flex items-center text-xs text-[#C5C5B5]/60">
+                            <Icon className="w-3 h-3 mr-1" />
+                            {feature.label}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
               </button>
             );
@@ -285,15 +324,26 @@ const ApartmentSelectionStep: React.FC<ApartmentSelectionStepProps> = ({
                 <div className="space-y-3">
                   {option.map((segment, segIndex) => (
                     <div key={segIndex} className="pl-4 border-l-2 border-[#C5C5B5]/20">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <div className="text-sm font-bold text-[#C5C5B5]">{segment.apartment.title}</div>
-                          <div className="text-xs text-[#C5C5B5]/60">
-                            {new Date(segment.checkIn).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} -{' '}
-                            {new Date(segment.checkOut).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      <div className="flex gap-3 items-start">
+                        {apartmentImages[segment.apartment.id] && (
+                          <div className="flex-shrink-0">
+                            <OptimizedImage
+                              src={apartmentImages[segment.apartment.id]}
+                              alt={segment.apartment.title}
+                              className="w-16 h-16 object-cover rounded-lg"
+                            />
                           </div>
+                        )}
+                        <div className="flex-1 flex justify-between items-start">
+                          <div>
+                            <div className="text-sm font-bold text-[#C5C5B5]">{segment.apartment.title}</div>
+                            <div className="text-xs text-[#C5C5B5]/60">
+                              {new Date(segment.checkIn).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} -{' '}
+                              {new Date(segment.checkOut).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </div>
+                          </div>
+                          <div className="text-sm text-[#C5C5B5] ml-3">{formatCurrency(segment.price)}</div>
                         </div>
-                        <div className="text-sm text-[#C5C5B5]">{formatCurrency(segment.price)}</div>
                       </div>
                     </div>
                   ))}
