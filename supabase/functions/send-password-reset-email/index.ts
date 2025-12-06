@@ -106,7 +106,7 @@ Deno.serve(async (req: Request) => {
 
     // Handle password reset request
     if (action === 'request') {
-      return await handlePasswordResetRequest(supabase, resend, email, userType);
+      return await handlePasswordResetRequest(supabase, resend, email, userType, supabaseUrl);
     }
 
     // Handle token validation
@@ -138,7 +138,8 @@ async function handlePasswordResetRequest(
   supabase: any,
   resend: any,
   email: string,
-  userType: 'admin' | 'guest'
+  userType: 'admin' | 'guest',
+  supabaseUrl: string
 ) {
   if (!email || !userType) {
     return new Response(
