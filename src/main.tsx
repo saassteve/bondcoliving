@@ -41,6 +41,10 @@ import AdminGuestsPage from './pages/admin/AdminGuestsPage';
 import AdminPromotionsPage from './pages/admin/AdminPromotionsPage';
 import AdminAccountPage from './pages/admin/AdminAccountPage';
 import AdminICalPage from './pages/admin/AdminICalPage';
+import AdminAnnouncementsPage from './pages/admin/AdminAnnouncementsPage';
+import AdminEventsPage from './pages/admin/AdminEventsPage';
+import AdminLocalInfoPage from './pages/admin/AdminLocalInfoPage';
+import AdminServicesPage from './pages/admin/AdminServicesPage';
 
 // Guest Pages
 import GuestRegisterPage from './pages/guest/GuestRegisterPage';
@@ -104,6 +108,10 @@ const App = () => {
             <Route path="ical" element={<ProtectedRoute><AdminICalPage /></ProtectedRoute>} />
             <Route path="coworking" element={<ProtectedRoute><AdminCoworkingPage /></ProtectedRoute>} />
             <Route path="guests" element={<ProtectedRoute><AdminGuestsPage /></ProtectedRoute>} />
+            <Route path="announcements" element={<ProtectedRoute><AdminAnnouncementsPage /></ProtectedRoute>} />
+            <Route path="events" element={<ProtectedRoute><AdminEventsPage /></ProtectedRoute>} />
+            <Route path="local-info" element={<ProtectedRoute><AdminLocalInfoPage /></ProtectedRoute>} />
+            <Route path="services" element={<ProtectedRoute><AdminServicesPage /></ProtectedRoute>} />
             <Route path="promotions" element={<ProtectedRoute><AdminPromotionsPage /></ProtectedRoute>} />
             <Route path="account" element={<ProtectedRoute><AdminAccountPage /></ProtectedRoute>} />
             {/* Admin catch-all */}

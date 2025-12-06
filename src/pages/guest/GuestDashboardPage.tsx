@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import { getCurrentGuestUser, type GuestUser } from '../../lib/guestAuth';
 import { supabase } from '../../lib/supabase';
-import { Calendar, MessageSquare, Users, Bell, Wrench, Clock } from 'lucide-react';
+import { Calendar, MessageSquare, Users, Bell, Wrench, Clock, Key, Home } from 'lucide-react';
 
 interface Announcement {
   id: string;
@@ -21,11 +21,23 @@ interface Event {
   image_url: string | null;
 }
 
+interface Booking {
+  id: string;
+  check_in_date: string;
+  check_out_date: string;
+  door_code: string | null;
+  special_instructions: string | null;
+  apartments: {
+    title: string;
+  };
+}
+
 export default function GuestDashboardPage() {
   const { guestUser } = useOutletContext<{ guestUser: GuestUser | null }>();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
   const [unreadMessages, setUnreadMessages] = useState(0);
+  const [booking, setBooking] = useState<Booking | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -35,7 +47,7 @@ export default function GuestDashboardPage() {
   }, [guestUser]);
 
   const loadDashboardData = async () => {
-    const [announcementsData, eventsData] = await Promise.all([
+    const promises: Promise<any>[] = [
       supabase
         .from('announcements')
         .select('*')
@@ -50,10 +62,29 @@ export default function GuestDashboardPage() {
         .gte('event_date', new Date().toISOString())
         .order('event_date', { ascending: true })
         .limit(3),
-    ]);
+    ];
+
+    if (guestUser?.user_type === 'overnight' && guestUser?.booking_id) {
+      promises.push(
+        supabase
+          .from('bookings')
+          .select(`
+            *,
+            apartments (
+              title
+            )
+          `)
+          .eq('id', guestUser.booking_id)
+          .maybeSingle()
+      );
+    }
+
+    const results = await Promise.all(promises);
+    const [announcementsData, eventsData, bookingData] = results;
 
     if (announcementsData.data) setAnnouncements(announcementsData.data);
     if (eventsData.data) setUpcomingEvents(eventsData.data);
+    if (bookingData?.data) setBooking(bookingData.data);
 
     setLoading(false);
   };
@@ -253,6 +284,51 @@ export default function GuestDashboardPage() {
 
         {/* Sidebar */}
         <div className="space-y-6">
+          {/* My Stay Section - Only for overnight guests with booking */}
+          {guestUser?.user_type === 'overnight' && booking && (
+            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-sm p-6 text-white">
+              <h3 className="font-semibold mb-4 flex items-center">
+                <Home className="h-5 w-5 mr-2" />
+                My Stay
+              </h3>
+
+              <div className="space-y-3">
+                <div>
+                  <p className="text-sm text-green-100 mb-1">Apartment</p>
+                  <p className="font-semibold">{booking.apartments.title}</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-sm text-green-100 mb-1">Check-in</p>
+                    <p className="font-semibold">{new Date(booking.check_in_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-green-100 mb-1">Check-out</p>
+                    <p className="font-semibold">{new Date(booking.check_out_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+                  </div>
+                </div>
+
+                {booking.door_code && (
+                  <div className="bg-white/20 rounded-lg p-3 backdrop-blur-sm">
+                    <div className="flex items-center mb-2">
+                      <Key className="h-4 w-4 mr-2 text-green-100" />
+                      <p className="text-sm text-green-100">Door Code</p>
+                    </div>
+                    <p className="font-mono font-bold text-2xl tracking-widest">{booking.door_code}</p>
+                  </div>
+                )}
+
+                {booking.special_instructions && (
+                  <div className="bg-white/10 rounded-lg p-3">
+                    <p className="text-sm text-green-100 mb-1">Special Instructions</p>
+                    <p className="text-sm">{booking.special_instructions}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Access Info */}
           <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-sm p-6 text-white">
             <h3 className="font-semibold mb-2">Your Access</h3>

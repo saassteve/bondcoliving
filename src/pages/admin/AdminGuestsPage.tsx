@@ -69,6 +69,9 @@ export default function AdminGuestsPage() {
   const handleCreateInvitation = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
     const code = generateInvitationCode();
     const startDate = new Date();
     const endDate = new Date();
@@ -84,6 +87,7 @@ export default function AdminGuestsPage() {
       access_start_date: startDate.toISOString(),
       access_end_date: endDate.toISOString(),
       expires_at: expiresAt.toISOString(),
+      created_by: user.id,
     });
 
     if (!error) {
