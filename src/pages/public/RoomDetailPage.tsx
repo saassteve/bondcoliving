@@ -92,23 +92,7 @@ const RoomDetailPage: React.FC = () => {
   };
 
   const handleBookNow = () => {
-    if (!apartment) return;
-    try {
-      const evt = new CustomEvent('openBookingModal', {
-        detail: {
-          apartmentId: apartment.id,
-          apartmentTitle: apartment.title,
-        },
-      });
-      window.dispatchEvent(evt);
-      // Fallback if no listener
-      setTimeout(() => {
-         // check if modal opened, if not navigate? 
-         // For now, we assume modal works or user navigates to apply if they prefer
-      }, 100);
-    } catch {
-      navigate('/apply');
-    }
+    navigate('/apply');
   };
 
   if (loading) {
