@@ -982,6 +982,13 @@ export interface BookingSettings {
 
 export class BookingService {
   static async getAll(): Promise<Booking[]> {
+    console.log('BookingService.getAll() - Starting fetch...');
+
+    // Check auth status
+    const { data: { session } } = await supabase.auth.getSession();
+    console.log('BookingService.getAll() - Session:', session ? 'Authenticated' : 'Not authenticated');
+    console.log('BookingService.getAll() - User ID:', session?.user?.id);
+
     const { data, error } = await supabase
       .from('bookings')
       .select(`
@@ -989,8 +996,16 @@ export class BookingService {
         apartment:apartments(title)
       `)
       .order('check_in_date', { ascending: false })
-    
-    if (error) throw error
+
+    if (error) {
+      console.error('BookingService.getAll() - Error fetching bookings:', error);
+      console.error('BookingService.getAll() - Error code:', error.code);
+      console.error('BookingService.getAll() - Error message:', error.message);
+      console.error('BookingService.getAll() - Error details:', error.details);
+      throw error;
+    }
+
+    console.log('BookingService.getAll() - Success! Fetched', data?.length || 0, 'bookings');
     return data || []
   }
 

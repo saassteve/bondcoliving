@@ -22,6 +22,8 @@ class AuthService {
   }
 
   private async checkSession() {
+    console.log('AuthService.checkSession() - Starting...');
+
     // First check localStorage for persisted session
     const storedSession = localStorage.getItem(this.STORAGE_KEY);
     if (storedSession) {
@@ -30,40 +32,55 @@ class AuthService {
         // Verify the session is still valid (not expired)
         const sessionAge = Date.now() - sessionData.timestamp;
         const maxAge = 7 * 24 * 60 * 60 * 1000; // 7 days
-        
+
         if (sessionAge < maxAge) {
+          console.log('AuthService.checkSession() - Using cached session for:', sessionData.user.email);
           this.currentUser = sessionData.user;
           this.notifyListeners();
           return;
         } else {
-          // Session expired, remove it
+          console.log('AuthService.checkSession() - Cached session expired');
           localStorage.removeItem(this.STORAGE_KEY);
         }
       } catch (error) {
-        console.error('Error parsing stored session:', error);
+        console.error('AuthService.checkSession() - Error parsing stored session:', error);
         localStorage.removeItem(this.STORAGE_KEY);
       }
     }
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
+      console.log('AuthService.checkSession() - Supabase session:', session ? 'Found' : 'Not found');
+
       if (session?.user) {
+        console.log('AuthService.checkSession() - User authenticated:', session.user.email);
+        console.log('AuthService.checkSession() - User ID (auth.uid):', session.user.id);
+
         // Verify this is an authorized admin user
-        const { data: adminUser } = await supabase
+        const { data: adminUser, error: adminError } = await supabase
           .from('admin_users')
-          .select('id, email, role')
-          .eq('email', session.user.email)
+          .select('id, email, role, user_id')
+          .eq('user_id', session.user.id)
           .eq('is_active', true)
-          .single();
+          .maybeSingle();
+
+        if (adminError) {
+          console.error('AuthService.checkSession() - Error fetching admin user:', adminError);
+        }
 
         if (adminUser) {
+          console.log('AuthService.checkSession() - Admin user verified:', adminUser.email, 'Role:', adminUser.role);
           this.currentUser = adminUser;
           this.persistSession(adminUser);
           this.notifyListeners();
+        } else {
+          console.warn('AuthService.checkSession() - User is authenticated but not an admin');
         }
+      } else {
+        console.log('AuthService.checkSession() - No active session');
       }
     } catch (error) {
-      console.error('Error checking session:', error);
+      console.error('AuthService.checkSession() - Error:', error);
     }
   }
 
@@ -81,6 +98,8 @@ class AuthService {
 
   async signIn(email: string, password: string): Promise<{ success: boolean; error?: string }> {
     try {
+      console.log('AuthService.signIn() - Attempting sign in for:', email);
+
       // First try to sign in with Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
@@ -88,40 +107,51 @@ class AuthService {
       });
 
       if (authError) {
-        console.error('Supabase auth error:', authError);
+        console.error('AuthService.signIn() - Supabase auth error:', authError);
         return { success: false, error: 'Invalid credentials' };
       }
 
       if (!authData.user) {
+        console.error('AuthService.signIn() - No user returned from auth');
         return { success: false, error: 'Authentication failed' };
       }
+
+      console.log('AuthService.signIn() - Auth successful, user ID:', authData.user.id);
 
       // Check if this user is an admin in our admin_users table
       const { data: adminUser, error: adminError } = await supabase
         .from('admin_users')
-        .select('id, email, role')
-        .eq('email', email)
+        .select('id, email, role, user_id')
+        .eq('user_id', authData.user.id)
         .eq('is_active', true)
-        .single();
+        .maybeSingle();
 
-      if (adminError || !adminUser) {
-        // Sign out the user since they're not an admin
+      if (adminError) {
+        console.error('AuthService.signIn() - Error checking admin status:', adminError);
+        await supabase.auth.signOut();
+        return { success: false, error: 'Failed to verify admin status' };
+      }
+
+      if (!adminUser) {
+        console.warn('AuthService.signIn() - User is not an admin');
         await supabase.auth.signOut();
         return { success: false, error: 'Access denied - admin account required' };
       }
+
+      console.log('AuthService.signIn() - Admin verified:', adminUser.email, 'Role:', adminUser.role);
 
       const user = {
         id: adminUser.id,
         email: adminUser.email,
         role: adminUser.role
       };
-      
+
       this.currentUser = user;
       this.persistSession(user);
       this.notifyListeners();
       return { success: true };
     } catch (error) {
-      console.error('Sign in error:', error);
+      console.error('AuthService.signIn() - Unexpected error:', error);
       return { success: false, error: 'An unexpected error occurred' };
     }
   }

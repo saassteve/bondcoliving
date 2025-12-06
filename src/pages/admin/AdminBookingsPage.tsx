@@ -21,6 +21,7 @@ const AdminBookingsPage: React.FC = () => {
   const [filter, setFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [timelineStartDate, setTimelineStartDate] = useState(new Date());
   const [timelineDays, setTimelineDays] = useState(30);
   const [stats, setStats] = useState({
@@ -64,15 +65,22 @@ const AdminBookingsPage: React.FC = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
+      setFetchError(null);
+
+      console.log('AdminBookingsPage - Fetching data...');
+
       const [bookingsData, apartmentsData] = await Promise.all([
         bookingService.getAll(),
         apartmentService.getAll()
       ]);
 
+      console.log('AdminBookingsPage - Fetched', bookingsData.length, 'bookings');
       setBookings(bookingsData);
       setApartments(apartmentsData);
-    } catch (error) {
-      console.error('Error fetching data:', error);
+    } catch (error: any) {
+      console.error('AdminBookingsPage - Error fetching data:', error);
+      const errorMessage = error?.message || 'Unknown error occurred';
+      setFetchError(`Failed to load bookings: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
@@ -286,6 +294,14 @@ const AdminBookingsPage: React.FC = () => {
         {guestInviteError && (
           <div className="p-4 bg-red-900/50 border border-red-700 rounded-lg text-red-200">
             {guestInviteError}
+          </div>
+        )}
+        {fetchError && (
+          <div className="p-4 bg-red-900/50 border border-red-700 rounded-lg text-red-200">
+            <strong>Error:</strong> {fetchError}
+            <div className="mt-2 text-sm text-red-300">
+              Check the browser console for more details.
+            </div>
           </div>
         )}
 
