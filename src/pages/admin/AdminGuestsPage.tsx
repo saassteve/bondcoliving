@@ -32,6 +32,9 @@ export default function AdminGuestsPage() {
   const [loading, setLoading] = useState(true);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const [inviteForm, setInviteForm] = useState({
     email: '',
@@ -68,29 +71,69 @@ export default function AdminGuestsPage() {
 
   const handleCreateInvitation = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitting(true);
+    setError(null);
+    setSuccess(null);
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setError('You must be logged in to create invitations');
+        setSubmitting(false);
+        return;
+      }
 
-    const code = generateInvitationCode();
-    const startDate = new Date();
-    const endDate = new Date();
-    endDate.setDate(endDate.getDate() + inviteForm.access_days);
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7);
+      // Verify user is an admin
+      const { data: adminUser, error: adminError } = await supabase
+        .from('admin_users')
+        .select('id, is_active, email')
+        .eq('email', user.email)
+        .eq('is_active', true)
+        .maybeSingle();
 
-    const { error } = await supabase.from('guest_invitations').insert({
-      invitation_code: code,
-      email: inviteForm.email,
-      full_name: inviteForm.full_name,
-      user_type: inviteForm.user_type,
-      access_start_date: startDate.toISOString(),
-      access_end_date: endDate.toISOString(),
-      expires_at: expiresAt.toISOString(),
-      created_by: user.id,
-    });
+      if (adminError) {
+        console.error('Error checking admin status:', adminError);
+        setError('Failed to verify admin permissions. Please try again.');
+        setSubmitting(false);
+        return;
+      }
 
-    if (!error) {
+      if (!adminUser) {
+        setError('You do not have permission to create invitations. Admin access required.');
+        setSubmitting(false);
+        return;
+      }
+
+      // Generate invitation data
+      const code = generateInvitationCode();
+      const startDate = new Date();
+      const endDate = new Date();
+      endDate.setDate(endDate.getDate() + inviteForm.access_days);
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7);
+
+      // Insert invitation
+      const { error: insertError } = await supabase.from('guest_invitations').insert({
+        invitation_code: code,
+        email: inviteForm.email,
+        full_name: inviteForm.full_name,
+        user_type: inviteForm.user_type,
+        access_start_date: startDate.toISOString(),
+        access_end_date: endDate.toISOString(),
+        expires_at: expiresAt.toISOString(),
+        created_by: user.id,
+      });
+
+      if (insertError) {
+        console.error('Error creating invitation:', insertError);
+        setError(`Failed to create invitation: ${insertError.message}`);
+        setSubmitting(false);
+        return;
+      }
+
+      // Success!
+      setSuccess(`Invitation created successfully for ${inviteForm.full_name}`);
       setShowInviteModal(false);
       setInviteForm({
         email: '',
@@ -98,7 +141,18 @@ export default function AdminGuestsPage() {
         user_type: 'overnight',
         access_days: 30,
       });
-      loadData();
+
+      // Switch to invitations tab and reload data
+      setActiveTab('invitations');
+      await loadData();
+
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err) {
+      console.error('Unexpected error creating invitation:', err);
+      setError('An unexpected error occurred. Please try again.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -119,6 +173,13 @@ export default function AdminGuestsPage() {
 
   return (
     <div className="p-8">
+      {success && (
+        <div className="mb-6 p-4 bg-green-900/50 border border-green-700 rounded-lg text-green-200 flex items-center">
+          <Check className="h-5 w-5 mr-2" />
+          {success}
+        </div>
+      )}
+
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold text-white mb-2">Guest Platform</h1>
@@ -290,6 +351,12 @@ export default function AdminGuestsPage() {
           <div className="bg-gray-800 rounded-xl shadow-xl max-w-md w-full p-6 border border-gray-700">
             <h2 className="text-2xl font-bold text-white mb-6">Create Guest Invitation</h2>
 
+            {error && (
+              <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded-lg text-red-200 text-sm">
+                {error}
+              </div>
+            )}
+
             <form onSubmit={handleCreateInvitation} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -348,16 +415,21 @@ export default function AdminGuestsPage() {
               <div className="flex gap-3 pt-4">
                 <button
                   type="button"
-                  onClick={() => setShowInviteModal(false)}
-                  className="flex-1 px-4 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-700 transition"
+                  onClick={() => {
+                    setShowInviteModal(false);
+                    setError(null);
+                  }}
+                  disabled={submitting}
+                  className="flex-1 px-4 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+                  disabled={submitting}
+                  className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Create Invitation
+                  {submitting ? 'Creating...' : 'Create Invitation'}
                 </button>
               </div>
             </form>
