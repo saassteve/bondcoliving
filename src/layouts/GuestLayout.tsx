@@ -27,8 +27,8 @@ export default function GuestLayout() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-[#1E1F1E] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#C5C5B5]"></div>
       </div>
     );
   }
@@ -46,21 +46,25 @@ export default function GuestLayout() {
   ].filter(item => item.show);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#1E1F1E]">
       {/* Top Navigation */}
-      <nav className="bg-white border-b border-gray-200 fixed top-0 left-0 right-0 z-50">
+      <nav className="bg-[#1E1F1E]/95 border-b border-[#C5C5B5]/20 fixed top-0 left-0 right-0 z-50 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="lg:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                className="lg:hidden p-2 rounded-md text-[#C5C5B5] hover:text-white hover:bg-[#C5C5B5]/10"
               >
                 {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
               </button>
               <Link to="/guest/dashboard" className="flex items-center ml-2 lg:ml-0">
-                <span className="text-2xl font-bold text-gray-900">Bond</span>
-                <span className="ml-3 px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                <img
+                  src="https://iili.io/FcjToIp.png"
+                  alt="Bond"
+                  className="h-8 w-auto"
+                />
+                <span className="ml-3 px-2 py-1 text-xs font-medium uppercase tracking-wide bg-[#C5C5B5]/20 text-[#C5C5B5] rounded-full">
                   {guestUser?.user_type === 'overnight' ? 'Guest' : 'Coworking'}
                 </span>
               </Link>
@@ -73,10 +77,10 @@ export default function GuestLayout() {
                   <Link
                     key={item.name}
                     to={item.href}
-                    className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition ${
+                    className={`flex items-center px-3 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${
                       isActive(item.href)
-                        ? 'bg-blue-50 text-blue-700'
-                        : 'text-gray-700 hover:bg-gray-100'
+                        ? 'bg-[#C5C5B5]/20 text-white'
+                        : 'text-[#C5C5B5] hover:bg-[#C5C5B5]/10 hover:text-white'
                     }`}
                   >
                     <Icon className="h-4 w-4 mr-2" />
@@ -89,20 +93,20 @@ export default function GuestLayout() {
             <div className="flex items-center space-x-2">
               <Link
                 to="/guest/notifications"
-                className="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 relative"
+                className="p-2 rounded-xl text-[#C5C5B5] hover:text-white hover:bg-[#C5C5B5]/10 relative transition-all duration-300"
               >
                 <Bell className="h-5 w-5" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                <span className="absolute top-1 right-1 w-2 h-2 bg-[#C5C5B5] rounded-full"></span>
               </Link>
               <Link
                 to="/guest/settings"
-                className="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                className="p-2 rounded-xl text-[#C5C5B5] hover:text-white hover:bg-[#C5C5B5]/10 transition-all duration-300"
               >
                 <Settings className="h-5 w-5" />
               </Link>
               <button
                 onClick={handleSignOut}
-                className="hidden sm:block px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+                className="hidden sm:block px-4 py-2 text-sm font-medium text-[#C5C5B5] hover:text-white transition-colors"
               >
                 Sign Out
               </button>
@@ -112,7 +116,7 @@ export default function GuestLayout() {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="lg:hidden border-t border-gray-200 bg-white">
+          <div className="lg:hidden border-t border-[#C5C5B5]/20 bg-[#1E1F1E]/95 backdrop-blur-sm">
             <div className="px-2 pt-2 pb-3 space-y-1">
               {navigation.map((item) => {
                 const Icon = item.icon;
@@ -121,10 +125,10 @@ export default function GuestLayout() {
                     key={item.name}
                     to={item.href}
                     onClick={() => setMobileMenuOpen(false)}
-                    className={`flex items-center px-3 py-2 rounded-lg text-base font-medium ${
+                    className={`flex items-center px-3 py-2 rounded-xl text-base font-medium transition-all duration-300 ${
                       isActive(item.href)
-                        ? 'bg-blue-50 text-blue-700'
-                        : 'text-gray-700 hover:bg-gray-100'
+                        ? 'bg-[#C5C5B5]/20 text-white'
+                        : 'text-[#C5C5B5] hover:bg-[#C5C5B5]/10 hover:text-white'
                     }`}
                   >
                     <Icon className="h-5 w-5 mr-3" />
@@ -134,7 +138,7 @@ export default function GuestLayout() {
               })}
               <button
                 onClick={handleSignOut}
-                className="w-full text-left flex items-center px-3 py-2 rounded-lg text-base font-medium text-red-600 hover:bg-red-50"
+                className="w-full text-left flex items-center px-3 py-2 rounded-xl text-base font-medium text-[#C5C5B5] hover:bg-[#C5C5B5]/10 hover:text-white transition-all duration-300"
               >
                 Sign Out
               </button>
@@ -149,7 +153,7 @@ export default function GuestLayout() {
       </main>
 
       {/* Bottom Navigation for Mobile */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-[#1E1F1E]/95 border-t border-[#C5C5B5]/20 z-50 backdrop-blur-sm">
         <div className="grid grid-cols-5 gap-1 p-2">
           {navigation.slice(0, 5).map((item) => {
             const Icon = item.icon;
@@ -157,10 +161,10 @@ export default function GuestLayout() {
               <Link
                 key={item.name}
                 to={item.href}
-                className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg text-xs ${
+                className={`flex flex-col items-center justify-center py-2 px-1 rounded-xl text-xs transition-all duration-300 ${
                   isActive(item.href)
-                    ? 'text-blue-700 bg-blue-50'
-                    : 'text-gray-600'
+                    ? 'text-white bg-[#C5C5B5]/20'
+                    : 'text-[#C5C5B5]'
                 }`}
               >
                 <Icon className="h-5 w-5 mb-1" />

@@ -112,21 +112,24 @@ export default function GuestDashboardPage() {
       name: 'Browse Community',
       href: '/guest/community',
       icon: Users,
-      color: 'bg-blue-500',
+      color: 'bg-[#C5C5B5]/20',
+      hoverColor: 'hover:bg-[#C5C5B5]/30',
       show: true,
     },
     {
       name: 'View Events',
       href: '/guest/events',
       icon: Calendar,
-      color: 'bg-green-500',
+      color: 'bg-[#C5C5B5]/20',
+      hoverColor: 'hover:bg-[#C5C5B5]/30',
       show: true,
     },
     {
       name: 'Messages',
       href: '/guest/messages',
       icon: MessageSquare,
-      color: 'bg-purple-500',
+      color: 'bg-[#C5C5B5]/20',
+      hoverColor: 'hover:bg-[#C5C5B5]/30',
       show: true,
       badge: unreadMessages > 0 ? unreadMessages : undefined,
     },
@@ -134,14 +137,16 @@ export default function GuestDashboardPage() {
       name: 'Request Service',
       href: '/guest/services',
       icon: Wrench,
-      color: 'bg-orange-500',
+      color: 'bg-[#C5C5B5]/20',
+      hoverColor: 'hover:bg-[#C5C5B5]/30',
       show: guestUser?.user_type === 'overnight',
     },
     {
       name: 'Extend Stay',
       href: '/guest/extend-stay',
       icon: Clock,
-      color: 'bg-teal-500',
+      color: 'bg-[#C5C5B5]/20',
+      hoverColor: 'hover:bg-[#C5C5B5]/30',
       show: guestUser?.user_type === 'overnight',
     },
   ].filter(action => action.show);
@@ -160,219 +165,221 @@ export default function GuestDashboardPage() {
     : 0;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 lg:pb-8">
-      {/* Welcome Section */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Welcome back, {guestUser?.full_name?.split(' ')[0]}!
-        </h1>
-        <p className="text-gray-600">
-          {guestUser?.user_type === 'overnight'
-            ? `You have ${daysRemaining} days remaining in your stay`
-            : 'Enjoy access to the Bond community'}
-        </p>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
-        {quickActions.map((action) => {
-          const Icon = action.icon;
-          return (
-            <Link
-              key={action.name}
-              to={action.href}
-              className="relative bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition group"
-            >
-              <div className={`${action.color} w-12 h-12 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition`}>
-                <Icon className="h-6 w-6 text-white" />
-              </div>
-              <h3 className="font-semibold text-gray-900 text-sm">{action.name}</h3>
-              {action.badge && (
-                <span className="absolute top-4 right-4 bg-red-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">
-                  {action.badge}
-                </span>
-              )}
-            </Link>
-          );
-        })}
-      </div>
-
-      <div className="grid lg:grid-cols-3 gap-8">
-        {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Announcements */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-900 flex items-center">
-                <Bell className="h-5 w-5 mr-2 text-blue-600" />
-                Announcements
-              </h2>
-              <Link to="/guest/announcements" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
-                View all
-              </Link>
-            </div>
-
-            {announcements.length === 0 ? (
-              <p className="text-gray-500 text-center py-8">No announcements at this time</p>
-            ) : (
-              <div className="space-y-4">
-                {announcements.map((announcement) => (
-                  <div
-                    key={announcement.id}
-                    className="border-l-4 border-blue-500 bg-blue-50 p-4 rounded-r-lg"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-gray-900">{announcement.title}</h3>
-                          {announcement.is_pinned && (
-                            <span className="px-2 py-0.5 bg-yellow-100 text-yellow-800 text-xs font-medium rounded">
-                              Pinned
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-700 line-clamp-2">{announcement.content}</p>
-                        <p className="text-xs text-gray-500 mt-2">{formatDate(announcement.created_at)}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Upcoming Events */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-900 flex items-center">
-                <Calendar className="h-5 w-5 mr-2 text-green-600" />
-                Upcoming Events
-              </h2>
-              <Link to="/guest/events" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
-                View all
-              </Link>
-            </div>
-
-            {upcomingEvents.length === 0 ? (
-              <p className="text-gray-500 text-center py-8">No upcoming events</p>
-            ) : (
-              <div className="space-y-4">
-                {upcomingEvents.map((event) => (
-                  <Link
-                    key={event.id}
-                    to={`/guest/events/${event.id}`}
-                    className="flex gap-4 p-4 rounded-lg hover:bg-gray-50 transition border border-gray-200"
-                  >
-                    {event.image_url && (
-                      <img
-                        src={event.image_url}
-                        alt={event.title}
-                        className="w-20 h-20 rounded-lg object-cover"
-                      />
-                    )}
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 mb-1">{event.title}</h3>
-                      <p className="text-sm text-gray-600 mb-1">{formatEventDate(event.event_date)}</p>
-                      <p className="text-sm text-gray-500">{event.location}</p>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
+    <div className="min-h-screen bg-[#1E1F1E]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 lg:pb-8">
+        {/* Welcome Section */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-white mb-2">
+            Welcome back, {guestUser?.full_name?.split(' ')[0]}!
+          </h1>
+          <p className="text-[#C5C5B5]/80">
+            {guestUser?.user_type === 'overnight'
+              ? `You have ${daysRemaining} days remaining in your stay`
+              : 'Enjoy access to the Bond community'}
+          </p>
         </div>
 
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* My Stay Section - Only for overnight guests with booking */}
-          {guestUser?.user_type === 'overnight' && booking && (
-            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-sm p-6 text-white">
-              <h3 className="font-semibold mb-4 flex items-center">
-                <Home className="h-5 w-5 mr-2" />
-                My Stay
-              </h3>
-
-              <div className="space-y-3">
-                <div>
-                  <p className="text-sm text-green-100 mb-1">Apartment</p>
-                  <p className="font-semibold">{booking.apartments.title}</p>
+        {/* Quick Actions */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+          {quickActions.map((action) => {
+            const Icon = action.icon;
+            return (
+              <Link
+                key={action.name}
+                to={action.href}
+                className={`relative ${action.color} ${action.hoverColor} border border-[#C5C5B5]/20 rounded-2xl p-6 transition-all duration-300 group hover:scale-105`}
+              >
+                <div className="w-12 h-12 rounded-xl bg-[#C5C5B5]/30 flex items-center justify-center mb-3 group-hover:scale-110 transition">
+                  <Icon className="h-6 w-6 text-[#C5C5B5]" />
                 </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <p className="text-sm text-green-100 mb-1">Check-in</p>
-                    <p className="font-semibold">{new Date(booking.check_in_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-green-100 mb-1">Check-out</p>
-                    <p className="font-semibold">{new Date(booking.check_out_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
-                  </div>
-                </div>
-
-                {booking.door_code && (
-                  <div className="bg-white/20 rounded-lg p-3 backdrop-blur-sm">
-                    <div className="flex items-center mb-2">
-                      <Key className="h-4 w-4 mr-2 text-green-100" />
-                      <p className="text-sm text-green-100">Door Code</p>
-                    </div>
-                    <p className="font-mono font-bold text-2xl tracking-widest">{booking.door_code}</p>
-                  </div>
-                )}
-
-                {booking.special_instructions && (
-                  <div className="bg-white/10 rounded-lg p-3">
-                    <p className="text-sm text-green-100 mb-1">Special Instructions</p>
-                    <p className="text-sm">{booking.special_instructions}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Access Info */}
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-sm p-6 text-white">
-            <h3 className="font-semibold mb-2">Your Access</h3>
-            <p className="text-sm text-blue-100 mb-4">
-              {guestUser?.user_type === 'overnight' ? 'Overnight Guest' : 'Coworking Member'}
-            </p>
-            <div className="bg-white/20 rounded-lg p-3 backdrop-blur-sm">
-              <p className="text-xs text-blue-100 mb-1">Access until</p>
-              <p className="font-bold text-lg">{accessEndDate?.toLocaleDateString()}</p>
-              {guestUser?.user_type === 'overnight' && daysRemaining < 7 && (
-                <Link
-                  to="/guest/extend-stay"
-                  className="mt-3 block w-full bg-white text-blue-600 text-center py-2 rounded-lg text-sm font-semibold hover:bg-blue-50 transition"
-                >
-                  Extend Your Stay
-                </Link>
-              )}
-            </div>
-          </div>
-
-          {/* Community Stats */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h3 className="font-semibold text-gray-900 mb-4">Community</h3>
-            <div className="space-y-3">
-              <Link to="/guest/community" className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition">
-                <div className="flex items-center">
-                  <Users className="h-5 w-5 text-gray-400 mr-3" />
-                  <span className="text-sm text-gray-700">View Members</span>
-                </div>
-                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </Link>
-              <Link to="/guest/messages" className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition">
-                <div className="flex items-center">
-                  <MessageSquare className="h-5 w-5 text-gray-400 mr-3" />
-                  <span className="text-sm text-gray-700">Messages</span>
-                </div>
-                {unreadMessages > 0 && (
-                  <span className="bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                    {unreadMessages}
+                <h3 className="font-semibold text-white text-sm">{action.name}</h3>
+                {action.badge && (
+                  <span className="absolute top-4 right-4 bg-[#C5C5B5] text-[#1E1F1E] text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">
+                    {action.badge}
                   </span>
                 )}
               </Link>
+            );
+          })}
+        </div>
+
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Announcements */}
+            <div className="bg-[#C5C5B5]/5 border border-[#C5C5B5]/20 rounded-2xl p-6 backdrop-blur-sm">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-white flex items-center">
+                  <Bell className="h-5 w-5 mr-2 text-[#C5C5B5]" />
+                  Announcements
+                </h2>
+                <Link to="/guest/announcements" className="text-sm text-[#C5C5B5] hover:text-white font-medium transition-colors">
+                  View all
+                </Link>
+              </div>
+
+              {announcements.length === 0 ? (
+                <p className="text-[#C5C5B5]/60 text-center py-8">No announcements at this time</p>
+              ) : (
+                <div className="space-y-4">
+                  {announcements.map((announcement) => (
+                    <div
+                      key={announcement.id}
+                      className="border-l-4 border-[#C5C5B5] bg-[#C5C5B5]/10 p-4 rounded-r-2xl"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-semibold text-white">{announcement.title}</h3>
+                            {announcement.is_pinned && (
+                              <span className="px-2 py-0.5 bg-[#C5C5B5]/30 text-[#C5C5B5] text-xs font-medium rounded uppercase tracking-wide">
+                                Pinned
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-[#C5C5B5]/80 line-clamp-2">{announcement.content}</p>
+                          <p className="text-xs text-[#C5C5B5]/50 mt-2">{formatDate(announcement.created_at)}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Upcoming Events */}
+            <div className="bg-[#C5C5B5]/5 border border-[#C5C5B5]/20 rounded-2xl p-6 backdrop-blur-sm">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-white flex items-center">
+                  <Calendar className="h-5 w-5 mr-2 text-[#C5C5B5]" />
+                  Upcoming Events
+                </h2>
+                <Link to="/guest/events" className="text-sm text-[#C5C5B5] hover:text-white font-medium transition-colors">
+                  View all
+                </Link>
+              </div>
+
+              {upcomingEvents.length === 0 ? (
+                <p className="text-[#C5C5B5]/60 text-center py-8">No upcoming events</p>
+              ) : (
+                <div className="space-y-4">
+                  {upcomingEvents.map((event) => (
+                    <Link
+                      key={event.id}
+                      to={`/guest/events/${event.id}`}
+                      className="flex gap-4 p-4 rounded-2xl hover:bg-[#C5C5B5]/10 transition-all duration-300 border border-[#C5C5B5]/20 hover:border-[#C5C5B5]/30"
+                    >
+                      {event.image_url && (
+                        <img
+                          src={event.image_url}
+                          alt={event.title}
+                          className="w-20 h-20 rounded-xl object-cover"
+                        />
+                      )}
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-white mb-1">{event.title}</h3>
+                        <p className="text-sm text-[#C5C5B5]/80 mb-1">{formatEventDate(event.event_date)}</p>
+                        <p className="text-sm text-[#C5C5B5]/60">{event.location}</p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* My Stay Section - Only for overnight guests with booking */}
+            {guestUser?.user_type === 'overnight' && booking && (
+              <div className="bg-gradient-to-br from-[#C5C5B5] to-[#C5C5B5]/80 rounded-2xl shadow-xl p-6 text-[#1E1F1E]">
+                <h3 className="font-semibold mb-4 flex items-center">
+                  <Home className="h-5 w-5 mr-2" />
+                  My Stay
+                </h3>
+
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm text-[#1E1F1E]/70 mb-1">Apartment</p>
+                    <p className="font-semibold">{booking.apartments.title}</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <p className="text-sm text-[#1E1F1E]/70 mb-1">Check-in</p>
+                      <p className="font-semibold">{new Date(booking.check_in_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-[#1E1F1E]/70 mb-1">Check-out</p>
+                      <p className="font-semibold">{new Date(booking.check_out_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+                    </div>
+                  </div>
+
+                  {booking.door_code && (
+                    <div className="bg-[#1E1F1E]/20 rounded-xl p-3 backdrop-blur-sm">
+                      <div className="flex items-center mb-2">
+                        <Key className="h-4 w-4 mr-2 text-[#1E1F1E]/70" />
+                        <p className="text-sm text-[#1E1F1E]/70">Door Code</p>
+                      </div>
+                      <p className="font-mono font-bold text-2xl tracking-widest">{booking.door_code}</p>
+                    </div>
+                  )}
+
+                  {booking.special_instructions && (
+                    <div className="bg-[#1E1F1E]/10 rounded-xl p-3">
+                      <p className="text-sm text-[#1E1F1E]/70 mb-1">Special Instructions</p>
+                      <p className="text-sm">{booking.special_instructions}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Access Info */}
+            <div className="bg-gradient-to-br from-[#C5C5B5]/30 to-[#C5C5B5]/20 border border-[#C5C5B5]/30 rounded-2xl shadow-xl p-6 backdrop-blur-sm">
+              <h3 className="font-semibold mb-2 text-white">Your Access</h3>
+              <p className="text-sm text-[#C5C5B5]/80 mb-4">
+                {guestUser?.user_type === 'overnight' ? 'Overnight Guest' : 'Coworking Member'}
+              </p>
+              <div className="bg-[#1E1F1E]/40 rounded-xl p-3 backdrop-blur-sm border border-[#C5C5B5]/20">
+                <p className="text-xs text-[#C5C5B5]/70 mb-1">Access until</p>
+                <p className="font-bold text-lg text-white">{accessEndDate?.toLocaleDateString()}</p>
+                {guestUser?.user_type === 'overnight' && daysRemaining < 7 && (
+                  <Link
+                    to="/guest/extend-stay"
+                    className="mt-3 block w-full bg-[#C5C5B5] text-[#1E1F1E] text-center py-2 rounded-full text-sm font-semibold hover:bg-white transition-all duration-300 hover:scale-105"
+                  >
+                    Extend Your Stay
+                  </Link>
+                )}
+              </div>
+            </div>
+
+            {/* Community Stats */}
+            <div className="bg-[#C5C5B5]/5 border border-[#C5C5B5]/20 rounded-2xl p-6 backdrop-blur-sm">
+              <h3 className="font-semibold text-white mb-4">Community</h3>
+              <div className="space-y-3">
+                <Link to="/guest/community" className="flex items-center justify-between p-3 rounded-xl hover:bg-[#C5C5B5]/10 transition-all duration-300 border border-[#C5C5B5]/10">
+                  <div className="flex items-center">
+                    <Users className="h-5 w-5 text-[#C5C5B5] mr-3" />
+                    <span className="text-sm text-[#C5C5B5]">View Members</span>
+                  </div>
+                  <svg className="h-5 w-5 text-[#C5C5B5]/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+                <Link to="/guest/messages" className="flex items-center justify-between p-3 rounded-xl hover:bg-[#C5C5B5]/10 transition-all duration-300 border border-[#C5C5B5]/10">
+                  <div className="flex items-center">
+                    <MessageSquare className="h-5 w-5 text-[#C5C5B5] mr-3" />
+                    <span className="text-sm text-[#C5C5B5]">Messages</span>
+                  </div>
+                  {unreadMessages > 0 && (
+                    <span className="bg-[#C5C5B5] text-[#1E1F1E] text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                      {unreadMessages}
+                    </span>
+                  )}
+                </Link>
+              </div>
             </div>
           </div>
         </div>
