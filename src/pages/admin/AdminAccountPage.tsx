@@ -224,8 +224,8 @@ const AdminAccountPage: React.FC = () => {
                 <Shield className="w-4 h-4 text-gray-400 mr-2" />
                 <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
                   user?.role === 'super_admin' 
-                    ? 'bg-purple-100 text-purple-800' 
-                    : 'bg-blue-100 text-blue-800'
+                    ? 'bg-purple-900/50 text-purple-300 border border-purple-700' 
+                    : 'bg-blue-900/50 text-blue-300 border border-blue-700'
                 }`}>
                   {user?.role === 'super_admin' ? 'Super Admin' : 'Admin'}
                 </span>
@@ -250,7 +250,7 @@ const AdminAccountPage: React.FC = () => {
             <h3 className="text-lg font-semibold mb-4">Change Password</h3>
             
             {errors.general && (
-              <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">
+              <div className="mb-4 p-3 bg-red-900/30 text-red-300 border border-red-700 rounded-lg text-sm">
                 {errors.general}
               </div>
             )}
@@ -265,7 +265,7 @@ const AdminAccountPage: React.FC = () => {
                   value={passwordForm.currentPassword}
                   onChange={(e) => setPasswordForm(prev => ({ ...prev, currentPassword: e.target.value }))}
                   className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                    errors.currentPassword ? 'border-red-300' : 'border-gray-600'
+                    errors.currentPassword ? 'border-gray-600' : 'border-gray-600'
                   }`}
                   required
                 />
@@ -282,7 +282,7 @@ const AdminAccountPage: React.FC = () => {
                     value={passwordForm.newPassword}
                     onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
                     className={`w-full px-3 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                      errors.newPassword ? 'border-red-300' : 'border-gray-600'
+                      errors.newPassword ? 'border-gray-600' : 'border-gray-600'
                     }`}
                     required
                   />
@@ -307,7 +307,7 @@ const AdminAccountPage: React.FC = () => {
                     value={passwordForm.confirmPassword}
                     onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
                     className={`w-full px-3 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                      errors.confirmPassword ? 'border-red-300' : 'border-gray-600'
+                      errors.confirmPassword ? 'border-gray-600' : 'border-gray-600'
                     }`}
                     required
                   />
@@ -326,7 +326,7 @@ const AdminAccountPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowPasswordForm(false)}
-                  className="btn bg-white border border-gray-600 text-gray-300 hover:bg-gray-700"
+                  className="btn bg-gray-700 border border-gray-600 text-gray-300 hover:bg-gray-600"
                 >
                   Cancel
                 </button>
@@ -361,11 +361,11 @@ const AdminAccountPage: React.FC = () => {
           
           {/* Invite Form */}
           {showInviteForm && user?.role === 'super_admin' && (
-            <div className="p-6 border-b border-gray-600 bg-gray-50">
+            <div className="p-6 border-b border-gray-600 bg-gray-700/50">
               <h3 className="text-lg font-semibold mb-4">Invite New Admin</h3>
               
               {errors.general && (
-                <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">
+                <div className="mb-4 p-3 bg-red-900/30 text-red-300 border border-red-700 rounded-lg text-sm">
                   {errors.general}
                 </div>
               )}
@@ -381,7 +381,7 @@ const AdminAccountPage: React.FC = () => {
                       value={inviteForm.email}
                       onChange={(e) => setInviteForm(prev => ({ ...prev, email: e.target.value }))}
                       className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                        errors.email ? 'border-red-300' : 'border-gray-600'
+                        errors.email ? 'border-gray-600' : 'border-gray-600'
                       }`}
                       required
                     />
@@ -412,7 +412,7 @@ const AdminAccountPage: React.FC = () => {
                     value={inviteForm.password}
                     onChange={(e) => setInviteForm(prev => ({ ...prev, password: e.target.value }))}
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                      errors.password ? 'border-red-300' : 'border-gray-600'
+                      errors.password ? 'border-gray-600' : 'border-gray-600'
                     }`}
                     required
                   />
@@ -423,7 +423,7 @@ const AdminAccountPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setShowInviteForm(false)}
-                    className="btn bg-white border border-gray-600 text-gray-300 hover:bg-gray-700"
+                    className="btn bg-gray-700 border border-gray-600 text-gray-300 hover:bg-gray-600"
                   >
                     Cancel
                   </button>
@@ -442,7 +442,7 @@ const AdminAccountPage: React.FC = () => {
           {/* Admin Users List */}
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-700/50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">
                     User
@@ -463,21 +463,21 @@ const AdminAccountPage: React.FC = () => {
                   )}
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-600">
+              <tbody className="bg-gray-800 divide-y divide-gray-700">
                 {adminUsers.map((admin) => (
                   <tr key={admin.id}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-8 w-8">
-                          <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center">
-                            <User className="h-4 w-4 text-indigo-600" />
+                          <div className="h-8 w-8 rounded-full bg-indigo-900/30 flex items-center justify-center">
+                            <User className="h-4 w-4 text-indigo-400" />
                           </div>
                         </div>
                         <div className="ml-4">
                           <div className="text-sm font-medium text-white">
                             {admin.email}
                             {admin.id === user?.id && (
-                              <span className="ml-2 text-xs text-gray-500">(You)</span>
+                              <span className="ml-2 text-xs text-gray-400">(You)</span>
                             )}
                           </div>
                         </div>
@@ -486,8 +486,8 @@ const AdminAccountPage: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
                         admin.role === 'super_admin' 
-                          ? 'bg-purple-100 text-purple-800' 
-                          : 'bg-blue-100 text-blue-800'
+                          ? 'bg-purple-900/50 text-purple-300 border border-purple-700' 
+                          : 'bg-blue-900/50 text-blue-300 border border-blue-700'
                       }`}>
                         {admin.role === 'super_admin' ? 'Super Admin' : 'Admin'}
                       </span>
@@ -495,13 +495,13 @@ const AdminAccountPage: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
                         admin.is_active 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
+                          ? 'bg-green-900/50 text-green-300 border border-green-700' 
+                          : 'bg-red-900/50 text-red-300 border border-red-700'
                       }`}>
                         {admin.is_active ? 'Active' : 'Inactive'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
                       {admin.last_login 
                         ? new Date(admin.last_login).toLocaleDateString()
                         : 'Never'

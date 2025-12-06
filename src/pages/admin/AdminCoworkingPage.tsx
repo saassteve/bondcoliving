@@ -221,20 +221,20 @@ const AdminCoworkingPage: React.FC = () => {
     switch (status) {
       case 'confirmed':
       case 'active':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-900/50 text-green-300 border border-green-700';
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-900/50 text-yellow-300 border border-yellow-700';
       case 'cancelled':
       case 'failed':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-900/50 text-red-300 border border-red-700';
       case 'completed':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-blue-900/50 text-blue-300 border border-blue-700';
       case 'paid':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-900/50 text-green-300 border border-green-700';
       case 'refunded':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-700/50 text-gray-300 border border-gray-600';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-700/50 text-gray-300 border border-gray-600';
     }
   };
 
@@ -329,8 +329,8 @@ const AdminCoworkingPage: React.FC = () => {
                 onClick={() => setCurrentView('list')}
                 className={`px-3 py-1 rounded-l-md ${
                   currentView === 'list'
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-200'
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                 }`}
               >
                 List
@@ -339,8 +339,8 @@ const AdminCoworkingPage: React.FC = () => {
                 onClick={() => setCurrentView('calendar')}
                 className={`px-3 py-1 ${
                   currentView === 'calendar'
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-200'
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                 }`}
               >
                 Calendar
@@ -349,8 +349,8 @@ const AdminCoworkingPage: React.FC = () => {
                 onClick={() => setCurrentView('stats')}
                 className={`px-3 py-1 ${
                   currentView === 'stats'
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-200'
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                 }`}
               >
                 Stats
@@ -359,8 +359,8 @@ const AdminCoworkingPage: React.FC = () => {
                 onClick={() => setCurrentView('passes')}
                 className={`px-3 py-1 ${
                   currentView === 'passes'
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-200'
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                 }`}
               >
                 <Settings className="w-4 h-4 inline mr-1" />
@@ -370,8 +370,8 @@ const AdminCoworkingPage: React.FC = () => {
                 onClick={() => setCurrentView('images')}
                 className={`px-3 py-1 rounded-r-md ${
                   currentView === 'images'
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-200'
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                 }`}
               >
                 <Image className="w-4 h-4 inline mr-1" />
@@ -425,7 +425,7 @@ const AdminCoworkingPage: React.FC = () => {
                     onClick={() => setFilter('all')}
                     className={`px-3 py-1 text-sm rounded-full ${
                       filter === 'all'
-                        ? 'bg-primary-600 text-white'
+                        ? 'bg-indigo-600 text-white'
                         : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                     }`}
                   >
@@ -435,8 +435,8 @@ const AdminCoworkingPage: React.FC = () => {
                     onClick={() => setFilter('confirmed')}
                     className={`px-3 py-1 text-sm rounded-full ${
                       filter === 'confirmed'
-                        ? 'bg-green-600 text-white'
-                        : 'bg-green-100 text-green-800 hover:bg-green-200'
+                        ? 'bg-green-600 text-white hover:bg-green-700'
+                        : 'bg-green-900/50 text-green-300 border border-green-700 hover:bg-green-200'
                     }`}
                   >
                     Confirmed
@@ -445,8 +445,8 @@ const AdminCoworkingPage: React.FC = () => {
                     onClick={() => setFilter('pending')}
                     className={`px-3 py-1 text-sm rounded-full ${
                       filter === 'pending'
-                        ? 'bg-yellow-600 text-white'
-                        : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
+                        ? 'bg-yellow-600 text-white hover:bg-yellow-700'
+                        : 'bg-yellow-900/50 text-yellow-300 border border-yellow-700 hover:bg-yellow-200'
                     }`}
                   >
                     Pending
@@ -455,8 +455,8 @@ const AdminCoworkingPage: React.FC = () => {
                     onClick={() => setFilter('paid')}
                     className={`px-3 py-1 text-sm rounded-full ${
                       filter === 'paid'
-                        ? 'bg-green-600 text-white'
-                        : 'bg-green-100 text-green-800 hover:bg-green-200'
+                        ? 'bg-green-600 text-white hover:bg-green-700'
+                        : 'bg-green-900/50 text-green-300 border border-green-700 hover:bg-green-200'
                     }`}
                   >
                     Paid
@@ -465,8 +465,8 @@ const AdminCoworkingPage: React.FC = () => {
                     onClick={() => setFilter('cancelled')}
                     className={`px-3 py-1 text-sm rounded-full ${
                       filter === 'cancelled'
-                        ? 'bg-red-600 text-white'
-                        : 'bg-red-100 text-red-800 hover:bg-red-200'
+                        ? 'bg-red-600 text-white hover:bg-red-700'
+                        : 'bg-red-900/50 text-red-300 border border-red-700 hover:bg-red-200'
                     }`}
                   >
                     Cancelled
@@ -550,13 +550,13 @@ const AdminCoworkingPage: React.FC = () => {
                           <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
                             <button
                               onClick={() => handleEdit(booking)}
-                              className="text-primary-600 hover:text-primary-800 mr-3"
+                              className="text-indigo-400 hover:text-indigo-300 mr-3"
                             >
                               <Edit className="w-4 h-4 inline-block" />
                             </button>
                             <button
                               onClick={() => handleDelete(booking.id)}
-                              className="text-red-600 hover:text-red-800"
+                              className="text-red-400 hover:text-red-300"
                             >
                               <Trash className="w-4 h-4 inline-block" />
                             </button>
@@ -572,7 +572,7 @@ const AdminCoworkingPage: React.FC = () => {
         ) : currentView === 'calendar' ? (
           <div className="bg-slate-800 rounded-lg shadow-sm overflow-hidden border border-slate-700">
             <div className="p-4 border-b border-slate-700 flex items-center justify-between">
-              <button onClick={previousMonth} className="p-1 rounded hover:bg-gray-700">
+              <button onClick={previousMonth} className="p-1 rounded hover:bg-gray-600">
                 <ChevronLeft className="w-5 h-5" />
               </button>
 
@@ -580,7 +580,7 @@ const AdminCoworkingPage: React.FC = () => {
                 {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
               </h2>
 
-              <button onClick={nextMonth} className="p-1 rounded hover:bg-gray-700">
+              <button onClick={nextMonth} className="p-1 rounded hover:bg-gray-600">
                 <ChevronRight className="w-5 h-5" />
               </button>
             </div>
@@ -725,7 +725,7 @@ const AdminCoworkingPage: React.FC = () => {
             <div className="p-6">
               <div className="flex justify-between items-start mb-6">
                 <h2 className="text-xl font-bold">Edit Booking</h2>
-                <button onClick={handleCancelEdit} className="text-gray-500 hover:text-gray-300">
+                <button onClick={handleCancelEdit} className="text-gray-400 hover:text-gray-200">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -822,7 +822,7 @@ const AdminCoworkingPage: React.FC = () => {
                         type="button"
                         onClick={() => handleSendAccessCodeEmail(editingBooking.id)}
                         disabled={sendingEmail === editingBooking.id}
-                        className="btn bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                        className="btn bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                         title="Send access code email to customer"
                       >
                         <Mail className="w-4 h-4 inline mr-1" />
@@ -851,7 +851,7 @@ const AdminCoworkingPage: React.FC = () => {
               </div>
 
               <div className="mt-6 flex justify-end space-x-3">
-                <button onClick={handleCancelEdit} className="btn bg-white border border-gray-600 text-gray-300 hover:bg-gray-700">
+                <button onClick={handleCancelEdit} className="btn bg-gray-700 border border-gray-600 text-gray-300 hover:bg-gray-600">
                   Cancel
                 </button>
                 <button onClick={handleSaveEdit} className="btn-primary">
@@ -916,7 +916,7 @@ const AdminCoworkingPage: React.FC = () => {
               <div className="mt-6 flex justify-end space-x-3">
                 <button
                   onClick={() => setEditingPass(null)}
-                  className="btn bg-white border border-gray-600 text-gray-300 hover:bg-gray-700"
+                  className="btn bg-gray-700 border border-gray-600 text-gray-300 hover:bg-gray-600"
                 >
                   Cancel
                 </button>

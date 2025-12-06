@@ -164,25 +164,25 @@ export default function AdminServicesPage() {
 
   const getStatusColor = (status: string) => {
     const colors: { [key: string]: string } = {
-      pending: 'bg-yellow-100 text-yellow-700',
-      in_progress: 'bg-blue-100 text-blue-700',
-      completed: 'bg-green-100 text-green-700',
-      cancelled: 'bg-gray-100 text-gray-700',
-      approved: 'bg-green-100 text-green-700',
-      rejected: 'bg-red-100 text-red-700',
-      paid: 'bg-purple-100 text-purple-700',
+      pending: 'bg-yellow-900/50 text-yellow-300 border border-yellow-700',
+      in_progress: 'bg-blue-900/50 text-blue-300 border border-blue-700',
+      completed: 'bg-green-900/50 text-green-300 border border-green-700',
+      cancelled: 'bg-gray-700/50 text-gray-300 border border-gray-600',
+      approved: 'bg-green-900/50 text-green-300 border border-green-700',
+      rejected: 'bg-red-900/50 text-red-300 border border-red-700',
+      paid: 'bg-purple-900/50 text-purple-300 border border-purple-700',
     };
-    return colors[status] || 'bg-gray-100 text-gray-700';
+    return colors[status] || 'bg-gray-700/50 text-gray-300 border border-gray-600';
   };
 
   const getPriorityColor = (priority: string) => {
     const colors: { [key: string]: string } = {
-      low: 'bg-gray-100 text-gray-700',
-      normal: 'bg-blue-100 text-blue-700',
-      high: 'bg-orange-100 text-orange-700',
-      urgent: 'bg-red-100 text-red-700',
+      low: 'bg-gray-700/50 text-gray-300 border border-gray-600',
+      normal: 'bg-blue-900/50 text-blue-300 border border-blue-700',
+      high: 'bg-orange-900/50 text-orange-300 border border-orange-700',
+      urgent: 'bg-red-900/50 text-red-300 border border-red-700',
     };
-    return colors[priority] || 'bg-gray-100 text-gray-700';
+    return colors[priority] || 'bg-gray-700/50 text-gray-300 border border-gray-600';
   };
 
   const formatDate = (dateString: string) => {
@@ -207,18 +207,18 @@ export default function AdminServicesPage() {
     <div className="p-8">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Service Management</h1>
-          <p className="text-gray-600">Manage guest service requests and stay extensions</p>
+          <h1 className="text-3xl font-bold text-white mb-2">Service Management</h1>
+          <p className="text-gray-300">Manage guest service requests and stay extensions</p>
         </div>
       </div>
 
-      <div className="flex gap-4 mb-6 border-b border-gray-200">
+      <div className="flex gap-4 mb-6 border-b border-gray-700">
         <button
           onClick={() => setActiveTab('requests')}
           className={`px-6 py-3 font-semibold transition border-b-2 ${
             activeTab === 'requests'
-              ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-gray-600 hover:text-gray-900'
+              ? 'border-indigo-500 text-indigo-400'
+              : 'border-transparent text-gray-300 hover:text-white'
           }`}
         >
           Service Requests ({requests.filter(r => r.status === 'pending').length})
@@ -227,8 +227,8 @@ export default function AdminServicesPage() {
           onClick={() => setActiveTab('extensions')}
           className={`px-6 py-3 font-semibold transition border-b-2 ${
             activeTab === 'extensions'
-              ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-gray-600 hover:text-gray-900'
+              ? 'border-indigo-500 text-indigo-400'
+              : 'border-transparent text-gray-300 hover:text-white'
           }`}
         >
           Stay Extensions ({extensions.filter(e => e.status === 'pending').length})
@@ -240,8 +240,8 @@ export default function AdminServicesPage() {
           onClick={() => setFilterStatus('all')}
           className={`px-4 py-2 rounded-lg font-medium transition ${
             filterStatus === 'all'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              ? 'bg-indigo-600 text-white'
+              : 'bg-gray-700 text-gray-200 hover:bg-gray-600'
           }`}
         >
           All
@@ -250,8 +250,8 @@ export default function AdminServicesPage() {
           onClick={() => setFilterStatus('pending')}
           className={`px-4 py-2 rounded-lg font-medium transition ${
             filterStatus === 'pending'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              ? 'bg-indigo-600 text-white'
+              : 'bg-gray-700 text-gray-200 hover:bg-gray-600'
           }`}
         >
           Pending
@@ -262,8 +262,8 @@ export default function AdminServicesPage() {
               onClick={() => setFilterStatus('in_progress')}
               className={`px-4 py-2 rounded-lg font-medium transition ${
                 filterStatus === 'in_progress'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-gray-700 text-gray-200 hover:bg-gray-600'
               }`}
             >
               In Progress
@@ -272,8 +272,8 @@ export default function AdminServicesPage() {
               onClick={() => setFilterStatus('completed')}
               className={`px-4 py-2 rounded-lg font-medium transition ${
                 filterStatus === 'completed'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-gray-700 text-gray-200 hover:bg-gray-600'
               }`}
             >
               Completed
@@ -285,8 +285,8 @@ export default function AdminServicesPage() {
               onClick={() => setFilterStatus('approved')}
               className={`px-4 py-2 rounded-lg font-medium transition ${
                 filterStatus === 'approved'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-gray-700 text-gray-200 hover:bg-gray-600'
               }`}
             >
               Approved
@@ -295,8 +295,8 @@ export default function AdminServicesPage() {
               onClick={() => setFilterStatus('rejected')}
               className={`px-4 py-2 rounded-lg font-medium transition ${
                 filterStatus === 'rejected'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-gray-700 text-gray-200 hover:bg-gray-600'
               }`}
             >
               Rejected
@@ -307,21 +307,21 @@ export default function AdminServicesPage() {
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
         </div>
       ) : activeTab === 'requests' ? (
         requests.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+          <div className="bg-gray-800 rounded-xl shadow-sm p-12 text-center border border-gray-700">
             <ClipboardList className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No service requests</h3>
-            <p className="text-gray-600">Service requests from guests will appear here</p>
+            <h3 className="text-xl font-semibold text-white mb-2">No service requests</h3>
+            <p className="text-gray-300">Service requests from guests will appear here</p>
           </div>
         ) : (
           <div className="space-y-4">
             {requests.map((request) => (
               <div
                 key={request.id}
-                className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition cursor-pointer"
+                className="bg-gray-800 rounded-xl shadow-sm p-6 hover:shadow-md border border-gray-700 transition cursor-pointer"
                 onClick={() => {
                   setSelectedRequest(request);
                   setAdminNotes(request.admin_notes || '');
@@ -330,26 +330,26 @@ export default function AdminServicesPage() {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-xl font-bold text-gray-900">{request.title}</h3>
+                      <h3 className="text-xl font-bold text-white">{request.title}</h3>
                       <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(request.status)}`}>
                         {request.status.replace('_', ' ')}
                       </span>
                       <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(request.priority)}`}>
                         {request.priority}
                       </span>
-                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
+                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-700/50 text-gray-300 border border-gray-600">
                         {request.request_type}
                       </span>
                     </div>
-                    <p className="text-gray-600 mb-3">{request.description}</p>
-                    <div className="flex items-center gap-4 text-sm text-gray-500">
+                    <p className="text-gray-300 mb-3">{request.description}</p>
+                    <div className="flex items-center gap-4 text-sm text-gray-400">
                       <span>From: {request.guest_users?.full_name || 'Unknown'}</span>
                       <span>•</span>
                       <span>{formatDate(request.created_at)}</span>
                     </div>
                     {request.admin_notes && (
-                      <div className="mt-3 p-3 bg-blue-50 rounded-lg">
-                        <p className="text-sm text-blue-900">
+                      <div className="mt-3 p-3 bg-indigo-900/30 rounded-lg border border-indigo-700">
+                        <p className="text-sm text-indigo-300">
                           <strong>Admin Notes:</strong> {request.admin_notes}
                         </p>
                       </div>
@@ -362,17 +362,17 @@ export default function AdminServicesPage() {
         )
       ) : (
         extensions.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+          <div className="bg-gray-800 rounded-xl shadow-sm p-12 text-center border border-gray-700">
             <Clock className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No extension requests</h3>
-            <p className="text-gray-600">Stay extension requests will appear here</p>
+            <h3 className="text-xl font-semibold text-white mb-2">No extension requests</h3>
+            <p className="text-gray-300">Stay extension requests will appear here</p>
           </div>
         ) : (
           <div className="space-y-4">
             {extensions.map((extension) => (
               <div
                 key={extension.id}
-                className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition cursor-pointer"
+                className="bg-gray-800 rounded-xl shadow-sm p-6 hover:shadow-md border border-gray-700 transition cursor-pointer"
                 onClick={() => {
                   setSelectedExtension(extension);
                   setAdminNotes(extension.admin_notes || '');
@@ -381,7 +381,7 @@ export default function AdminServicesPage() {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-xl font-bold text-gray-900">
+                      <h3 className="text-xl font-bold text-white">
                         {extension.bookings?.guest_name || extension.guest_users?.full_name}
                       </h3>
                       <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(extension.status)}`}>
@@ -389,25 +389,25 @@ export default function AdminServicesPage() {
                       </span>
                     </div>
                     <div className="mb-3 space-y-1">
-                      <p className="text-gray-900 font-medium">{extension.apartments?.title}</p>
-                      <p className="text-gray-600">
+                      <p className="text-white font-medium">{extension.apartments?.title}</p>
+                      <p className="text-gray-300">
                         Current checkout: {formatDateOnly(extension.current_checkout_date)}
                       </p>
-                      <p className="text-gray-600">
+                      <p className="text-gray-300">
                         Requested checkout: {formatDateOnly(extension.requested_checkout_date)}
                       </p>
-                      <p className="text-gray-900 font-semibold">
+                      <p className="text-white font-semibold">
                         +{extension.nights_extended} nights • €{extension.total_price}
                       </p>
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-gray-500">
+                    <div className="flex items-center gap-4 text-sm text-gray-400">
                       <span>{extension.guest_users?.email}</span>
                       <span>•</span>
                       <span>{formatDate(extension.created_at)}</span>
                     </div>
                     {extension.admin_notes && (
-                      <div className="mt-3 p-3 bg-blue-50 rounded-lg">
-                        <p className="text-sm text-blue-900">
+                      <div className="mt-3 p-3 bg-indigo-900/30 rounded-lg border border-indigo-700">
+                        <p className="text-sm text-indigo-300">
                           <strong>Admin Notes:</strong> {extension.admin_notes}
                         </p>
                       </div>
@@ -421,50 +421,50 @@ export default function AdminServicesPage() {
       )}
 
       {selectedRequest && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Service Request Details</h2>
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
+          <div className="bg-gray-800 rounded-xl shadow-xl max-w-2xl w-full p-6 border border-gray-700">
+            <h2 className="text-2xl font-bold text-white mb-6">Service Request Details</h2>
 
             <div className="space-y-4 mb-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Guest</label>
-                <p className="text-gray-900">{selectedRequest.guest_users?.full_name}</p>
-                <p className="text-sm text-gray-600">{selectedRequest.guest_users?.email}</p>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Guest</label>
+                <p className="text-white">{selectedRequest.guest_users?.full_name}</p>
+                <p className="text-sm text-gray-300">{selectedRequest.guest_users?.email}</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Request Type</label>
-                <p className="text-gray-900 capitalize">{selectedRequest.request_type}</p>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Request Type</label>
+                <p className="text-white capitalize">{selectedRequest.request_type}</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                <p className="text-gray-900">{selectedRequest.title}</p>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Title</label>
+                <p className="text-white">{selectedRequest.title}</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                <p className="text-gray-900">{selectedRequest.description}</p>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Description</label>
+                <p className="text-white">{selectedRequest.description}</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Admin Notes</label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Admin Notes</label>
                 <textarea
                   value={adminNotes}
                   onChange={(e) => setAdminNotes(e.target.value)}
                   rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   placeholder="Add notes about this request..."
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Update Status</label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Update Status</label>
                 <div className="flex gap-3">
                   {selectedRequest.status !== 'in_progress' && (
                     <button
                       onClick={() => updateRequestStatus(selectedRequest.id, 'in_progress')}
-                      className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                      className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-blue-700 transition"
                     >
                       Mark In Progress
                     </button>
@@ -494,7 +494,7 @@ export default function AdminServicesPage() {
                 setSelectedRequest(null);
                 setAdminNotes('');
               }}
-              className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+              className="w-full px-4 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-700 transition"
             >
               Close
             </button>
@@ -503,59 +503,59 @@ export default function AdminServicesPage() {
       )}
 
       {selectedExtension && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Stay Extension Request</h2>
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
+          <div className="bg-gray-800 rounded-xl shadow-xl max-w-2xl w-full p-6 border border-gray-700">
+            <h2 className="text-2xl font-bold text-white mb-6">Stay Extension Request</h2>
 
             <div className="space-y-4 mb-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Guest</label>
-                <p className="text-gray-900">{selectedExtension.guest_users?.full_name}</p>
-                <p className="text-sm text-gray-600">{selectedExtension.guest_users?.email}</p>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Guest</label>
+                <p className="text-white">{selectedExtension.guest_users?.full_name}</p>
+                <p className="text-sm text-gray-300">{selectedExtension.guest_users?.email}</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Apartment</label>
-                <p className="text-gray-900">{selectedExtension.apartments?.title}</p>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Apartment</label>
+                <p className="text-white">{selectedExtension.apartments?.title}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Current Checkout</label>
-                  <p className="text-gray-900">{formatDateOnly(selectedExtension.current_checkout_date)}</p>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Current Checkout</label>
+                  <p className="text-white">{formatDateOnly(selectedExtension.current_checkout_date)}</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Requested Checkout</label>
-                  <p className="text-gray-900">{formatDateOnly(selectedExtension.requested_checkout_date)}</p>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Requested Checkout</label>
+                  <p className="text-white">{formatDateOnly(selectedExtension.requested_checkout_date)}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Additional Nights</label>
-                  <p className="text-gray-900">{selectedExtension.nights_extended} nights</p>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Additional Nights</label>
+                  <p className="text-white">{selectedExtension.nights_extended} nights</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Total Price</label>
-                  <p className="text-gray-900 font-semibold">€{selectedExtension.total_price}</p>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Total Price</label>
+                  <p className="text-white font-semibold">€{selectedExtension.total_price}</p>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Admin Notes</label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Admin Notes</label>
                 <textarea
                   value={adminNotes}
                   onChange={(e) => setAdminNotes(e.target.value)}
                   rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   placeholder="Add notes about this extension request..."
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Update Status</label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Update Status</label>
                 <div className="flex gap-3">
                   {selectedExtension.status === 'pending' && (
                     <>
@@ -590,7 +590,7 @@ export default function AdminServicesPage() {
                 setSelectedExtension(null);
                 setAdminNotes('');
               }}
-              className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+              className="w-full px-4 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-700 transition"
             >
               Close
             </button>

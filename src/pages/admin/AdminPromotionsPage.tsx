@@ -475,7 +475,7 @@ const AdminPromotionsPage: React.FC = () => {
                     setEditingBanner(null);
                     setIsCreating(false);
                   }}
-                  className="btn bg-white border border-gray-600 text-gray-300 hover:bg-gray-700"
+                  className="btn bg-gray-700 border border-gray-600 text-gray-300 hover:bg-gray-600"
                 >
                   Cancel
                 </button>

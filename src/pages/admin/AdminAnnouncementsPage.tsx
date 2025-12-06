@@ -134,19 +134,19 @@ export default function AdminAnnouncementsPage() {
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'critical': return 'bg-red-100 text-red-700';
-      case 'high': return 'bg-orange-100 text-orange-700';
-      case 'normal': return 'bg-blue-100 text-blue-700';
-      case 'low': return 'bg-gray-100 text-gray-700';
-      default: return 'bg-gray-100 text-gray-700';
+      case 'critical': return 'bg-red-900/50 text-red-300 border border-red-700';
+      case 'high': return 'bg-orange-900/50 text-orange-300 border border-orange-700';
+      case 'normal': return 'bg-blue-900/50 text-blue-300 border border-blue-700';
+      case 'low': return 'bg-gray-700/50 text-gray-300 border border-gray-600';
+      default: return 'bg-gray-700/50 text-gray-300 border border-gray-600';
     }
   };
 
   const getAudienceColor = (audience: string) => {
     switch (audience) {
-      case 'overnight': return 'bg-purple-100 text-purple-700';
-      case 'coworking': return 'bg-green-100 text-green-700';
-      default: return 'bg-blue-100 text-blue-700';
+      case 'overnight': return 'bg-purple-900/50 text-purple-300 border border-purple-700';
+      case 'coworking': return 'bg-green-900/50 text-green-300 border border-green-700';
+      default: return 'bg-blue-900/50 text-blue-300 border border-blue-700';
     }
   };
 
@@ -164,12 +164,12 @@ export default function AdminAnnouncementsPage() {
     <div className="p-8">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Announcements</h1>
-          <p className="text-gray-600">Manage property-wide announcements for guests</p>
+          <h1 className="text-3xl font-bold text-white mb-2">Announcements</h1>
+          <p className="text-gray-300">Manage property-wide announcements for guests</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+          className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
         >
           <Plus className="h-5 w-5 mr-2" />
           New Announcement
@@ -178,16 +178,16 @@ export default function AdminAnnouncementsPage() {
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
         </div>
       ) : announcements.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+        <div className="bg-gray-800 rounded-xl shadow-sm p-12 text-center border border-gray-700">
           <Megaphone className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">No announcements yet</h3>
-          <p className="text-gray-600 mb-6">Create your first announcement to communicate with guests</p>
+          <h3 className="text-xl font-semibold text-white mb-2">No announcements yet</h3>
+          <p className="text-gray-300 mb-6">Create your first announcement to communicate with guests</p>
           <button
             onClick={() => setShowModal(true)}
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+            className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
           >
             <Plus className="h-5 w-5 mr-2" />
             Create Announcement
@@ -198,15 +198,15 @@ export default function AdminAnnouncementsPage() {
           {announcements.map((announcement) => (
             <div
               key={announcement.id}
-              className={`bg-white rounded-xl shadow-sm p-6 border-l-4 ${
-                announcement.is_pinned ? 'border-yellow-500' : 'border-gray-200'
+              className={`bg-gray-800 rounded-xl shadow-sm p-6 border-l-4 border border-gray-700 ${
+                announcement.is_pinned ? 'border-l-yellow-500' : 'border-l-gray-700'
               }`}
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    {announcement.is_pinned && <Pin className="h-5 w-5 text-yellow-600" />}
-                    <h3 className="text-xl font-bold text-gray-900">{announcement.title}</h3>
+                    {announcement.is_pinned && <Pin className="h-5 w-5 text-yellow-500" />}
+                    <h3 className="text-xl font-bold text-white">{announcement.title}</h3>
                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(announcement.priority)}`}>
                       {announcement.priority}
                     </span>
@@ -214,13 +214,13 @@ export default function AdminAnnouncementsPage() {
                       {announcement.target_audience === 'all' ? 'All Guests' : announcement.target_audience}
                     </span>
                     {!announcement.is_published && (
-                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
+                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-700/50 text-gray-300 border border-gray-600">
                         Draft
                       </span>
                     )}
                   </div>
-                  <p className="text-gray-600 mb-3 whitespace-pre-wrap">{announcement.content}</p>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-gray-300 mb-3 whitespace-pre-wrap">{announcement.content}</p>
+                  <p className="text-sm text-gray-400">
                     Created {formatDate(announcement.created_at)}
                   </p>
                 </div>
@@ -228,37 +228,37 @@ export default function AdminAnnouncementsPage() {
                 <div className="flex items-center gap-2 ml-4">
                   <button
                     onClick={() => togglePublished(announcement.id, announcement.is_published)}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition"
+                    className="p-2 hover:bg-gray-700 rounded-lg transition"
                     title={announcement.is_published ? 'Unpublish' : 'Publish'}
                   >
                     {announcement.is_published ? (
-                      <Eye className="h-5 w-5 text-green-600" />
+                      <Eye className="h-5 w-5 text-green-500" />
                     ) : (
                       <EyeOff className="h-5 w-5 text-gray-400" />
                     )}
                   </button>
                   <button
                     onClick={() => togglePinned(announcement.id, announcement.is_pinned)}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition"
+                    className="p-2 hover:bg-gray-700 rounded-lg transition"
                     title={announcement.is_pinned ? 'Unpin' : 'Pin'}
                   >
                     {announcement.is_pinned ? (
-                      <Pin className="h-5 w-5 text-yellow-600" />
+                      <Pin className="h-5 w-5 text-yellow-500" />
                     ) : (
                       <PinOff className="h-5 w-5 text-gray-400" />
                     )}
                   </button>
                   <button
                     onClick={() => handleEdit(announcement)}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition"
+                    className="p-2 hover:bg-gray-700 rounded-lg transition"
                   >
-                    <Edit2 className="h-5 w-5 text-blue-600" />
+                    <Edit2 className="h-5 w-5 text-indigo-400" />
                   </button>
                   <button
                     onClick={() => handleDelete(announcement.id)}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition"
+                    className="p-2 hover:bg-gray-700 rounded-lg transition"
                   >
-                    <Trash2 className="h-5 w-5 text-red-600" />
+                    <Trash2 className="h-5 w-5 text-red-400" />
                   </button>
                 </div>
               </div>
@@ -268,36 +268,36 @@ export default function AdminAnnouncementsPage() {
       )}
 
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
+          <div className="bg-gray-800 rounded-xl shadow-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto border border-gray-700">
+            <h2 className="text-2xl font-bold text-white mb-6">
               {editingId ? 'Edit Announcement' : 'New Announcement'}
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Title
                 </label>
                 <input
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   placeholder="Important announcement about..."
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Content
                 </label>
                 <textarea
                   value={formData.content}
                   onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                   rows={6}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   placeholder="Announcement details..."
                   required
                 />
@@ -305,13 +305,13 @@ export default function AdminAnnouncementsPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
                     Target Audience
                   </label>
                   <select
                     value={formData.target_audience}
                     onChange={(e) => setFormData({ ...formData, target_audience: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   >
                     <option value="all">All Guests</option>
                     <option value="overnight">Overnight Guests</option>
@@ -320,13 +320,13 @@ export default function AdminAnnouncementsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
                     Priority
                   </label>
                   <select
                     value={formData.priority}
                     onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   >
                     <option value="low">Low</option>
                     <option value="normal">Normal</option>
@@ -342,9 +342,9 @@ export default function AdminAnnouncementsPage() {
                     type="checkbox"
                     checked={formData.is_pinned}
                     onChange={(e) => setFormData({ ...formData, is_pinned: e.target.checked })}
-                    className="mr-2 h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
+                    className="mr-2 h-4 w-4 text-indigo-600 rounded focus:ring-indigo-500"
                   />
-                  <span className="text-sm font-medium text-gray-700">Pin to top</span>
+                  <span className="text-sm font-medium text-gray-300">Pin to top</span>
                 </label>
 
                 <label className="flex items-center">
@@ -352,15 +352,15 @@ export default function AdminAnnouncementsPage() {
                     type="checkbox"
                     checked={formData.is_published}
                     onChange={(e) => setFormData({ ...formData, is_published: e.target.checked })}
-                    className="mr-2 h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
+                    className="mr-2 h-4 w-4 text-indigo-600 rounded focus:ring-indigo-500"
                   />
-                  <span className="text-sm font-medium text-gray-700">Publish immediately</span>
+                  <span className="text-sm font-medium text-gray-300">Publish immediately</span>
                 </label>
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start">
-                <Info className="h-5 w-5 text-blue-600 mr-3 mt-0.5 flex-shrink-0" />
-                <p className="text-sm text-blue-800">
+              <div className="bg-indigo-900/30 border border-indigo-700 rounded-lg p-4 flex items-start">
+                <Info className="h-5 w-5 text-indigo-400 mr-3 mt-0.5 flex-shrink-0" />
+                <p className="text-sm text-indigo-300">
                   Published announcements will be visible to guests on their dashboard and announcements page.
                   High priority and pinned announcements appear at the top.
                 </p>
@@ -370,13 +370,13 @@ export default function AdminAnnouncementsPage() {
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                  className="flex-1 px-4 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-700 transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                  className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
                 >
                   {editingId ? 'Update' : 'Create'} Announcement
                 </button>

@@ -208,12 +208,12 @@ export default function AdminEventsPage() {
     <div className="p-8">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Community Events</h1>
-          <p className="text-gray-600">Organize events and activities for guests</p>
+          <h1 className="text-3xl font-bold text-white mb-2">Community Events</h1>
+          <p className="text-gray-300">Organize events and activities for guests</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+          className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
         >
           <Plus className="h-5 w-5 mr-2" />
           New Event
@@ -222,16 +222,16 @@ export default function AdminEventsPage() {
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
         </div>
       ) : events.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+        <div className="bg-gray-800 rounded-xl shadow-sm p-12 text-center border border-gray-700">
           <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">No events yet</h3>
-          <p className="text-gray-600 mb-6">Create your first community event to engage with guests</p>
+          <h3 className="text-xl font-semibold text-white mb-2">No events yet</h3>
+          <p className="text-gray-300 mb-6">Create your first community event to engage with guests</p>
           <button
             onClick={() => setShowModal(true)}
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+            className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
           >
             <Plus className="h-5 w-5 mr-2" />
             Create Event
@@ -242,8 +242,8 @@ export default function AdminEventsPage() {
           {events.map((event) => (
             <div
               key={event.id}
-              className={`bg-white rounded-xl shadow-sm overflow-hidden border-2 ${
-                isUpcoming(event.event_date) ? 'border-green-200' : 'border-gray-200'
+              className={`bg-gray-800 rounded-xl shadow-sm overflow-hidden border-2 ${
+                isUpcoming(event.event_date) ? 'border-green-700' : 'border-gray-700'
               }`}
             >
               {event.image_url && (
@@ -258,31 +258,31 @@ export default function AdminEventsPage() {
                 <div className="flex items-center justify-between mb-3">
                   <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                     isUpcoming(event.event_date)
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-gray-100 text-gray-700'
+                      ? 'bg-green-900/50 text-green-300 border border-green-700'
+                      : 'bg-gray-700/50 text-gray-300 border border-gray-600'
                   }`}>
                     {isUpcoming(event.event_date) ? 'Upcoming' : 'Past'}
                   </span>
                   {!event.is_published && (
-                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
+                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-700/50 text-gray-300 border border-gray-600">
                       Draft
                     </span>
                   )}
                 </div>
 
-                <h3 className="text-xl font-bold text-gray-900 mb-2">{event.title}</h3>
-                <p className="text-gray-600 mb-4 line-clamp-2">{event.description}</p>
+                <h3 className="text-xl font-bold text-white mb-2">{event.title}</h3>
+                <p className="text-gray-300 mb-4 line-clamp-2">{event.description}</p>
 
                 <div className="space-y-2 mb-4">
-                  <div className="flex items-center text-sm text-gray-600">
+                  <div className="flex items-center text-sm text-gray-300">
                     <Calendar className="h-4 w-4 mr-2" />
                     {formatDate(event.event_date)}
                   </div>
-                  <div className="flex items-center text-sm text-gray-600">
+                  <div className="flex items-center text-sm text-gray-300">
                     <MapPin className="h-4 w-4 mr-2" />
                     {event.location}
                   </div>
-                  <div className="flex items-center text-sm text-gray-600">
+                  <div className="flex items-center text-sm text-gray-300">
                     <Users className="h-4 w-4 mr-2" />
                     {event.rsvp_count || 0}
                     {event.max_attendees && ` / ${event.max_attendees}`} attending
@@ -292,32 +292,32 @@ export default function AdminEventsPage() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => viewRSVPs(event.id)}
-                    className="flex-1 px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
+                    className="flex-1 px-3 py-2 text-sm bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-600 transition"
                   >
                     View RSVPs
                   </button>
                   <button
                     onClick={() => togglePublished(event.id, event.is_published)}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition"
+                    className="p-2 hover:bg-gray-700 rounded-lg transition"
                     title={event.is_published ? 'Unpublish' : 'Publish'}
                   >
                     {event.is_published ? (
-                      <Eye className="h-5 w-5 text-green-600" />
+                      <Eye className="h-5 w-5 text-green-500" />
                     ) : (
                       <EyeOff className="h-5 w-5 text-gray-400" />
                     )}
                   </button>
                   <button
                     onClick={() => handleEdit(event)}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition"
+                    className="p-2 hover:bg-gray-700 rounded-lg transition"
                   >
-                    <Edit2 className="h-5 w-5 text-blue-600" />
+                    <Edit2 className="h-5 w-5 text-indigo-400" />
                   </button>
                   <button
                     onClick={() => handleDelete(event.id)}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition"
+                    className="p-2 hover:bg-gray-700 rounded-lg transition"
                   >
-                    <Trash2 className="h-5 w-5 text-red-600" />
+                    <Trash2 className="h-5 w-5 text-red-400" />
                   </button>
                 </div>
               </div>
@@ -327,36 +327,36 @@ export default function AdminEventsPage() {
       )}
 
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
+          <div className="bg-gray-800 rounded-xl shadow-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto border border-gray-700">
+            <h2 className="text-2xl font-bold text-white mb-6">
               {editingId ? 'Edit Event' : 'New Event'}
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Event Title
                 </label>
                 <input
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   placeholder="Weekly Yoga Session"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Description
                 </label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={4}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   placeholder="Event details and what to expect..."
                   required
                 />
@@ -364,40 +364,40 @@ export default function AdminEventsPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
                     Start Date & Time
                   </label>
                   <input
                     type="datetime-local"
                     value={formData.event_date}
                     onChange={(e) => setFormData({ ...formData, event_date: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
                     End Date & Time (Optional)
                   </label>
                   <input
                     type="datetime-local"
                     value={formData.end_date}
                     onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Location
                 </label>
                 <input
                   type="text"
                   value={formData.location}
                   onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   placeholder="Rooftop Terrace"
                   required
                 />
@@ -405,28 +405,28 @@ export default function AdminEventsPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
                     Max Attendees (Optional)
                   </label>
                   <input
                     type="number"
                     value={formData.max_attendees}
                     onChange={(e) => setFormData({ ...formData, max_attendees: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     placeholder="Unlimited"
                     min="1"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
                     Image URL (Optional)
                   </label>
                   <input
                     type="url"
                     value={formData.image_url}
                     onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     placeholder="https://..."
                   />
                 </div>
@@ -437,22 +437,22 @@ export default function AdminEventsPage() {
                   type="checkbox"
                   checked={formData.is_published}
                   onChange={(e) => setFormData({ ...formData, is_published: e.target.checked })}
-                  className="mr-2 h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
+                  className="mr-2 h-4 w-4 text-indigo-600 rounded focus:ring-indigo-500"
                 />
-                <span className="text-sm font-medium text-gray-700">Publish event</span>
+                <span className="text-sm font-medium text-gray-300">Publish event</span>
               </label>
 
               <div className="flex gap-3 pt-4">
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                  className="flex-1 px-4 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-700 transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                  className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
                 >
                   {editingId ? 'Update' : 'Create'} Event
                 </button>
@@ -463,49 +463,49 @@ export default function AdminEventsPage() {
       )}
 
       {showRSVPModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
+          <div className="bg-gray-800 rounded-xl shadow-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto border border-gray-700">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Event RSVPs</h2>
+              <h2 className="text-2xl font-bold text-white">Event RSVPs</h2>
               <button
                 onClick={() => setShowRSVPModal(false)}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-400 hover:text-gray-200"
               >
                 ×
               </button>
             </div>
 
             {rsvps.length === 0 ? (
-              <p className="text-center text-gray-600 py-8">No RSVPs yet</p>
+              <p className="text-center text-gray-300 py-8">No RSVPs yet</p>
             ) : (
               <div className="space-y-3">
                 {rsvps.map((rsvp) => (
                   <div
                     key={rsvp.id}
-                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                    className="flex items-center justify-between p-4 bg-gray-700/50 rounded-lg border border-gray-600"
                   >
                     <div>
-                      <p className="font-medium text-gray-900">
+                      <p className="font-medium text-white">
                         {rsvp.guest_users?.full_name || 'Unknown Guest'}
                       </p>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-gray-300">
                         {rsvp.guest_users?.email}
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
                       <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                         rsvp.guest_users?.user_type === 'overnight'
-                          ? 'bg-purple-100 text-purple-700'
-                          : 'bg-green-100 text-green-700'
+                          ? 'bg-purple-900/50 text-purple-300 border border-purple-700'
+                          : 'bg-green-900/50 text-green-300 border border-green-700'
                       }`}>
                         {rsvp.guest_users?.user_type}
                       </span>
                       <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                         rsvp.status === 'going'
-                          ? 'bg-green-100 text-green-700'
+                          ? 'bg-green-900/50 text-green-300 border border-green-700'
                           : rsvp.status === 'maybe'
-                          ? 'bg-yellow-100 text-yellow-700'
-                          : 'bg-gray-100 text-gray-700'
+                          ? 'bg-yellow-900/50 text-yellow-300 border border-yellow-700'
+                          : 'bg-gray-700/50 text-gray-300 border border-gray-600'
                       }`}>
                         {rsvp.status}
                       </span>
