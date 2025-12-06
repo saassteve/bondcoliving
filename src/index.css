@@ -527,4 +527,17 @@
   .benefit-item {
     @apply flex items-start p-4 bg-[#C5C5B5]/5 backdrop-blur-sm rounded-lg;
   }
+
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2s infinite;
+  }
 }

@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { 
-  Wifi, Coffee, MapPin, Zap, Monitor, 
-  Users, ArrowRight, CheckCircle2, AlertCircle, 
-  CreditCard, Sparkles 
+import {
+  Wifi, Coffee, MapPin, Zap, Monitor,
+  Users, ArrowRight, CheckCircle2, AlertCircle,
+  CreditCard, Sparkles
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import AnimatedSection from '../../components/AnimatedSection';
+import OptimizedImage from '../../components/OptimizedImage';
 import { coworkingPassService, coworkingImageService, type CoworkingPass, type PassAvailabilityCheck, type CoworkingImage } from '../../lib/supabase';
 
 const CoworkingPage: React.FC = () => {
@@ -74,10 +75,14 @@ const CoworkingPage: React.FC = () => {
       <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-[#1E1F1E]">
         {/* Background Image with Cinematic Gradient */}
         <div className="absolute inset-0 z-0">
-          <img 
+          <OptimizedImage
             src="https://images.pexels.com/photos/7688336/pexels-photo-7688336.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
             alt="Coworking Background"
-            className="w-full h-full object-cover opacity-60"
+            className="opacity-60"
+            width={1920}
+            height={1080}
+            priority={true}
+            objectFit="cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#1E1F1E] via-[#1E1F1E]/80 to-transparent" />
         </div>
@@ -303,14 +308,17 @@ const CoworkingPage: React.FC = () => {
           
           <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 px-4 md:px-[calc((100vw-1200px)/2)] pb-8 scrollbar-hide">
             {images.map((image, index) => (
-               <div 
-                 key={image.id} 
+               <div
+                 key={image.id}
                  className="flex-none snap-center w-[85vw] md:w-[600px] aspect-[16/9] rounded-3xl overflow-hidden relative group"
                >
-                 <img 
-                   src={image.image_url} 
-                   alt={image.alt_text} 
-                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                 <OptimizedImage
+                   src={image.image_url}
+                   alt={image.alt_text}
+                   className="transition-transform duration-700 group-hover:scale-105"
+                   width={1200}
+                   height={675}
+                   objectFit="cover"
                  />
                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                </div>

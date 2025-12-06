@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { 
-  ArrowLeft, ArrowRight, Users, MapPin, ChevronLeft, ChevronRight, 
+import {
+  ArrowLeft, ArrowRight, Users, MapPin, ChevronLeft, ChevronRight,
   Share2, Star, Check, Wifi, Maximize2, Calendar
 } from 'lucide-react';
 import { apartmentService, availabilityService, type Apartment } from '../../lib/supabase';
 import { getIconComponent } from '../../lib/iconUtils';
 import CalendarAvailability from '../../components/CalendarAvailability';
 import AnimatedSection from '../../components/AnimatedSection';
+import OptimizedImage from '../../components/OptimizedImage';
 
 const formatMoney = (amount: number, currency: 'EUR' | 'GBP' | 'USD') =>
   new Intl.NumberFormat('en-GB', { style: 'currency', currency, maximumFractionDigits: 0 }).format(amount);
@@ -168,11 +169,15 @@ const RoomDetailPage: React.FC = () => {
         {/* --- HERO IMAGE GALLERY --- */}
         <section className="relative h-[60vh] md:h-[80vh] w-full overflow-hidden group">
           <div className="absolute inset-0 bg-black/20 z-10 group-hover:bg-black/10 transition-colors duration-500" />
-          
-          <img 
-            src={displayImageUrl} 
+
+          <OptimizedImage
+            src={displayImageUrl}
             alt={apartment.title}
-            className="w-full h-full object-cover transition-transform duration-700 ease-out scale-105"
+            className="transition-transform duration-700 ease-out scale-105"
+            width={1920}
+            height={1280}
+            priority={true}
+            objectFit="cover"
           />
 
           {/* Navigation Arrows */}

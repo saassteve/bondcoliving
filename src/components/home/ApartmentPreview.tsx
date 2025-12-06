@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, ChevronLeft, ChevronRight, RefreshCw, Sparkles, GripHorizontal } from 'lucide-react';
 import { apartmentService, availabilityService, type Apartment } from '../../lib/supabase';
 import AnimatedSection from '../AnimatedSection';
+import OptimizedImage from '../OptimizedImage';
 
 type ApartmentWithExtras = Apartment & {
   image_url?: string;
@@ -310,12 +311,14 @@ const ApartmentPreview: React.FC = () => {
                     
                     {/* Image */}
                     <div className="absolute inset-0 overflow-hidden">
-                      <img
+                      <OptimizedImage
                         src={a.image_url}
                         alt={a.title}
-                        className="w-full h-full object-cover transition-transform duration-1000 ease-out group-hover:scale-110 opacity-80 group-hover:opacity-100"
-                        loading="lazy"
-                        draggable="false"
+                        className="transition-transform duration-1000 ease-out group-hover:scale-110 opacity-80 group-hover:opacity-100"
+                        width={800}
+                        height={1000}
+                        objectFit="cover"
+                        draggable={false}
                       />
                     </div>
                     
