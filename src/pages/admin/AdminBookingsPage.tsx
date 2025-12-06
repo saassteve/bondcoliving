@@ -33,6 +33,8 @@ const AdminBookingsPage: React.FC = () => {
   });
   const [guestInviteSuccess, setGuestInviteSuccess] = useState<string | null>(null);
   const [guestInviteError, setGuestInviteError] = useState<string | null>(null);
+  const [diagnosticInfo, setDiagnosticInfo] = useState<any>(null);
+  const [showDiagnostics, setShowDiagnostics] = useState(false);
 
   const filteredBookings = bookings.filter(booking => {
     if (filter === 'all') return true;
@@ -62,12 +64,46 @@ const AdminBookingsPage: React.FC = () => {
     });
   };
 
+  const runDiagnostics = async () => {
+    try {
+      console.log('Running admin authentication diagnostics...');
+
+      const { data: { session } } = await supabase.auth.getSession();
+
+      const { data: diagData, error: diagError } = await supabase
+        .rpc('debug_admin_auth');
+
+      setDiagnosticInfo({
+        session: session ? {
+          userId: session.user.id,
+          email: session.user.email,
+          expiresAt: session.expires_at
+        } : null,
+        diagnostic: diagData?.[0] || null,
+        error: diagError
+      });
+
+      setShowDiagnostics(true);
+    } catch (error) {
+      console.error('Error running diagnostics:', error);
+      setDiagnosticInfo({ error: error });
+    }
+  };
+
   const fetchData = async () => {
     try {
       setLoading(true);
       setFetchError(null);
 
       console.log('AdminBookingsPage - Fetching data...');
+
+      // Check session before fetching
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setFetchError('Not authenticated. Please sign in again.');
+        setLoading(false);
+        return;
+      }
 
       const [bookingsData, apartmentsData] = await Promise.all([
         bookingService.getAll(),
@@ -79,7 +115,14 @@ const AdminBookingsPage: React.FC = () => {
       setApartments(apartmentsData);
     } catch (error: any) {
       console.error('AdminBookingsPage - Error fetching data:', error);
-      const errorMessage = error?.message || 'Unknown error occurred';
+
+      let errorMessage = error?.message || 'Unknown error occurred';
+
+      // Check if this is an RLS error
+      if (error?.code === 'PGRST301' || error?.message?.includes('row-level security')) {
+        errorMessage = 'Access denied: Your session may have expired. Try refreshing the page or signing in again.';
+      }
+
       setFetchError(`Failed to load bookings: ${errorMessage}`);
     } finally {
       setLoading(false);
@@ -299,8 +342,57 @@ const AdminBookingsPage: React.FC = () => {
         {fetchError && (
           <div className="p-4 bg-red-900/50 border border-red-700 rounded-lg text-red-200">
             <strong>Error:</strong> {fetchError}
-            <div className="mt-2 text-sm text-red-300">
-              Check the browser console for more details.
+            <div className="mt-4 flex gap-2">
+              <button
+                onClick={() => window.location.reload()}
+                className="px-4 py-2 bg-red-700 hover:bg-red-600 rounded text-sm"
+              >
+                Refresh Page
+              </button>
+              <button
+                onClick={runDiagnostics}
+                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded text-sm"
+              >
+                Run Diagnostics
+              </button>
+            </div>
+          </div>
+        )}
+
+        {showDiagnostics && (
+          <div className="p-4 bg-gray-900 border border-gray-600 rounded-lg">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Authentication Diagnostics</h3>
+              <button
+                onClick={() => setShowDiagnostics(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="space-y-2 text-sm font-mono">
+              {diagnosticInfo?.session ? (
+                <>
+                  <div><strong>Supabase Session:</strong> ✓ Active</div>
+                  <div><strong>User ID:</strong> {diagnosticInfo.session.userId}</div>
+                  <div><strong>Email:</strong> {diagnosticInfo.session.email}</div>
+                  <div><strong>Expires At:</strong> {diagnosticInfo.session.expiresAt ? new Date(diagnosticInfo.session.expiresAt * 1000).toLocaleString() : 'N/A'}</div>
+                </>
+              ) : (
+                <div className="text-red-400"><strong>Supabase Session:</strong> ✗ Not found</div>
+              )}
+              {diagnosticInfo?.diagnostic && (
+                <>
+                  <div><strong>Is Admin:</strong> {diagnosticInfo.diagnostic.is_admin_result ? '✓ Yes' : '✗ No'}</div>
+                  <div><strong>Admin User Exists:</strong> {diagnosticInfo.diagnostic.admin_user_exists ? '✓ Yes' : '✗ No'}</div>
+                  <div><strong>Admin Active:</strong> {diagnosticInfo.diagnostic.admin_user_active ? '✓ Yes' : '✗ No'}</div>
+                </>
+              )}
+              {diagnosticInfo?.error && (
+                <div className="text-red-400 mt-2">
+                  <strong>Error:</strong> {JSON.stringify(diagnosticInfo.error, null, 2)}
+                </div>
+              )}
             </div>
           </div>
         )}

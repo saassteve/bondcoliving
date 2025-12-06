@@ -24,63 +24,74 @@ class AuthService {
   private async checkSession() {
     console.log('AuthService.checkSession() - Starting...');
 
-    // First check localStorage for persisted session
-    const storedSession = localStorage.getItem(this.STORAGE_KEY);
-    if (storedSession) {
-      try {
-        const sessionData = JSON.parse(storedSession);
-        // Verify the session is still valid (not expired)
-        const sessionAge = Date.now() - sessionData.timestamp;
-        const maxAge = 7 * 24 * 60 * 60 * 1000; // 7 days
-
-        if (sessionAge < maxAge) {
-          console.log('AuthService.checkSession() - Using cached session for:', sessionData.user.email);
-          this.currentUser = sessionData.user;
-          this.notifyListeners();
-          return;
-        } else {
-          console.log('AuthService.checkSession() - Cached session expired');
-          localStorage.removeItem(this.STORAGE_KEY);
-        }
-      } catch (error) {
-        console.error('AuthService.checkSession() - Error parsing stored session:', error);
-        localStorage.removeItem(this.STORAGE_KEY);
-      }
-    }
-
     try {
+      // CRITICAL: Always check Supabase session first, not localStorage cache
+      // The cache can persist even when the Supabase session expires
       const { data: { session } } = await supabase.auth.getSession();
       console.log('AuthService.checkSession() - Supabase session:', session ? 'Found' : 'Not found');
 
-      if (session?.user) {
-        console.log('AuthService.checkSession() - User authenticated:', session.user.email);
-        console.log('AuthService.checkSession() - User ID (auth.uid):', session.user.id);
+      if (!session?.user) {
+        // No valid Supabase session - clear any cached data
+        console.log('AuthService.checkSession() - No active Supabase session, clearing cache');
+        this.clearPersistedSession();
+        this.currentUser = null;
+        this.notifyListeners();
+        return;
+      }
 
-        // Verify this is an authorized admin user
-        const { data: adminUser, error: adminError } = await supabase
-          .from('admin_users')
-          .select('id, email, role, user_id')
-          .eq('user_id', session.user.id)
-          .eq('is_active', true)
-          .maybeSingle();
+      console.log('AuthService.checkSession() - User authenticated:', session.user.email);
+      console.log('AuthService.checkSession() - User ID (auth.uid):', session.user.id);
 
-        if (adminError) {
-          console.error('AuthService.checkSession() - Error fetching admin user:', adminError);
+      // Check localStorage cache to avoid re-querying admin_users table
+      const storedSession = localStorage.getItem(this.STORAGE_KEY);
+      if (storedSession) {
+        try {
+          const sessionData = JSON.parse(storedSession);
+          // If cached user matches the current Supabase session, use it
+          if (sessionData.user?.email === session.user.email) {
+            console.log('AuthService.checkSession() - Using cached admin data for:', sessionData.user.email);
+            this.currentUser = sessionData.user;
+            this.notifyListeners();
+            return;
+          }
+        } catch (error) {
+          console.error('AuthService.checkSession() - Error parsing stored session:', error);
+          localStorage.removeItem(this.STORAGE_KEY);
         }
+      }
 
-        if (adminUser) {
-          console.log('AuthService.checkSession() - Admin user verified:', adminUser.email, 'Role:', adminUser.role);
-          this.currentUser = adminUser;
-          this.persistSession(adminUser);
-          this.notifyListeners();
-        } else {
-          console.warn('AuthService.checkSession() - User is authenticated but not an admin');
-        }
+      // No valid cache or cache doesn't match - verify admin status
+      const { data: adminUser, error: adminError } = await supabase
+        .from('admin_users')
+        .select('id, email, role, user_id')
+        .eq('user_id', session.user.id)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (adminError) {
+        console.error('AuthService.checkSession() - Error fetching admin user:', adminError);
+        this.clearPersistedSession();
+        this.currentUser = null;
+        this.notifyListeners();
+        return;
+      }
+
+      if (adminUser) {
+        console.log('AuthService.checkSession() - Admin user verified:', adminUser.email, 'Role:', adminUser.role);
+        this.currentUser = adminUser;
+        this.persistSession(adminUser);
+        this.notifyListeners();
       } else {
-        console.log('AuthService.checkSession() - No active session');
+        console.warn('AuthService.checkSession() - User is authenticated but not an admin');
+        this.clearPersistedSession();
+        this.currentUser = null;
+        this.notifyListeners();
       }
     } catch (error) {
       console.error('AuthService.checkSession() - Error:', error);
+      this.clearPersistedSession();
+      this.currentUser = null;
+      this.notifyListeners();
     }
   }
 
