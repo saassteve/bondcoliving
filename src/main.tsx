@@ -33,6 +33,7 @@ import AdminApplicationsPage from './pages/admin/AdminApplicationsPage';
 import AdminBookingsPage from './pages/admin/AdminBookingsPage';
 import AdminRoomsPage from './pages/admin/AdminRoomsPage';
 import AdminCoworkingPage from './pages/admin/AdminCoworkingPage';
+import AdminPromotionsPage from './pages/admin/AdminPromotionsPage';
 import AdminAccountPage from './pages/admin/AdminAccountPage';
 import AdminICalPage from './pages/admin/AdminICalPage';
 
@@ -80,6 +81,7 @@ const App = () => {
             <Route path="rooms" element={<ProtectedRoute><AdminRoomsPage /></ProtectedRoute>} />
             <Route path="ical" element={<ProtectedRoute><AdminICalPage /></ProtectedRoute>} />
             <Route path="coworking" element={<ProtectedRoute><AdminCoworkingPage /></ProtectedRoute>} />
+            <Route path="promotions" element={<ProtectedRoute><AdminPromotionsPage /></ProtectedRoute>} />
             <Route path="account" element={<ProtectedRoute><AdminAccountPage /></ProtectedRoute>} />
             {/* Admin catch-all */}
             <Route path="*" element={<Navigate to="/admin" replace />} />

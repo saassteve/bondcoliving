@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Menu, X, Book, Home, Coffee, ArrowRight, Instagram, Mail, MapPin } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
+import PromotionBanner from '../components/PromotionBanner';
 
 const MainLayout: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -59,7 +60,10 @@ const MainLayout: React.FC = () => {
       </Helmet>
 
       <div className="flex flex-col min-h-screen bg-[#1E1F1E] text-white selection:bg-[#C5C5B5] selection:text-[#1E1F1E]">
-        
+
+        {/* --- PROMOTION BANNERS --- */}
+        <PromotionBanner />
+
         {/* --- FLOATING NAVIGATION BAR --- */}
         <header 
           className={`fixed top-0 left-0 right-0 z-50 px-4 md:px-8 transition-all duration-300 ${

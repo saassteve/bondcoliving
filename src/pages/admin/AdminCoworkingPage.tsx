@@ -15,6 +15,7 @@ const AdminCoworkingPage: React.FC = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [editingBooking, setEditingBooking] = useState<CoworkingBooking | null>(null);
   const [managingPass, setManagingPass] = useState<string | null>(null);
+  const [editingPass, setEditingPass] = useState<CoworkingPass | null>(null);
   const [revenue, setRevenue] = useState<any>(null);
   const [sendingEmail, setSendingEmail] = useState<string | null>(null);
 
@@ -164,6 +165,33 @@ const AdminCoworkingPage: React.FC = () => {
     } catch (error) {
       console.error('Error deleting booking:', error);
       alert('Failed to delete booking');
+    }
+  };
+
+  const handleEditPass = (pass: CoworkingPass) => {
+    setEditingPass({ ...pass });
+  };
+
+  const handleSavePassPrice = async () => {
+    if (!editingPass) return;
+
+    try {
+      const { error } = await supabase
+        .from('coworking_passes')
+        .update({
+          price: editingPass.price,
+          is_active: editingPass.is_active
+        })
+        .eq('id', editingPass.id);
+
+      if (error) throw error;
+
+      alert('Pass updated successfully!');
+      setEditingPass(null);
+      await fetchData();
+    } catch (error) {
+      console.error('Error updating pass:', error);
+      alert('Failed to update pass');
     }
   };
 
@@ -662,13 +690,22 @@ const AdminCoworkingPage: React.FC = () => {
                             )}
                           </div>
 
-                          <button
-                            onClick={() => setManagingPass(pass.id)}
-                            className="btn-primary"
-                          >
-                            <Settings className="w-4 h-4 inline mr-2" />
-                            Manage
-                          </button>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleEditPass(pass)}
+                              className="btn-secondary"
+                            >
+                              <DollarSign className="w-4 h-4 inline mr-2" />
+                              Edit Price
+                            </button>
+                            <button
+                              onClick={() => setManagingPass(pass.id)}
+                              className="btn-primary"
+                            >
+                              <Settings className="w-4 h-4 inline mr-2" />
+                              Manage
+                            </button>
+                          </div>
                         </div>
                       </div>
                     );
@@ -818,6 +855,72 @@ const AdminCoworkingPage: React.FC = () => {
                   Cancel
                 </button>
                 <button onClick={handleSaveEdit} className="btn-primary">
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {editingPass && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <h2 className="text-xl font-bold text-[#C5C5B5] mb-4">Edit Pass Price</h2>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Pass Name</label>
+                  <input
+                    type="text"
+                    className="input bg-gray-700 text-gray-300"
+                    value={editingPass.name}
+                    disabled
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Price (€)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    className="input"
+                    value={editingPass.price}
+                    onChange={(e) =>
+                      setEditingPass({ ...editingPass, price: parseFloat(e.target.value) || 0 })
+                    }
+                  />
+                  <p className="text-xs text-gray-400 mt-1">
+                    This price will be used for all new bookings and Stripe checkout
+                  </p>
+                </div>
+
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="pass-active"
+                    className="mr-2"
+                    checked={editingPass.is_active}
+                    onChange={(e) =>
+                      setEditingPass({ ...editingPass, is_active: e.target.checked })
+                    }
+                  />
+                  <label htmlFor="pass-active" className="text-sm text-gray-300">
+                    Pass is active and visible to customers
+                  </label>
+                </div>
+              </div>
+
+              <div className="mt-6 flex justify-end space-x-3">
+                <button
+                  onClick={() => setEditingPass(null)}
+                  className="btn bg-white border border-gray-600 text-gray-300 hover:bg-gray-700"
+                >
+                  Cancel
+                </button>
+                <button onClick={handleSavePassPrice} className="btn-primary">
                   Save Changes
                 </button>
               </div>
