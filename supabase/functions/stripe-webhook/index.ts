@@ -113,76 +113,176 @@ Deno.serve(async (req: Request) => {
           break;
         }
 
-        const { data: paymentUpdate, error: paymentError } = await supabase
-          .from("coworking_payments")
-          .update({
-            stripe_payment_intent_id: session.payment_intent as string,
-            status: "succeeded",
-            payment_method: session.payment_method_types?.[0] || null,
-            metadata: {
-              session_id: session.id,
-              customer_email: session.customer_email,
-            },
-          })
-          .eq("stripe_checkout_session_id", session.id)
-          .select();
+        const isApartmentBooking = session.metadata?.is_split_stay !== undefined ||
+                                   session.metadata?.guest_name !== undefined;
 
-        if (paymentError) {
-          console.error("Failed to update payment:", paymentError);
+        if (isApartmentBooking) {
+          console.log("Processing apartment booking:", bookingId);
+
+          const { data: paymentUpdate, error: paymentError } = await supabase
+            .from("apartment_payments")
+            .update({
+              stripe_payment_intent_id: session.payment_intent as string,
+              status: "succeeded",
+              payment_method: session.payment_method_types?.[0] || null,
+              metadata: {
+                session_id: session.id,
+                customer_email: session.customer_email,
+              },
+            })
+            .eq("stripe_checkout_session_id", session.id)
+            .select();
+
+          if (paymentError) {
+            console.error("Failed to update apartment payment:", paymentError);
+          } else {
+            console.log("Apartment payment updated successfully:", paymentUpdate);
+          }
+
+          const { data: booking, error: bookingError } = await supabase
+            .from("bookings")
+            .update({
+              payment_status: "paid",
+            })
+            .eq("id", bookingId)
+            .select()
+            .single();
+
+          if (bookingError) {
+            console.error("Failed to update apartment booking:", bookingError);
+            throw new Error(`Apartment booking update failed: ${bookingError.message}`);
+          } else {
+            console.log("Apartment booking updated successfully:", booking);
+          }
+
+          if (booking.is_split_stay) {
+            const { data: segments } = await supabase
+              .from("apartment_booking_segments")
+              .select("*")
+              .eq("parent_booking_id", bookingId);
+
+            for (const segment of segments || []) {
+              const dates: string[] = [];
+              const currentDate = new Date(segment.check_in_date);
+              const endDate = new Date(segment.check_out_date);
+
+              while (currentDate < endDate) {
+                dates.push(currentDate.toISOString().split("T")[0]);
+                currentDate.setDate(currentDate.getDate() + 1);
+              }
+
+              if (dates.length > 0) {
+                for (const date of dates) {
+                  await supabase
+                    .from("apartment_availability")
+                    .upsert({
+                      apartment_id: segment.apartment_id,
+                      date: date,
+                      status: "booked",
+                      booking_reference: booking.booking_reference,
+                    });
+                }
+              }
+            }
+          } else {
+            const dates: string[] = [];
+            const currentDate = new Date(booking.check_in_date);
+            const endDate = new Date(booking.check_out_date);
+
+            while (currentDate < endDate) {
+              dates.push(currentDate.toISOString().split("T")[0]);
+              currentDate.setDate(currentDate.getDate() + 1);
+            }
+
+            if (dates.length > 0) {
+              for (const date of dates) {
+                await supabase
+                  .from("apartment_availability")
+                  .upsert({
+                    apartment_id: booking.apartment_id,
+                    date: date,
+                    status: "booked",
+                    booking_reference: booking.booking_reference,
+                  });
+              }
+            }
+          }
+
+          console.log("Updated apartment availability for booking:", bookingId);
         } else {
-          console.log("Payment updated successfully:", paymentUpdate);
-        }
+          console.log("Processing coworking booking:", bookingId);
 
-        const { data: bookingUpdate, error: bookingError } = await supabase
-          .from("coworking_bookings")
-          .update({
-            payment_status: "paid",
-            booking_status: "confirmed",
-          })
-          .eq("id", bookingId)
-          .select();
+          const { data: paymentUpdate, error: paymentError } = await supabase
+            .from("coworking_payments")
+            .update({
+              stripe_payment_intent_id: session.payment_intent as string,
+              status: "succeeded",
+              payment_method: session.payment_method_types?.[0] || null,
+              metadata: {
+                session_id: session.id,
+                customer_email: session.customer_email,
+              },
+            })
+            .eq("stripe_checkout_session_id", session.id)
+            .select();
 
-        if (bookingError) {
-          console.error("Failed to update booking:", bookingError);
-          throw new Error(`Booking update failed: ${bookingError.message}`);
-        } else {
-          console.log("Booking updated successfully:", bookingUpdate);
-        }
+          if (paymentError) {
+            console.error("Failed to update payment:", paymentError);
+          } else {
+            console.log("Payment updated successfully:", paymentUpdate);
+          }
 
-        console.log("Updated booking and payment for:", bookingId);
+          const { data: bookingUpdate, error: bookingError } = await supabase
+            .from("coworking_bookings")
+            .update({
+              payment_status: "paid",
+              booking_status: "confirmed",
+            })
+            .eq("id", bookingId)
+            .select();
 
-        try {
-          console.log("Attempting to send booking confirmation email for:", bookingId);
-          const confirmationResult = await sendEmail(supabaseUrl, supabaseServiceKey, {
-            emailType: "booking_confirmation",
-            bookingId: bookingId,
-          });
-          console.log("Sent booking confirmation email successfully:", confirmationResult);
-        } catch (emailError) {
-          console.error("Failed to send confirmation email:", {
-            error: emailError,
-            message: emailError instanceof Error ? emailError.message : String(emailError),
-            bookingId: bookingId
-          });
-        }
+          if (bookingError) {
+            console.error("Failed to update booking:", bookingError);
+            throw new Error(`Booking update failed: ${bookingError.message}`);
+          } else {
+            console.log("Booking updated successfully:", bookingUpdate);
+          }
 
-        try {
-          const adminEmail = Deno.env.get("ADMIN_EMAIL") || "hello@stayatbond.com";
-          console.log("Attempting to send admin notification to:", adminEmail);
-          const adminResult = await sendEmail(supabaseUrl, supabaseServiceKey, {
-            emailType: "admin_notification",
-            bookingId: bookingId,
-            recipientEmail: adminEmail,
-            recipientName: "Admin",
-          });
-          console.log("Sent admin notification successfully:", adminResult);
-        } catch (emailError) {
-          console.error("Failed to send admin notification:", {
-            error: emailError,
-            message: emailError instanceof Error ? emailError.message : String(emailError),
-            bookingId: bookingId,
-            adminEmail: Deno.env.get("ADMIN_EMAIL") || "hello@stayatbond.com"
-          });
+          console.log("Updated booking and payment for:", bookingId);
+
+          try {
+            console.log("Attempting to send booking confirmation email for:", bookingId);
+            const confirmationResult = await sendEmail(supabaseUrl, supabaseServiceKey, {
+              emailType: "booking_confirmation",
+              bookingId: bookingId,
+            });
+            console.log("Sent booking confirmation email successfully:", confirmationResult);
+          } catch (emailError) {
+            console.error("Failed to send confirmation email:", {
+              error: emailError,
+              message: emailError instanceof Error ? emailError.message : String(emailError),
+              bookingId: bookingId
+            });
+          }
+
+          try {
+            const adminEmail = Deno.env.get("ADMIN_EMAIL") || "hello@stayatbond.com";
+            console.log("Attempting to send admin notification to:", adminEmail);
+            const adminResult = await sendEmail(supabaseUrl, supabaseServiceKey, {
+              emailType: "admin_notification",
+              bookingId: bookingId,
+              recipientEmail: adminEmail,
+              recipientName: "Admin",
+            });
+            console.log("Sent admin notification successfully:", adminResult);
+          } catch (emailError) {
+            console.error("Failed to send admin notification:", {
+              error: emailError,
+              message: emailError instanceof Error ? emailError.message : String(emailError),
+              bookingId: bookingId,
+              adminEmail: Deno.env.get("ADMIN_EMAIL") || "hello@stayatbond.com"
+            });
+          }
         }
 
         break;
@@ -198,20 +298,41 @@ Deno.serve(async (req: Request) => {
           break;
         }
 
-        await supabase
-          .from("coworking_payments")
-          .update({ status: "cancelled" })
-          .eq("stripe_checkout_session_id", session.id);
+        const isApartmentBooking = session.metadata?.is_split_stay !== undefined ||
+                                   session.metadata?.guest_name !== undefined;
 
-        await supabase
-          .from("coworking_bookings")
-          .update({
-            payment_status: "failed",
-            booking_status: "cancelled",
-          })
-          .eq("id", bookingId);
+        if (isApartmentBooking) {
+          await supabase
+            .from("apartment_payments")
+            .update({ status: "cancelled" })
+            .eq("stripe_checkout_session_id", session.id);
 
-        console.log("Cancelled booking due to expired session:", bookingId);
+          await supabase
+            .from("bookings")
+            .update({
+              payment_status: "failed",
+              status: "cancelled",
+            })
+            .eq("id", bookingId);
+
+          console.log("Cancelled apartment booking due to expired session:", bookingId);
+        } else {
+          await supabase
+            .from("coworking_payments")
+            .update({ status: "cancelled" })
+            .eq("stripe_checkout_session_id", session.id);
+
+          await supabase
+            .from("coworking_bookings")
+            .update({
+              payment_status: "failed",
+              booking_status: "cancelled",
+            })
+            .eq("id", bookingId);
+
+          console.log("Cancelled booking due to expired session:", bookingId);
+        }
+
         break;
       }
 

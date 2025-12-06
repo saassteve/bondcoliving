@@ -40,8 +40,8 @@ const FinalCTA: React.FC = () => {
                 </p>
                 
                 <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-                  <Link 
-                    to="/apply" 
+                  <Link
+                    to="/book"
                     className="relative bg-gradient-to-r from-[#1E1F1E] to-[#1E1F1E]/80 text-[#C5C5B5] px-8 py-4 rounded-full font-semibold text-lg uppercase tracking-wide transition-all duration-300 hover:shadow-xl hover:scale-105 group overflow-hidden"
                   >
                     <span className="relative z-10 flex items-center">

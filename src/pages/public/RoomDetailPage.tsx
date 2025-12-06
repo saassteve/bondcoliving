@@ -92,7 +92,7 @@ const RoomDetailPage: React.FC = () => {
   };
 
   const handleBookNow = () => {
-    navigate('/apply');
+    navigate('/book');
   };
 
   if (loading) {

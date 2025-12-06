@@ -114,14 +114,14 @@ const MainLayout: React.FC = () => {
               {/* CTA & Mobile Toggle */}
               <div className="flex items-center gap-3">
                 <Link
-                  to="/apply"
+                  to="/book"
                   className={`hidden md:flex items-center gap-2 px-6 py-2.5 rounded-full font-bold text-sm transition-all duration-300 hover:scale-105 ${
-                    scrolled 
-                      ? 'bg-[#C5C5B5] text-[#1E1F1E] hover:bg-white' 
+                    scrolled
+                      ? 'bg-[#C5C5B5] text-[#1E1F1E] hover:bg-white'
                       : 'bg-white text-[#1E1F1E] hover:bg-[#C5C5B5]'
                   }`}
                 >
-                  Stay with Us
+                  Book Now
                 </Link>
 
                 {/* Mobile Burger */}
@@ -164,7 +164,7 @@ const MainLayout: React.FC = () => {
             <div className="mt-8 w-full max-w-xs h-px bg-white/10" />
             
             <Link
-              to="/apply"
+              to="/book"
               onClick={closeMenu}
               className="flex items-center gap-2 text-[#C5C5B5] text-xl uppercase tracking-widest hover:text-white transition-colors"
             >
@@ -234,7 +234,7 @@ const MainLayout: React.FC = () => {
                     </li>
                   ))}
                   <li>
-                     <Link to="/apply" className="text-white/50 hover:text-[#C5C5B5] transition-colors">Apply to Stay</Link>
+                     <Link to="/book" className="text-white/50 hover:text-[#C5C5B5] transition-colors">Book Now</Link>
                   </li>
                 </ul>
               </div>

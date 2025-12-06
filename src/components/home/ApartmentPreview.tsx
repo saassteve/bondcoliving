@@ -414,7 +414,7 @@ const ApartmentPreview: React.FC = () => {
 
         <AnimatedSection animation="fadeInUp" delay={400}>
            <div className="flex justify-center mt-20">
-              <Link to="/apply" className="group relative inline-flex items-center justify-center px-10 py-5 font-bold text-[#1E1F1E] transition-all duration-300 bg-[#C5C5B5] rounded-full hover:scale-105 hover:shadow-[0_0_40px_rgba(197,197,181,0.4)]">
+              <Link to="/book" className="group relative inline-flex items-center justify-center px-10 py-5 font-bold text-[#1E1F1E] transition-all duration-300 bg-[#C5C5B5] rounded-full hover:scale-105 hover:shadow-[0_0_40px_rgba(197,197,181,0.4)]">
                 <span>Book Your Stay</span>
                 <ArrowRight className="w-5 h-5 ml-2 transition-transform duration-300 group-hover:translate-x-1" />
               </Link>

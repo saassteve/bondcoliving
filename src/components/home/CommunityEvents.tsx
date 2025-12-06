@@ -127,11 +127,11 @@ const CommunityEvents: React.FC = () => {
                 in the heart of Funchal.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <a 
-                  href="/apply" 
+                <a
+                  href="/book"
                   className="inline-flex items-center px-8 py-4 bg-[#C5C5B5] text-[#1E1F1E] rounded-full hover:bg-white transition-all font-semibold text-lg uppercase tracking-wide shadow-lg hover:shadow-xl hover:scale-105"
                 >
-                  Apply to Join
+                  Book Now
                 </a>
                 <a 
                   href="/about" 

@@ -932,11 +932,52 @@ export interface Booking {
   guest_count: number
   total_amount?: number
   status: 'confirmed' | 'checked_in' | 'checked_out' | 'cancelled'
+  payment_status?: 'pending' | 'paid' | 'failed' | 'refunded'
+  is_split_stay?: boolean
+  metadata?: Record<string, any>
   created_at?: string
   updated_at?: string
   apartment?: {
     title: string
   }
+  segments?: ApartmentBookingSegment[]
+}
+
+export interface ApartmentBookingSegment {
+  id: string
+  parent_booking_id: string
+  apartment_id: string
+  segment_order: number
+  check_in_date: string
+  check_out_date: string
+  segment_price: number
+  notes?: string
+  created_at?: string
+  updated_at?: string
+  apartment?: Apartment
+}
+
+export interface ApartmentPayment {
+  id: string
+  booking_id: string
+  stripe_payment_intent_id?: string
+  stripe_checkout_session_id?: string
+  amount: number
+  currency: string
+  status: 'pending' | 'processing' | 'succeeded' | 'failed' | 'cancelled' | 'refunded'
+  payment_method?: string
+  metadata?: Record<string, any>
+  created_at?: string
+  updated_at?: string
+}
+
+export interface BookingSettings {
+  minimum_stay_days: number
+  enable_split_stays: boolean
+  max_split_segments: number
+  require_payment_immediately: boolean
+  allow_same_day_checkout_checkin: boolean
+  currency: string
 }
 
 export class BookingService {
@@ -1148,6 +1189,309 @@ export class BookingService {
 }
 
 export const bookingService = BookingService
+
+export class ApartmentBookingService {
+  static async getBookingSettings(): Promise<BookingSettings> {
+    const { data, error } = await supabase
+      .from('site_settings')
+      .select('value')
+      .eq('key', 'apartment_booking_settings')
+      .maybeSingle()
+
+    if (error) throw error
+
+    return data?.value || {
+      minimum_stay_days: 30,
+      enable_split_stays: true,
+      max_split_segments: 3,
+      require_payment_immediately: true,
+      allow_same_day_checkout_checkin: true,
+      currency: 'EUR'
+    }
+  }
+
+  static async updateBookingSettings(settings: Partial<BookingSettings>): Promise<void> {
+    const current = await this.getBookingSettings()
+    const updated = { ...current, ...settings }
+
+    const { error } = await supabase
+      .from('site_settings')
+      .upsert({
+        key: 'apartment_booking_settings',
+        value: updated
+      })
+
+    if (error) throw error
+  }
+
+  static async findSplitStayOptions(
+    startDate: string,
+    endDate: string,
+    maxSegments: number = 3
+  ): Promise<Array<Array<{ apartment: Apartment; checkIn: string; checkOut: string; price: number }>>> {
+    const apartments = await apartmentService.getAll()
+    const activeApartments = apartments.filter(apt => apt.status === 'available')
+
+    const start = new Date(startDate)
+    const end = new Date(endDate)
+    const totalDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+
+    const dailyRate = (monthlyPrice: number) => monthlyPrice / 30
+
+    const splitOptions: Array<Array<{ apartment: Apartment; checkIn: string; checkOut: string; price: number }>> = []
+
+    async function findCombinations(
+      currentDate: Date,
+      segments: Array<{ apartment: Apartment; checkIn: string; checkOut: string; price: number }>,
+      depth: number
+    ) {
+      if (currentDate >= end) {
+        if (segments.length > 0) {
+          splitOptions.push([...segments])
+        }
+        return
+      }
+
+      if (depth >= maxSegments) return
+
+      for (const apartment of activeApartments) {
+        let nextUnavailableDate = new Date(end)
+        let searchDate = new Date(currentDate)
+
+        while (searchDate < end) {
+          const dateStr = searchDate.toISOString().split('T')[0]
+          const isAvailable = await availabilityService.checkAvailability(
+            apartment.id,
+            dateStr,
+            dateStr
+          )
+
+          if (!isAvailable) {
+            nextUnavailableDate = new Date(searchDate)
+            break
+          }
+
+          searchDate.setDate(searchDate.getDate() + 1)
+        }
+
+        if (nextUnavailableDate > currentDate) {
+          const segmentEnd = nextUnavailableDate < end ? nextUnavailableDate : end
+          const segmentDays = Math.ceil((segmentEnd.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24))
+
+          if (segmentDays >= 1) {
+            const segmentPrice = dailyRate(apartment.price) * segmentDays
+
+            segments.push({
+              apartment,
+              checkIn: currentDate.toISOString().split('T')[0],
+              checkOut: segmentEnd.toISOString().split('T')[0],
+              price: Math.round(segmentPrice * 100) / 100
+            })
+
+            await findCombinations(segmentEnd, segments, depth + 1)
+
+            segments.pop()
+          }
+        }
+      }
+    }
+
+    await findCombinations(start, [], 0)
+
+    return splitOptions.filter(option => {
+      const lastSegment = option[option.length - 1]
+      return lastSegment && new Date(lastSegment.checkOut) >= end
+    }).sort((a, b) => {
+      if (a.length !== b.length) return a.length - b.length
+      const totalA = a.reduce((sum, seg) => sum + seg.price, 0)
+      const totalB = b.reduce((sum, seg) => sum + seg.price, 0)
+      return totalA - totalB
+    })
+  }
+
+  static async createBookingWithSegments(
+    guestInfo: {
+      guest_name: string
+      guest_email: string
+      guest_phone?: string
+      guest_count: number
+      special_instructions?: string
+    },
+    segments: Array<{
+      apartment_id: string
+      check_in_date: string
+      check_out_date: string
+      segment_price: number
+    }>
+  ): Promise<{ booking: Booking; payment: ApartmentPayment }> {
+    const isSplitStay = segments.length > 1
+    const totalAmount = segments.reduce((sum, seg) => sum + seg.segment_price, 0)
+
+    const firstSegment = segments[0]
+    const lastSegment = segments[segments.length - 1]
+
+    const { data: booking, error: bookingError } = await supabase
+      .from('bookings')
+      .insert({
+        apartment_id: firstSegment.apartment_id,
+        guest_name: guestInfo.guest_name,
+        guest_email: guestInfo.guest_email,
+        guest_phone: guestInfo.guest_phone,
+        check_in_date: firstSegment.check_in_date,
+        check_out_date: lastSegment.check_out_date,
+        booking_source: 'direct',
+        guest_count: guestInfo.guest_count,
+        total_amount: totalAmount,
+        status: 'confirmed',
+        payment_status: 'pending',
+        is_split_stay: isSplitStay,
+        special_instructions: guestInfo.special_instructions,
+        metadata: {
+          split_stay: isSplitStay,
+          segment_count: segments.length
+        }
+      })
+      .select()
+      .single()
+
+    if (bookingError || !booking) throw bookingError || new Error('Failed to create booking')
+
+    if (isSplitStay) {
+      const segmentInserts = segments.map((seg, index) => ({
+        parent_booking_id: booking.id,
+        apartment_id: seg.apartment_id,
+        segment_order: index,
+        check_in_date: seg.check_in_date,
+        check_out_date: seg.check_out_date,
+        segment_price: seg.segment_price
+      }))
+
+      const { error: segmentError } = await supabase
+        .from('apartment_booking_segments')
+        .insert(segmentInserts)
+
+      if (segmentError) throw segmentError
+    }
+
+    const { data: payment, error: paymentError } = await supabase
+      .from('apartment_payments')
+      .insert({
+        booking_id: booking.id,
+        amount: totalAmount,
+        currency: 'EUR',
+        status: 'pending'
+      })
+      .select()
+      .single()
+
+    if (paymentError || !payment) throw paymentError || new Error('Failed to create payment record')
+
+    return { booking, payment }
+  }
+
+  static async getBookingWithSegments(bookingId: string): Promise<Booking | null> {
+    const { data: booking, error: bookingError } = await supabase
+      .from('bookings')
+      .select(`
+        *,
+        apartment:apartments(*)
+      `)
+      .eq('id', bookingId)
+      .maybeSingle()
+
+    if (bookingError) throw bookingError
+    if (!booking) return null
+
+    if (booking.is_split_stay) {
+      const { data: segments, error: segmentsError } = await supabase
+        .from('apartment_booking_segments')
+        .select(`
+          *,
+          apartment:apartments(*)
+        `)
+        .eq('parent_booking_id', bookingId)
+        .order('segment_order', { ascending: true })
+
+      if (segmentsError) throw segmentsError
+
+      booking.segments = segments || []
+    }
+
+    return booking
+  }
+
+  static async updatePaymentStatus(
+    checkoutSessionId: string,
+    paymentIntentId: string,
+    status: 'succeeded' | 'failed' | 'refunded'
+  ): Promise<void> {
+    const { data: payment, error: paymentError } = await supabase
+      .from('apartment_payments')
+      .update({
+        stripe_payment_intent_id: paymentIntentId,
+        status: status
+      })
+      .eq('stripe_checkout_session_id', checkoutSessionId)
+      .select()
+      .single()
+
+    if (paymentError) throw paymentError
+
+    const bookingStatus = status === 'succeeded' ? 'paid' : status === 'refunded' ? 'refunded' : 'failed'
+
+    await supabase
+      .from('bookings')
+      .update({ payment_status: bookingStatus })
+      .eq('id', payment.booking_id)
+
+    if (status === 'succeeded') {
+      const { data: booking } = await supabase
+        .from('bookings')
+        .select('*')
+        .eq('id', payment.booking_id)
+        .single()
+
+      if (booking) {
+        if (booking.is_split_stay) {
+          const { data: segments } = await supabase
+            .from('apartment_booking_segments')
+            .select('*')
+            .eq('parent_booking_id', booking.id)
+
+          for (const segment of segments || []) {
+            const dates: string[] = []
+            const currentDate = new Date(segment.check_in_date)
+            const endDate = new Date(segment.check_out_date)
+
+            while (currentDate < endDate) {
+              dates.push(currentDate.toISOString().split('T')[0])
+              currentDate.setDate(currentDate.getDate() + 1)
+            }
+
+            if (dates.length > 0) {
+              await availabilityService.setBulkAvailability(segment.apartment_id, dates, 'booked')
+            }
+          }
+        } else {
+          const dates: string[] = []
+          const currentDate = new Date(booking.check_in_date)
+          const endDate = new Date(booking.check_out_date)
+
+          while (currentDate < endDate) {
+            dates.push(currentDate.toISOString().split('T')[0])
+            currentDate.setDate(currentDate.getDate() + 1)
+          }
+
+          if (dates.length > 0) {
+            await availabilityService.setBulkAvailability(booking.apartment_id, dates, 'booked')
+          }
+        }
+      }
+    }
+  }
+}
+
+export const apartmentBookingService = ApartmentBookingService
 
 export interface CoworkingPass {
   id: string

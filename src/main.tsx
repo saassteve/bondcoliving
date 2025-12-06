@@ -26,6 +26,8 @@ import CoworkingBookingLookupPage from './pages/public/CoworkingBookingLookupPag
 import RoomDetailPage from './pages/public/RoomDetailPage';
 import LoginPage from './pages/public/LoginPage';
 import SearchResultsPage from './pages/public/SearchResultsPage';
+import BookPage from './pages/public/BookPage';
+import BookingSuccessPage from './pages/public/BookingSuccessPage';
 
 // Admin Pages
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
@@ -60,7 +62,9 @@ const App = () => {
           <Route path="/" element={<MainLayout />}>
             <Route index element={<HomePage />} />
             <Route path="about" element={<AboutPage />} />
-            <Route path="apply" element={<ApplicationFormPage />} />
+            <Route path="apply" element={<Navigate to="/book" replace />} />
+            <Route path="book" element={<BookPage />} />
+            <Route path="book/success" element={<BookingSuccessPage />} />
             <Route path="thank-you" element={<ThankYouPage />} />
             <Route path="coworking" element={<CoworkingPage />} />
             <Route path="coworking/book" element={<CoworkingBookingPage />} />
