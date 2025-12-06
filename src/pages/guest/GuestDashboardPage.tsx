@@ -23,6 +23,7 @@ interface Event {
 
 interface Booking {
   id: string;
+  booking_reference: string;
   check_in_date: string;
   check_out_date: string;
   door_code: string | null;
@@ -302,6 +303,11 @@ export default function GuestDashboardPage() {
                   <div>
                     <p className="text-sm text-[#1E1F1E]/70 mb-1">Apartment</p>
                     <p className="font-semibold">{booking.apartments.title}</p>
+                  </div>
+
+                  <div>
+                    <p className="text-sm text-[#1E1F1E]/70 mb-1">Booking Reference</p>
+                    <p className="font-mono font-semibold">{booking.booking_reference}</p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">

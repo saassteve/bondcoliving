@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { Menu, X, Home, Users, Building, Coffee, LogOut, LayoutDashboard, Settings, Calendar, CalendarCheck, Megaphone, UserCheck, Bell, PartyPopper, MapPin, Wrench } from 'lucide-react';
+import { Menu, X, Home, Users, Building, Coffee, LogOut, LayoutDashboard, Settings, Calendar, CalendarCheck, Megaphone, UserCheck, Bell, PartyPopper, MapPin, Wrench, MessageSquare } from 'lucide-react';
 import { authService, useAuth } from '../lib/auth';
 
 const AdminLayout: React.FC = () => {
@@ -28,6 +28,7 @@ const AdminLayout: React.FC = () => {
     { name: 'iCal Sync', path: '/admin/ical', icon: CalendarCheck },
     { name: 'Coworking', path: '/admin/coworking', icon: Coffee },
     { name: 'Guest Platform', path: '/admin/guests', icon: UserCheck },
+    { name: 'Guest Messages', path: '/admin/messages', icon: MessageSquare },
     { name: 'Announcements', path: '/admin/announcements', icon: Bell },
     { name: 'Events', path: '/admin/events', icon: PartyPopper },
     { name: 'Local Info', path: '/admin/local-info', icon: MapPin },

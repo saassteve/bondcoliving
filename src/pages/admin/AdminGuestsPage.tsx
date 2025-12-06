@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { generateInvitationCode } from '../../lib/guestAuth';
-import { Users, Plus, Mail, Copy, Check, Calendar } from 'lucide-react';
+import { Users, Plus, Mail, Copy, Check, Calendar, Trash2, X } from 'lucide-react';
 
 interface GuestUser {
   id: string;
@@ -35,6 +35,8 @@ export default function AdminGuestsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'guest' | 'invitation'; id: string; name: string } | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const [inviteForm, setInviteForm] = useState({
     email: '',
@@ -156,6 +158,54 @@ export default function AdminGuestsPage() {
     });
   };
 
+  const handleDelete = async () => {
+    if (!deleteConfirm) return;
+
+    setDeleting(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      if (deleteConfirm.type === 'guest') {
+        // Delete guest user (cascade will handle related records)
+        const { error: deleteError } = await supabase
+          .from('guest_users')
+          .delete()
+          .eq('id', deleteConfirm.id);
+
+        if (deleteError) {
+          console.error('Error deleting guest:', deleteError);
+          setError(`Failed to delete guest: ${deleteError.message}`);
+        } else {
+          setSuccess(`Successfully deleted guest: ${deleteConfirm.name}`);
+          await loadData();
+        }
+      } else {
+        // Delete invitation
+        const { error: deleteError } = await supabase
+          .from('guest_invitations')
+          .delete()
+          .eq('id', deleteConfirm.id);
+
+        if (deleteError) {
+          console.error('Error deleting invitation:', deleteError);
+          setError(`Failed to delete invitation: ${deleteError.message}`);
+        } else {
+          setSuccess(`Successfully deleted invitation for: ${deleteConfirm.name}`);
+          await loadData();
+        }
+      }
+
+      setDeleteConfirm(null);
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err) {
+      console.error('Unexpected error during deletion:', err);
+      setError('An unexpected error occurred. Please try again.');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <div className="p-8">
       {success && (
@@ -216,6 +266,7 @@ export default function AdminGuestsPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase">Access Period</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase">Status</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase">Joined</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-gray-800 divide-y divide-gray-700">
@@ -250,6 +301,15 @@ export default function AdminGuestsPage() {
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-300">
                     {formatDate(guest.created_at)}
+                  </td>
+                  <td className="px-6 py-4">
+                    <button
+                      onClick={() => setDeleteConfirm({ type: 'guest', id: guest.id, name: guest.full_name })}
+                      className="text-red-400 hover:text-red-300 transition"
+                      title="Delete guest"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -305,24 +365,35 @@ export default function AdminGuestsPage() {
                     {formatDate(invitation.expires_at)}
                   </td>
                   <td className="px-6 py-4">
-                    {!invitation.used && (
-                      <button
-                        onClick={() => copyInvitationLink(invitation.invitation_code)}
-                        className="flex items-center text-sm text-indigo-400 hover:text-indigo-300"
-                      >
-                        {copiedCode === invitation.invitation_code ? (
-                          <>
-                            <Check className="h-4 w-4 mr-1" />
-                            Copied!
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="h-4 w-4 mr-1" />
-                            Copy Link
-                          </>
-                        )}
-                      </button>
-                    )}
+                    <div className="flex items-center gap-3">
+                      {!invitation.used && (
+                        <button
+                          onClick={() => copyInvitationLink(invitation.invitation_code)}
+                          className="flex items-center text-sm text-indigo-400 hover:text-indigo-300"
+                        >
+                          {copiedCode === invitation.invitation_code ? (
+                            <>
+                              <Check className="h-4 w-4 mr-1" />
+                              Copied!
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="h-4 w-4 mr-1" />
+                              Copy Link
+                            </>
+                          )}
+                        </button>
+                      )}
+                      {!invitation.used && (
+                        <button
+                          onClick={() => setDeleteConfirm({ type: 'invitation', id: invitation.id, name: invitation.full_name })}
+                          className="text-red-400 hover:text-red-300 transition"
+                          title="Delete invitation"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -418,6 +489,71 @@ export default function AdminGuestsPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
+          <div className="bg-gray-800 rounded-xl shadow-xl max-w-md w-full p-6 border border-gray-700">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center">
+                <div className="bg-red-900/50 rounded-full p-3 mr-3">
+                  <Trash2 className="h-6 w-6 text-red-400" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-white">Confirm Deletion</h2>
+                  <p className="text-sm text-gray-400 mt-1">This action cannot be undone</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                disabled={deleting}
+                className="text-gray-400 hover:text-white transition"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="mb-6">
+              <p className="text-gray-300">
+                Are you sure you want to delete {deleteConfirm.type === 'guest' ? 'the guest account for' : 'the invitation for'}{' '}
+                <strong className="text-white">{deleteConfirm.name}</strong>?
+              </p>
+              {deleteConfirm.type === 'guest' && (
+                <p className="text-sm text-red-400 mt-2">
+                  This will permanently delete all associated data including messages, service requests, and preferences.
+                </p>
+              )}
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                disabled={deleting}
+                className="flex-1 px-4 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              >
+                {deleting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}
