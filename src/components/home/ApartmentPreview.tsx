@@ -317,8 +317,8 @@ const ApartmentPreview: React.FC = () => {
                         className="w-full h-full opacity-80 group-hover:opacity-100 transition-opacity duration-500"
                         width={800}
                         height={1000}
-                        objectFit="contain"
-                        objectPosition="center"
+                        objectFit="cover"
+                        objectPosition="center center"
                         draggable={false}
                       />
                     </div>
