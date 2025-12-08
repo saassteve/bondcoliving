@@ -74,7 +74,7 @@ const CoworkingPage: React.FC = () => {
       {/* --- HERO SECTION --- */}
       <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-[#1E1F1E]">
         {/* Background Image with Cinematic Gradient */}
-        <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 z-0 bg-[#1E1F1E]">
           <OptimizedImage
             src="https://images.pexels.com/photos/7688336/pexels-photo-7688336.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
             alt="Coworking Background"
@@ -82,7 +82,7 @@ const CoworkingPage: React.FC = () => {
             width={1920}
             height={1080}
             priority={true}
-            objectFit="cover"
+            objectFit="contain"
             objectPosition="center"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#1E1F1E] via-[#1E1F1E]/80 to-transparent" />
@@ -311,7 +311,7 @@ const CoworkingPage: React.FC = () => {
             {images.map((image, index) => (
                <div
                  key={image.id}
-                 className="flex-none snap-center w-[85vw] md:w-[600px] aspect-[16/9] rounded-3xl overflow-hidden relative group"
+                 className="flex-none snap-center w-[85vw] md:w-[600px] aspect-[16/9] rounded-3xl overflow-hidden relative group bg-[#1E1F1E]"
                >
                  <OptimizedImage
                    src={image.image_url}
@@ -319,10 +319,10 @@ const CoworkingPage: React.FC = () => {
                    className="transition-transform duration-700 group-hover:scale-105"
                    width={1200}
                    height={675}
-                   objectFit="cover"
+                   objectFit="contain"
                    objectPosition="center"
                  />
-                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                </div>
             ))}
           </div>

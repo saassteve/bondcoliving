@@ -151,7 +151,7 @@ const RoomDetailPage: React.FC = () => {
         </div>
 
         {/* --- HERO IMAGE GALLERY --- */}
-        <section className="relative h-[60vh] md:h-[80vh] w-full overflow-hidden group">
+        <section className="relative h-[60vh] md:h-[80vh] w-full overflow-hidden group bg-[#1E1F1E]">
           <div className="absolute inset-0 bg-black/20 z-10 group-hover:bg-black/10 transition-colors duration-500" />
 
           <OptimizedImage
@@ -161,7 +161,7 @@ const RoomDetailPage: React.FC = () => {
             width={1920}
             height={1280}
             priority={true}
-            objectFit="cover"
+            objectFit="contain"
             objectPosition="center"
           />
 

@@ -310,14 +310,14 @@ const ApartmentPreview: React.FC = () => {
                     <AvailabilityBadge iso={a.available_from} />
                     
                     {/* Image */}
-                    <div className="absolute inset-0 overflow-hidden">
+                    <div className="absolute inset-0 overflow-hidden bg-[#1E1F1E]">
                       <OptimizedImage
                         src={a.image_url}
                         alt={a.title}
                         className="w-full h-full opacity-80 group-hover:opacity-100 transition-opacity duration-500"
                         width={800}
                         height={1000}
-                        objectFit="cover"
+                        objectFit="contain"
                         objectPosition="center"
                         draggable={false}
                       />
