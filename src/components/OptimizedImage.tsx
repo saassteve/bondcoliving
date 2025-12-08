@@ -20,7 +20,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   width,
   height,
   priority = false,
-  objectFit = 'contain',
+  objectFit = 'cover',
   objectPosition = 'center',
   onLoad,
   draggable = false,

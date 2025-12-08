@@ -161,7 +161,8 @@ const RoomDetailPage: React.FC = () => {
             width={1920}
             height={1280}
             priority={true}
-            objectFit="contain"
+            objectFit="cover"
+            objectPosition="center"
           />
 
           {/* Navigation Arrows */}
