@@ -161,7 +161,7 @@ const RoomDetailPage: React.FC = () => {
             width={1920}
             height={1280}
             priority={true}
-            objectFit="cover"
+            objectFit="contain"
             objectPosition="center center"
           />
 
