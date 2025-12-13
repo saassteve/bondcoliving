@@ -44,7 +44,6 @@ Deno.serve(async (req: Request) => {
 
     console.log("Processing email request:", { emailType, bookingId, recipientEmail });
 
-    // Validate required fields
     if (!emailType) {
       console.error("Missing emailType in request body");
       return new Response(
@@ -59,12 +58,10 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Handle resend request
     if (resendEmail && bookingId) {
       return await handleResendEmail(supabase, resend, bookingId);
     }
 
-    // Fetch booking details if bookingId provided
     let booking = null;
     if (bookingId) {
       const { data, error } = await supabase
@@ -107,7 +104,6 @@ Deno.serve(async (req: Request) => {
       booking = data;
     }
 
-    // Determine recipient from booking or params
     const toEmail = recipientEmail || booking?.customer_email;
     const toName = recipientName || booking?.customer_name;
 
@@ -125,7 +121,6 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Validate email has access code for access_code email type
     if (emailType === "access_code" && !booking?.access_code) {
       console.error("Missing access code for booking:", bookingId);
       return new Response(
@@ -140,17 +135,13 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Generate email content
     const emailContent = getEmailTemplate(emailType, {
       booking,
       recipientName: toName,
     });
 
-    // Send email via Resend
-    // Use onboarding@resend.dev for testing until stayatbond.com domain is verified
-    // TODO: Change back to "Bond Coliving <hello@stayatbond.com>" after domain verification
     const { data: resendData, error: resendError } = await resend.emails.send({
-      from: "Bond Coliving <onboarding@resend.dev>",
+      from: "Bond Coliving <hello@stayatbond.com>",
       to: toEmail,
       subject: emailContent.subject,
       html: emailContent.html,
@@ -159,7 +150,6 @@ Deno.serve(async (req: Request) => {
     if (resendError) {
       console.error("Resend error:", resendError);
       
-      // Log failed email
       await supabase.from("email_logs").insert({
         email_type: emailType,
         recipient_email: toEmail,
@@ -185,7 +175,6 @@ Deno.serve(async (req: Request) => {
 
     console.log("Email sent successfully:", resendData);
 
-    // Log successful email
     await supabase.from("email_logs").insert({
       email_type: emailType,
       recipient_email: toEmail,
@@ -196,7 +185,6 @@ Deno.serve(async (req: Request) => {
       resend_id: resendData.id,
     });
 
-    // Update booking email tracking
     if (bookingId) {
       const updates: any = {};
       
@@ -244,7 +232,6 @@ Deno.serve(async (req: Request) => {
 });
 
 async function handleResendEmail(supabase: any, resend: any, bookingId: string) {
-  // Fetch booking
   const { data: booking, error } = await supabase
     .from("coworking_bookings")
     .select(`
@@ -282,16 +269,13 @@ async function handleResendEmail(supabase: any, resend: any, bookingId: string) 
     );
   }
 
-  // Get access code email template
   const emailContent = getEmailTemplate("access_code", {
     booking,
     recipientName: booking.customer_name,
   });
 
-  // Send email
-  // Use onboarding@resend.dev for testing until stayatbond.com domain is verified
   const { data: resendData, error: resendError } = await resend.emails.send({
-    from: "Bond Coliving <onboarding@resend.dev>",
+    from: "Bond Coliving <hello@stayatbond.com>",
     to: booking.customer_email,
     subject: emailContent.subject,
     html: emailContent.html,
@@ -323,7 +307,6 @@ async function handleResendEmail(supabase: any, resend: any, bookingId: string) 
     );
   }
 
-  // Log email
   await supabase.from("email_logs").insert({
     email_type: "access_code",
     recipient_email: booking.customer_email,

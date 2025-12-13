@@ -288,7 +288,6 @@ function getEmailWrapper(content: string): string {
         <tr>
           <td align="center">
             <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-              <!-- Header -->
               <tr>
                 <td style="background-color: #1E1F1E; padding: 32px 40px; text-align: center;">
                   <h1 style="color: #C5C5B5; margin: 0; font-size: 32px; font-weight: 700; letter-spacing: 2px;">BOND</h1>
@@ -296,14 +295,12 @@ function getEmailWrapper(content: string): string {
                 </td>
               </tr>
               
-              <!-- Content -->
               <tr>
                 <td style="padding: 40px;">
                   ${content}
                 </td>
               </tr>
               
-              <!-- Footer -->
               <tr>
                 <td style="background-color: #F5F5F0; padding: 32px 40px; text-align: center;">
                   <p style="color: #666; font-size: 14px; line-height: 1.6; margin: 0 0 16px 0;">
