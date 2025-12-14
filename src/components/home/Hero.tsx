@@ -71,7 +71,7 @@ const Hero: React.FC = () => {
                     </div>
                     <div>
                       <h3 className="text-lg md:text-xl font-bold text-white group-hover:text-[#1E1F1E] mb-1">Apartments</h3>
-                      <p className="text-xs md:text-sm text-white/60 group-hover:text-[#1E1F1E]/80">Private units from €1,500/mo</p>
+                      <p className="text-xs md:text-sm text-white/60 group-hover:text-[#1E1F1E]/80">Private units from €1,600/mo</p>
                     </div>
                   </button>
 
@@ -88,7 +88,7 @@ const Hero: React.FC = () => {
                     </div>
                     <div>
                       <h3 className="text-lg md:text-xl font-bold text-white group-hover:text-[#1E1F1E] mb-1">Coworking</h3>
-                      <p className="text-xs md:text-sm text-white/60 group-hover:text-[#1E1F1E]/80">Passes from €14/day</p>
+                      <p className="text-xs md:text-sm text-white/60 group-hover:text-[#1E1F1E]/80">Passes from €10/day</p>
                     </div>
                   </button>
                 </div>
