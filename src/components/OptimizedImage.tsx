@@ -92,11 +92,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   return (
     <div
       ref={imgRef}
-      className={`relative overflow-hidden ${className}`}
-      style={{
-        width: width ? `${width}px` : '100%',
-        height: height ? `${height}px` : '100%',
-      }}
+      className={`relative overflow-hidden w-full h-full ${className}`}
     >
       {!isLoaded && !error && (
         <div className="absolute inset-0 bg-gray-800 animate-pulse">

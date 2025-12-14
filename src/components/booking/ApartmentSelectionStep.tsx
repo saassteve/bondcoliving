@@ -250,7 +250,7 @@ const ApartmentSelectionStep: React.FC<ApartmentSelectionStepProps> = ({
               >
                 <div className="flex gap-4">
                   {apartmentImages[apartment.id] && (
-                    <div className="flex-shrink-0">
+                    <div className="flex-shrink-0 w-16 h-16">
                       <OptimizedImage
                         src={apartmentImages[apartment.id]}
                         alt={apartment.title}
@@ -328,7 +328,7 @@ const ApartmentSelectionStep: React.FC<ApartmentSelectionStepProps> = ({
                     <div key={segIndex} className="pl-4 border-l-2 border-[#C5C5B5]/20">
                       <div className="flex gap-3 items-start">
                         {apartmentImages[segment.apartment.id] && (
-                          <div className="flex-shrink-0">
+                          <div className="flex-shrink-0 w-12 h-12">
                             <OptimizedImage
                               src={apartmentImages[segment.apartment.id]}
                               alt={segment.apartment.title}
