@@ -16,27 +16,43 @@ const CoworkingBookingPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
+  const getTodayDate = () => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  };
+
   const getTomorrowDate = () => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     return tomorrow.toISOString().split('T')[0];
   };
 
+  const isBefore2PM = () => {
+    const now = new Date();
+    const hours = now.getHours();
+    return hours < 14; // Before 2pm (14:00)
+  };
+
   const getMinimumDate = () => {
+    const today = getTodayDate();
     const tomorrow = getTomorrowDate();
-    if (!selectedPass) return tomorrow;
+
+    // Allow same-day booking if before 2pm
+    const earliestDate = isBefore2PM() ? today : tomorrow;
+
+    if (!selectedPass) return earliestDate;
     if (selectedPass.is_date_restricted && selectedPass.available_from) {
       const availableFrom = selectedPass.available_from;
-      return availableFrom > tomorrow ? availableFrom : tomorrow;
+      return availableFrom > earliestDate ? availableFrom : earliestDate;
     }
-    return tomorrow;
+    return earliestDate;
   };
 
   const [formData, setFormData] = useState({
     customerName: '',
     customerEmail: '',
     customerPhone: '',
-    startDate: getTomorrowDate(),
+    startDate: '',
     specialNotes: '',
   });
   
@@ -74,7 +90,7 @@ const CoworkingBookingPage: React.FC = () => {
   useEffect(() => {
     if (selectedPass) {
       const minDate = getMinimumDate();
-      if (formData.startDate < minDate) {
+      if (!formData.startDate || formData.startDate < minDate) {
         setFormData(prev => ({ ...prev, startDate: minDate }));
       }
     }
@@ -137,7 +153,9 @@ const CoworkingBookingPage: React.FC = () => {
       if (selectedPass?.is_date_restricted && selectedPass?.available_from) {
         newErrors.startDate = `Available from ${new Date(selectedPass.available_from).toLocaleDateString()}`;
       } else {
-        newErrors.startDate = 'Bookings must start at least 1 day in advance';
+        newErrors.startDate = isBefore2PM()
+          ? 'Invalid date selected'
+          : 'Same-day bookings only available before 2pm. Please select tomorrow or later.';
       }
     }
 
@@ -269,15 +287,60 @@ const CoworkingBookingPage: React.FC = () => {
                   {errors.pass && <p className="mt-2 text-sm text-red-400 flex items-center gap-2"><AlertCircle className="w-4 h-4" /> {errors.pass}</p>}
                 </section>
 
-                {/* Section 2: Details */}
-                <section id="contact-details">
+                {/* Section 2: Start Date */}
+                <section>
                   <div className="flex items-center gap-4 mb-6">
                     <div className="w-8 h-8 rounded-full bg-[#C5C5B5] text-[#1E1F1E] flex items-center justify-center font-bold text-sm">2</div>
+                    <h2 className="text-2xl font-bold text-white">When do you start?</h2>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-[#C5C5B5]/10 to-[#C5C5B5]/5 p-8 rounded-3xl border-2 border-[#C5C5B5]/30">
+                    <label className="block text-lg font-bold text-white mb-3">Select your start date</label>
+                    <p className="text-white/60 text-sm mb-4">
+                      {isBefore2PM()
+                        ? 'Same-day booking available! Book before 2pm to start today.'
+                        : 'Same-day booking ends at 2pm. Select tomorrow or later.'}
+                    </p>
+                    <div className="relative">
+                      <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-[#C5C5B5]" />
+                      <input
+                        type="date"
+                        value={formData.startDate}
+                        onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                        min={getMinimumDate()}
+                        className="w-full pl-16 pr-5 py-5 bg-[#1E1F1E] border-2 border-[#C5C5B5]/50 rounded-2xl text-white text-lg font-medium focus:border-[#C5C5B5] focus:outline-none transition-colors [color-scheme:dark] hover:border-[#C5C5B5]/70"
+                      />
+                      {formData.startDate === getTodayDate() && (
+                        <div className="absolute right-5 top-1/2 -translate-y-1/2 px-3 py-1 bg-[#C5C5B5] text-[#1E1F1E] rounded-full text-xs font-bold">
+                          Today
+                        </div>
+                      )}
+                    </div>
+                    {errors.startDate && (
+                      <div className="mt-3 p-3 bg-red-500/10 border border-red-500/30 rounded-xl">
+                        <p className="text-sm text-red-300 font-medium">{errors.startDate}</p>
+                      </div>
+                    )}
+
+                    {/* Availability Message */}
+                    {availabilityMessage && (
+                      <div className="mt-4 p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex gap-3 items-start">
+                        <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+                        <p className="text-sm text-red-200">{availabilityMessage}</p>
+                      </div>
+                    )}
+                  </div>
+                </section>
+
+                {/* Section 3: Contact Details */}
+                <section id="contact-details">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-8 h-8 rounded-full bg-[#C5C5B5] text-[#1E1F1E] flex items-center justify-center font-bold text-sm">3</div>
                     <h2 className="text-2xl font-bold text-white">Your details</h2>
                   </div>
 
                   <div className="space-y-6 bg-white/5 p-8 rounded-3xl border border-white/10">
-                    
+
                     {/* Name */}
                     <div>
                       <label className="block text-sm font-medium text-[#C5C5B5] mb-2">Full Name</label>
@@ -325,30 +388,6 @@ const CoworkingBookingPage: React.FC = () => {
                           />
                         </div>
                       </div>
-                    </div>
-
-                    {/* Date Selection */}
-                    <div>
-                      <label className="block text-sm font-medium text-[#C5C5B5] mb-2">Start Date</label>
-                      <div className="relative">
-                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
-                        <input
-                          type="date"
-                          value={formData.startDate}
-                          onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                          min={getMinimumDate()}
-                          className="w-full pl-12 pr-4 py-4 bg-[#1E1F1E] border border-white/10 rounded-xl text-white focus:border-[#C5C5B5] focus:outline-none transition-colors [color-scheme:dark]"
-                        />
-                      </div>
-                      {errors.startDate && <p className="mt-1 text-sm text-red-400">{errors.startDate}</p>}
-                      
-                      {/* Availability Message */}
-                      {availabilityMessage && (
-                        <div className="mt-4 p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex gap-3 items-start">
-                          <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
-                          <p className="text-sm text-red-200">{availabilityMessage}</p>
-                        </div>
-                      )}
                     </div>
 
                     {/* Notes */}
