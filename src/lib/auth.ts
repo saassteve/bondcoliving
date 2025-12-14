@@ -60,21 +60,22 @@ class AuthService {
         }
       }
 
-      // No valid cache or cache doesn't match - verify admin status
-      const { data: adminUser, error: adminError } = await supabase
-        .from('admin_users')
-        .select('id, email, role, user_id')
-        .eq('user_id', session.user.id)
-        .eq('is_active', true)
-        .maybeSingle();
+      // No valid cache or cache doesn't match - verify admin status using secure function
+      console.log('AuthService.checkSession() - Calling verify_admin_user for:', session.user.id);
+      const { data: adminData, error: adminError } = await supabase
+        .rpc('verify_admin_user', { p_user_id: session.user.id });
 
       if (adminError) {
-        console.error('AuthService.checkSession() - Error fetching admin user:', adminError);
+        console.error('AuthService.checkSession() - Error calling verify_admin_user:', adminError);
+        console.error('AuthService.checkSession() - Error details:', JSON.stringify(adminError));
         this.clearPersistedSession();
         this.currentUser = null;
         this.notifyListeners();
         return;
       }
+
+      // The RPC function returns an array, get the first result
+      const adminUser = adminData && adminData.length > 0 ? adminData[0] : null;
 
       if (adminUser) {
         console.log('AuthService.checkSession() - Admin user verified:', adminUser.email, 'Role:', adminUser.role);
@@ -129,19 +130,20 @@ class AuthService {
 
       console.log('AuthService.signIn() - Auth successful, user ID:', authData.user.id);
 
-      // Check if this user is an admin in our admin_users table
-      const { data: adminUser, error: adminError } = await supabase
-        .from('admin_users')
-        .select('id, email, role, user_id')
-        .eq('user_id', authData.user.id)
-        .eq('is_active', true)
-        .maybeSingle();
+      // Check if this user is an admin using the secure verification function
+      console.log('AuthService.signIn() - Calling verify_admin_user for:', authData.user.id);
+      const { data: adminData, error: adminError } = await supabase
+        .rpc('verify_admin_user', { p_user_id: authData.user.id });
 
       if (adminError) {
-        console.error('AuthService.signIn() - Error checking admin status:', adminError);
+        console.error('AuthService.signIn() - Error calling verify_admin_user:', adminError);
+        console.error('AuthService.signIn() - Error details:', JSON.stringify(adminError));
         await supabase.auth.signOut();
         return { success: false, error: 'Failed to verify admin status' };
       }
+
+      // The RPC function returns an array, get the first result
+      const adminUser = adminData && adminData.length > 0 ? adminData[0] : null;
 
       if (!adminUser) {
         console.warn('AuthService.signIn() - User is not an admin');
