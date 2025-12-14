@@ -1,23 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Calendar, ChevronLeft, ChevronRight, Plus, X, Check, Edit, Trash, DollarSign, Users, Settings, Image, Mail } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, Plus, X, Check, Edit, Trash, DollarSign, Users, Settings, Image, Mail, Key } from 'lucide-react';
 import { coworkingBookingService, coworkingPassService, type CoworkingBooking, type CoworkingPass } from '../../lib/supabase';
 import { supabase } from '../../lib/supabase';
 import PassAvailabilityManager from '../../components/admin/PassAvailabilityManager';
 import CoworkingImageManager from '../../components/admin/CoworkingImageManager';
+
+interface PassCode {
+  id: string;
+  code: string;
+  is_used: boolean;
+  used_at: string | null;
+  booking_id: string | null;
+  created_at: string;
+}
 
 const AdminCoworkingPage: React.FC = () => {
   const [bookings, setBookings] = useState<CoworkingBooking[]>([]);
   const [passes, setPasses] = useState<CoworkingPass[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
-  const [currentView, setCurrentView] = useState<'list' | 'calendar' | 'stats' | 'passes' | 'images'>('list');
+  const [currentView, setCurrentView] = useState<'list' | 'calendar' | 'stats' | 'passes' | 'images' | 'codes'>('list');
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [editingBooking, setEditingBooking] = useState<CoworkingBooking | null>(null);
   const [managingPass, setManagingPass] = useState<string | null>(null);
   const [editingPass, setEditingPass] = useState<CoworkingPass | null>(null);
   const [revenue, setRevenue] = useState<any>(null);
   const [sendingEmail, setSendingEmail] = useState<string | null>(null);
+  const [passCodes, setPassCodes] = useState<PassCode[]>([]);
+  const [newCode, setNewCode] = useState('');
 
   useEffect(() => {
     fetchData();
@@ -26,18 +37,79 @@ const AdminCoworkingPage: React.FC = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [bookingsData, passesData, revenueData] = await Promise.all([
+      const [bookingsData, passesData, revenueData, codesData] = await Promise.all([
         coworkingBookingService.getAll(),
         coworkingPassService.getAll(),
         coworkingBookingService.getRevenue(),
+        fetchPassCodes(),
       ]);
       setBookings(bookingsData);
       setPasses(passesData);
       setRevenue(revenueData);
+      setPassCodes(codesData);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchPassCodes = async (): Promise<PassCode[]> => {
+    const { data, error } = await supabase
+      .from('coworking_pass_codes')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching pass codes:', error);
+      return [];
+    }
+
+    return data || [];
+  };
+
+  const handleAddCode = async () => {
+    if (!newCode.trim()) {
+      alert('Please enter a code');
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('coworking_pass_codes')
+        .insert([{ code: newCode.trim() }]);
+
+      if (error) throw error;
+
+      setNewCode('');
+      await fetchData();
+      alert('Code added successfully!');
+    } catch (error: any) {
+      console.error('Error adding code:', error);
+      if (error.code === '23505') {
+        alert('This code already exists!');
+      } else {
+        alert('Failed to add code');
+      }
+    }
+  };
+
+  const handleDeleteCode = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this code?')) return;
+
+    try {
+      const { error } = await supabase
+        .from('coworking_pass_codes')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      await fetchData();
+      alert('Code deleted successfully!');
+    } catch (error) {
+      console.error('Error deleting code:', error);
+      alert('Failed to delete code. Only unused codes can be deleted.');
     }
   };
 
@@ -368,7 +440,7 @@ const AdminCoworkingPage: React.FC = () => {
               </button>
               <button
                 onClick={() => setCurrentView('images')}
-                className={`px-3 py-1 rounded-r-md ${
+                className={`px-3 py-1 ${
                   currentView === 'images'
                     ? 'bg-indigo-600 text-white'
                     : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
@@ -376,6 +448,17 @@ const AdminCoworkingPage: React.FC = () => {
               >
                 <Image className="w-4 h-4 inline mr-1" />
                 Images
+              </button>
+              <button
+                onClick={() => setCurrentView('codes')}
+                className={`px-3 py-1 rounded-r-md ${
+                  currentView === 'codes'
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
+              >
+                <Key className="w-4 h-4 inline mr-1" />
+                Codes
               </button>
             </div>
           </div>
@@ -716,6 +799,117 @@ const AdminCoworkingPage: React.FC = () => {
           </div>
         ) : currentView === 'images' ? (
           <CoworkingImageManager />
+        ) : currentView === 'codes' ? (
+          <div className="space-y-6">
+            <div className="bg-gray-800 rounded-lg shadow-sm overflow-hidden">
+              <div className="p-6 border-b border-gray-600">
+                <h2 className="text-lg font-semibold text-[#C5C5B5] mb-2">Daypass Access Codes</h2>
+                <p className="text-sm text-gray-400">
+                  Add codes that will be automatically sent to guests when they book a coworking pass.
+                  Codes are assigned on a first-come, first-served basis.
+                </p>
+              </div>
+
+              <div className="p-6 border-b border-gray-600">
+                <div className="flex gap-3">
+                  <input
+                    type="text"
+                    value={newCode}
+                    onChange={(e) => setNewCode(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleAddCode()}
+                    placeholder="Enter new access code (e.g., 1234#)"
+                    className="flex-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#C5C5B5]"
+                  />
+                  <button
+                    onClick={handleAddCode}
+                    className="btn-primary flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Code
+                  </button>
+                </div>
+              </div>
+
+              <div className="divide-y divide-gray-600">
+                <div className="grid grid-cols-12 gap-4 p-4 bg-gray-700 text-xs font-medium text-gray-400 uppercase">
+                  <div className="col-span-4">Code</div>
+                  <div className="col-span-2">Status</div>
+                  <div className="col-span-3">Used At</div>
+                  <div className="col-span-2">Booking</div>
+                  <div className="col-span-1 text-right">Actions</div>
+                </div>
+
+                {passCodes.length === 0 ? (
+                  <div className="p-8 text-center text-gray-400">
+                    No codes added yet. Add your first access code above.
+                  </div>
+                ) : (
+                  passCodes.map((code) => (
+                    <div key={code.id} className="grid grid-cols-12 gap-4 p-4 hover:bg-gray-700/50 transition-colors items-center">
+                      <div className="col-span-4">
+                        <code className="text-sm font-mono text-[#C5C5B5] bg-gray-700 px-2 py-1 rounded">
+                          {code.code}
+                        </code>
+                      </div>
+                      <div className="col-span-2">
+                        {code.is_used ? (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-900/50 text-red-300 border border-red-700">
+                            Used
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-900/50 text-green-300 border border-green-700">
+                            Available
+                          </span>
+                        )}
+                      </div>
+                      <div className="col-span-3 text-sm text-gray-300">
+                        {code.used_at ? new Date(code.used_at).toLocaleString() : '-'}
+                      </div>
+                      <div className="col-span-2 text-sm text-gray-300">
+                        {code.booking_id ? (
+                          <button
+                            onClick={() => {
+                              const booking = bookings.find(b => b.id === code.booking_id);
+                              if (booking) handleEdit(booking);
+                            }}
+                            className="text-indigo-400 hover:text-indigo-300 underline"
+                          >
+                            View
+                          </button>
+                        ) : (
+                          '-'
+                        )}
+                      </div>
+                      <div className="col-span-1 text-right">
+                        {!code.is_used && (
+                          <button
+                            onClick={() => handleDeleteCode(code.id)}
+                            className="text-red-400 hover:text-red-300"
+                          >
+                            <Trash className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="p-4 bg-gray-700/50 border-t border-gray-600">
+                <div className="flex items-center justify-between text-sm">
+                  <div className="text-gray-300">
+                    <span className="font-bold text-[#C5C5B5]">{passCodes.filter(c => !c.is_used).length}</span> available /
+                    <span className="font-bold text-[#C5C5B5] ml-1">{passCodes.length}</span> total codes
+                  </div>
+                  {passCodes.filter(c => !c.is_used).length === 0 && passCodes.length > 0 && (
+                    <div className="text-yellow-400 font-medium">
+                      ⚠ No codes available! Add more codes for new bookings.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
         ) : null}
       </div>
 

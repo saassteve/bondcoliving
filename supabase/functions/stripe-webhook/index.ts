@@ -251,6 +251,33 @@ Deno.serve(async (req: Request) => {
           console.log("Updated booking and payment for:", bookingId);
 
           try {
+            console.log("Attempting to assign access code for booking:", bookingId);
+            const { data: assignedCode, error: codeError } = await supabase
+              .rpc("assign_coworking_pass_code", { p_booking_id: bookingId });
+
+            if (codeError) {
+              console.error("Failed to assign access code:", codeError);
+            } else if (assignedCode) {
+              console.log("Assigned access code successfully:", assignedCode);
+
+              await supabase
+                .from("coworking_bookings")
+                .update({ access_code: assignedCode })
+                .eq("id", bookingId);
+
+              console.log("Updated booking with access code:", bookingId);
+            } else {
+              console.warn("No available access codes in pool for booking:", bookingId);
+            }
+          } catch (codeError) {
+            console.error("Error in access code assignment:", {
+              error: codeError,
+              message: codeError instanceof Error ? codeError.message : String(codeError),
+              bookingId: bookingId
+            });
+          }
+
+          try {
             console.log("Attempting to send booking confirmation email for:", bookingId);
             const confirmationResult = await sendEmail(supabaseUrl, supabaseServiceKey, {
               emailType: "booking_confirmation",
