@@ -49,16 +49,15 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Validate start date is at least tomorrow
+    // Validate start date is not in the past
     const selectedDate = new Date(startDate);
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
     selectedDate.setHours(0, 0, 0, 0);
 
-    if (selectedDate < tomorrow) {
+    if (selectedDate < today) {
       return new Response(
-        JSON.stringify({ error: "Bookings must start at least 1 day in advance" }),
+        JSON.stringify({ error: "Bookings cannot be made for past dates" }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
