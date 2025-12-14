@@ -560,6 +560,20 @@ export class AvailabilityService {
     return unavailableDates.length === 0
   }
 
+  static async getUnavailableDates(apartmentId: string, startDate: string, endDate: string): Promise<Set<string>> {
+    const { data, error } = await supabase
+      .from('apartment_availability')
+      .select('date')
+      .eq('apartment_id', apartmentId)
+      .gte('date', startDate)
+      .lte('date', endDate)
+      .in('status', ['booked', 'blocked'])
+
+    if (error) throw error
+
+    return new Set((data || []).map(row => row.date))
+  }
+
   static async getNextAvailableDate(apartmentId: string): Promise<string | null> {
     const { data, error } = await supabase
       .rpc('get_next_available_date_for_apartment', {
@@ -1177,21 +1191,78 @@ export class ApartmentBookingService {
     const apartments = await apartmentService.getAll()
     const activeApartments = apartments.filter(apt => apt.status === 'available')
 
+    if (activeApartments.length === 0) return []
+
     const start = new Date(startDate)
     const end = new Date(endDate)
-    const totalDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
-
     const dailyRate = (monthlyPrice: number) => monthlyPrice / 30
+
+    type AvailablePeriod = {
+      apartment: Apartment
+      startDate: Date
+      endDate: Date
+    }
+
+    const apartmentAvailability = await Promise.all(
+      activeApartments.map(async (apartment) => {
+        const unavailableDates = await availabilityService.getUnavailableDates(
+          apartment.id,
+          startDate,
+          endDate
+        )
+
+        const periods: AvailablePeriod[] = []
+        let periodStart: Date | null = null
+        let currentDate = new Date(start)
+
+        while (currentDate < end) {
+          const dateStr = currentDate.toISOString().split('T')[0]
+          const isAvailable = !unavailableDates.has(dateStr)
+
+          if (isAvailable) {
+            if (!periodStart) {
+              periodStart = new Date(currentDate)
+            }
+          } else {
+            if (periodStart) {
+              periods.push({
+                apartment,
+                startDate: new Date(periodStart),
+                endDate: new Date(currentDate)
+              })
+              periodStart = null
+            }
+          }
+
+          currentDate.setDate(currentDate.getDate() + 1)
+        }
+
+        if (periodStart) {
+          periods.push({
+            apartment,
+            startDate: new Date(periodStart),
+            endDate: new Date(end)
+          })
+        }
+
+        return periods
+      })
+    )
+
+    const allPeriods = apartmentAvailability.flat().filter(period => {
+      const days = Math.ceil((period.endDate.getTime() - period.startDate.getTime()) / (1000 * 60 * 60 * 24))
+      return days >= 1
+    })
 
     const splitOptions: Array<Array<{ apartment: Apartment; checkIn: string; checkOut: string; price: number }>> = []
 
-    async function findCombinations(
-      currentDate: Date,
+    function findCombinations(
+      targetStart: Date,
       segments: Array<{ apartment: Apartment; checkIn: string; checkOut: string; price: number }>,
       depth: number
     ) {
-      if (currentDate >= end) {
-        if (segments.length > 0) {
+      if (targetStart >= end) {
+        if (segments.length > 0 && segments.length <= maxSegments) {
           splitOptions.push([...segments])
         }
         return
@@ -1199,59 +1270,49 @@ export class ApartmentBookingService {
 
       if (depth >= maxSegments) return
 
-      for (const apartment of activeApartments) {
-        let nextUnavailableDate = new Date(end)
-        let searchDate = new Date(currentDate)
-
-        while (searchDate < end) {
-          const dateStr = searchDate.toISOString().split('T')[0]
-          const isAvailable = await availabilityService.checkAvailability(
-            apartment.id,
-            dateStr,
-            dateStr
-          )
-
-          if (!isAvailable) {
-            nextUnavailableDate = new Date(searchDate)
-            break
-          }
-
-          searchDate.setDate(searchDate.getDate() + 1)
-        }
-
-        if (nextUnavailableDate > currentDate) {
-          const segmentEnd = nextUnavailableDate < end ? nextUnavailableDate : end
-          const segmentDays = Math.ceil((segmentEnd.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24))
+      for (const period of allPeriods) {
+        if (period.startDate <= targetStart && period.endDate > targetStart) {
+          const segmentStart = new Date(targetStart)
+          const segmentEnd = period.endDate < end ? new Date(period.endDate) : new Date(end)
+          const segmentDays = Math.ceil((segmentEnd.getTime() - segmentStart.getTime()) / (1000 * 60 * 60 * 24))
 
           if (segmentDays >= 1) {
-            const segmentPrice = dailyRate(apartment.price) * segmentDays
+            const segmentPrice = dailyRate(period.apartment.price) * segmentDays
 
             segments.push({
-              apartment,
-              checkIn: currentDate.toISOString().split('T')[0],
+              apartment: period.apartment,
+              checkIn: segmentStart.toISOString().split('T')[0],
               checkOut: segmentEnd.toISOString().split('T')[0],
               price: Math.round(segmentPrice * 100) / 100
             })
 
-            await findCombinations(segmentEnd, segments, depth + 1)
-
+            findCombinations(segmentEnd, segments, depth + 1)
             segments.pop()
           }
         }
       }
     }
 
-    await findCombinations(start, [], 0)
+    findCombinations(start, [], 0)
 
-    return splitOptions.filter(option => {
+    const validOptions = splitOptions.filter(option => {
       const lastSegment = option[option.length - 1]
       return lastSegment && new Date(lastSegment.checkOut) >= end
-    }).sort((a, b) => {
+    })
+
+    const uniqueOptions = validOptions.filter((option, index, self) => {
+      const key = option.map(seg => `${seg.apartment.id}:${seg.checkIn}:${seg.checkOut}`).join('|')
+      return index === self.findIndex(o =>
+        o.map(seg => `${seg.apartment.id}:${seg.checkIn}:${seg.checkOut}`).join('|') === key
+      )
+    })
+
+    return uniqueOptions.sort((a, b) => {
       if (a.length !== b.length) return a.length - b.length
       const totalA = a.reduce((sum, seg) => sum + seg.price, 0)
       const totalB = b.reduce((sum, seg) => sum + seg.price, 0)
       return totalA - totalB
-    })
+    }).slice(0, 10)
   }
 
   static async createBookingWithSegments(
