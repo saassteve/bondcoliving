@@ -37,19 +37,23 @@ function getBookingConfirmationTemplate(data: EmailTemplateData): EmailTemplate 
   const amount = formatCurrency(booking?.total_amount, booking?.currency);
 
   return {
-    subject: `Booking Confirmed - ${passName} at Bond Coliving`,
+    subject: `Welcome to Bond Coliving! Your ${passName} is Ready`,
     html: getEmailWrapper(`
-      <h1 style="color: #1E1F1E; font-size: 28px; margin: 0 0 24px 0; font-weight: 700;">Booking Confirmed!</h1>
-      
+      <h1 style="color: #1E1F1E; font-size: 28px; margin: 0 0 24px 0; font-weight: 700;">Welcome to Bond Coliving!</h1>
+
       <p style="color: #1E1F1E; font-size: 16px; line-height: 1.6; margin: 0 0 16px 0;">Hi ${recipientName || "there"},</p>
-      
+
+      <p style="color: #1E1F1E; font-size: 16px; line-height: 1.6; margin: 0 0 16px 0;">
+        We're thrilled to have you join our community! Your coworking pass has been confirmed and we can't wait to welcome you to Bond Coliving in the beautiful Funchal, Madeira.
+      </p>
+
       <p style="color: #1E1F1E; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
-        Great news! Your coworking pass has been confirmed. We're excited to welcome you to Bond Coliving in Funchal, Madeira.
+        Below you'll find everything you need to make your first visit smooth and easy.
       </p>
 
       <div style="background: #F5F5F0; border-left: 4px solid #C5C5B5; padding: 20px; margin: 0 0 24px 0; border-radius: 4px;">
-        <h2 style="color: #1E1F1E; font-size: 18px; margin: 0 0 16px 0; font-weight: 600;">Booking Details</h2>
-        
+        <h2 style="color: #1E1F1E; font-size: 18px; margin: 0 0 16px 0; font-weight: 600;">Your Booking Details</h2>
+
         <table style="width: 100%; border-collapse: collapse;">
           <tr>
             <td style="padding: 8px 0; color: #666; font-size: 14px; font-weight: 500;">Pass Type:</td>
@@ -75,36 +79,60 @@ function getBookingConfirmationTemplate(data: EmailTemplateData): EmailTemplate 
       </div>
 
       ${booking?.access_code ? `
-      <div style="background: #1E1F1E; color: white; padding: 24px; margin: 0 0 24px 0; border-radius: 8px; text-align: center;">
-        <p style="color: #C5C5B5; font-size: 14px; margin: 0 0 8px 0; text-transform: uppercase; letter-spacing: 1px;">Your Access Code</p>
-        <p style="color: white; font-size: 32px; font-weight: 700; margin: 0; letter-spacing: 4px;">${booking.access_code}</p>
+      <div style="background: #1E1F1E; color: white; padding: 28px; margin: 0 0 24px 0; border-radius: 8px; text-align: center;">
+        <p style="color: #C5C5B5; font-size: 14px; margin: 0 0 12px 0; text-transform: uppercase; letter-spacing: 1px;">🔑 Your Door Access Code</p>
+        <p style="color: white; font-size: 36px; font-weight: 700; margin: 0 0 12px 0; letter-spacing: 6px;">${booking.access_code}</p>
+        <p style="color: #C5C5B5; font-size: 13px; margin: 0; line-height: 1.5;">Use this code at the main entrance to access the building</p>
       </div>
       ` : ""}
 
+      <div style="background: linear-gradient(135deg, #1E1F1E 0%, #3a3b3a 100%); color: white; padding: 24px; margin: 0 0 24px 0; border-radius: 8px;">
+        <h3 style="color: #C5C5B5; font-size: 16px; margin: 0 0 16px 0; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">📶 WiFi Connection</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 8px 0; color: #C5C5B5; font-size: 14px; font-weight: 500;">Network Name:</td>
+            <td style="padding: 8px 0; color: white; font-size: 16px; font-weight: 700; text-align: right; font-family: 'Courier New', monospace;">BONDHOUSE</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; color: #C5C5B5; font-size: 14px; font-weight: 500;">Password:</td>
+            <td style="padding: 8px 0; color: white; font-size: 16px; font-weight: 700; text-align: right; font-family: 'Courier New', monospace;">COLLECTIVE</td>
+          </tr>
+        </table>
+      </div>
+
       <div style="background: #F5F5F0; padding: 20px; margin: 0 0 24px 0; border-radius: 4px;">
-        <h3 style="color: #1E1F1E; font-size: 16px; margin: 0 0 12px 0; font-weight: 600;">📍 Location</h3>
+        <h3 style="color: #1E1F1E; font-size: 16px; margin: 0 0 12px 0; font-weight: 600;">⏰ Opening Hours</h3>
+        <p style="color: #1E1F1E; font-size: 14px; line-height: 1.8; margin: 0;">
+          <strong>Monday - Friday:</strong> 9:00 AM - 6:00 PM<br>
+          <strong>Saturday - Sunday:</strong> 10:00 AM - 4:00 PM
+        </p>
+      </div>
+
+      <div style="background: #F5F5F0; padding: 20px; margin: 0 0 24px 0; border-radius: 4px;">
+        <h3 style="color: #1E1F1E; font-size: 16px; margin: 0 0 12px 0; font-weight: 600;">📍 How to Find Us</h3>
         <p style="color: #1E1F1E; font-size: 14px; line-height: 1.6; margin: 0;">
-          Bond Coliving<br>
+          <strong>Bond Coliving</strong><br>
           Funchal, Madeira<br>
-          <a href="https://maps.google.com" style="color: #1E1F1E; text-decoration: underline;">View on Map</a>
+          <a href="https://maps.google.com" style="color: #1E1F1E; font-weight: 600; text-decoration: underline;">View on Google Maps →</a>
         </p>
       </div>
 
       <div style="background: #F5F5F0; padding: 20px; margin: 0 0 24px 0; border-radius: 4px;">
-        <h3 style="color: #1E1F1E; font-size: 16px; margin: 0 0 12px 0; font-weight: 600;">⏰ Hours</h3>
+        <h3 style="color: #1E1F1E; font-size: 16px; margin: 0 0 12px 0; font-weight: 600;">💬 Need Help?</h3>
         <p style="color: #1E1F1E; font-size: 14px; line-height: 1.6; margin: 0;">
-          Monday - Friday: 9:00 AM - 6:00 PM<br>
-          Saturday - Sunday: 10:00 AM - 4:00 PM
+          Our team is here to help! Reach out anytime:<br>
+          <strong>Email:</strong> <a href="mailto:hello@stayatbond.com" style="color: #1E1F1E; text-decoration: underline;">hello@stayatbond.com</a><br>
+          <strong>Website:</strong> <a href="https://stayatbond.com" style="color: #1E1F1E; text-decoration: underline;">stayatbond.com</a>
         </p>
       </div>
 
-      <p style="color: #1E1F1E; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
-        If you have any questions, feel free to reach out to us at <a href="mailto:hello@stayatbond.com" style="color: #1E1F1E; text-decoration: underline;">hello@stayatbond.com</a>.
+      <p style="color: #1E1F1E; font-size: 16px; line-height: 1.6; margin: 0 0 8px 0;">
+        We're looking forward to seeing you soon!
       </p>
 
       <p style="color: #1E1F1E; font-size: 16px; line-height: 1.6; margin: 0;">
-        See you soon!<br>
-        <strong>The Bond Team</strong>
+        Warm regards,<br>
+        <strong>The Bond Team</strong> 🌴
       </p>
     `),
   };
@@ -116,20 +144,34 @@ function getAccessCodeTemplate(data: EmailTemplateData): EmailTemplate {
   const reference = booking?.booking_reference || "N/A";
 
   return {
-    subject: "Your Access Code - Bond Coliving",
+    subject: "Your Door Access Code - Bond Coliving",
     html: getEmailWrapper(`
-      <h1 style="color: #1E1F1E; font-size: 28px; margin: 0 0 24px 0; font-weight: 700;">Your Access Code</h1>
-      
-      <p style="color: #1E1F1E; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">Hi ${recipientName || "there"},</p>
-      
+      <h1 style="color: #1E1F1E; font-size: 28px; margin: 0 0 24px 0; font-weight: 700;">Your Access Information</h1>
+
+      <p style="color: #1E1F1E; font-size: 16px; line-height: 1.6; margin: 0 0 16px 0;">Hi ${recipientName || "there"},</p>
+
       <p style="color: #1E1F1E; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
-        Here's your access code for Bond Coliving's coworking space:
+        Here's everything you need to access Bond Coliving's coworking space!
       </p>
 
-      <div style="background: #1E1F1E; color: white; padding: 32px; margin: 0 0 24px 0; border-radius: 8px; text-align: center;">
-        <p style="color: #C5C5B5; font-size: 14px; margin: 0 0 12px 0; text-transform: uppercase; letter-spacing: 1px;">Your Access Code</p>
+      <div style="background: #1E1F1E; color: white; padding: 28px; margin: 0 0 24px 0; border-radius: 8px; text-align: center;">
+        <p style="color: #C5C5B5; font-size: 14px; margin: 0 0 12px 0; text-transform: uppercase; letter-spacing: 1px;">🔑 Your Door Access Code</p>
         <p style="color: white; font-size: 40px; font-weight: 700; margin: 0 0 16px 0; letter-spacing: 6px;">${accessCode}</p>
         <p style="color: #C5C5B5; font-size: 12px; margin: 0;">Booking Reference: ${reference}</p>
+      </div>
+
+      <div style="background: linear-gradient(135deg, #1E1F1E 0%, #3a3b3a 100%); color: white; padding: 24px; margin: 0 0 24px 0; border-radius: 8px;">
+        <h3 style="color: #C5C5B5; font-size: 16px; margin: 0 0 16px 0; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">📶 WiFi Connection</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 8px 0; color: #C5C5B5; font-size: 14px; font-weight: 500;">Network Name:</td>
+            <td style="padding: 8px 0; color: white; font-size: 16px; font-weight: 700; text-align: right; font-family: 'Courier New', monospace;">BONDHOUSE</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; color: #C5C5B5; font-size: 14px; font-weight: 500;">Password:</td>
+            <td style="padding: 8px 0; color: white; font-size: 16px; font-weight: 700; text-align: right; font-family: 'Courier New', monospace;">COLLECTIVE</td>
+          </tr>
+        </table>
       </div>
 
       <div style="background: #F5F5F0; padding: 20px; margin: 0 0 24px 0; border-radius: 4px;">
@@ -138,26 +180,39 @@ function getAccessCodeTemplate(data: EmailTemplateData): EmailTemplate {
           <li>Arrive at Bond Coliving in Funchal</li>
           <li>Enter your access code at the door keypad</li>
           <li>Head to the coworking space on the ground floor</li>
-          <li>Make yourself at home!</li>
+          <li>Connect to the WiFi and make yourself at home!</li>
         </ol>
       </div>
 
       <div style="background: #F5F5F0; padding: 20px; margin: 0 0 24px 0; border-radius: 4px;">
-        <h3 style="color: #1E1F1E; font-size: 16px; margin: 0 0 12px 0; font-weight: 600;">📍 Location</h3>
-        <p style="color: #1E1F1E; font-size: 14px; line-height: 1.6; margin: 0;">
-          Bond Coliving<br>
-          Funchal, Madeira<br>
-          <a href="https://maps.google.com" style="color: #1E1F1E; text-decoration: underline;">View on Map</a>
+        <h3 style="color: #1E1F1E; font-size: 16px; margin: 0 0 12px 0; font-weight: 600;">⏰ Opening Hours</h3>
+        <p style="color: #1E1F1E; font-size: 14px; line-height: 1.8; margin: 0;">
+          <strong>Monday - Friday:</strong> 9:00 AM - 6:00 PM<br>
+          <strong>Saturday - Sunday:</strong> 10:00 AM - 4:00 PM
         </p>
       </div>
 
-      <p style="color: #1E1F1E; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
-        Need help? Contact us at <a href="mailto:hello@stayatbond.com" style="color: #1E1F1E; text-decoration: underline;">hello@stayatbond.com</a>.
-      </p>
+      <div style="background: #F5F5F0; padding: 20px; margin: 0 0 24px 0; border-radius: 4px;">
+        <h3 style="color: #1E1F1E; font-size: 16px; margin: 0 0 12px 0; font-weight: 600;">📍 How to Find Us</h3>
+        <p style="color: #1E1F1E; font-size: 14px; line-height: 1.6; margin: 0;">
+          <strong>Bond Coliving</strong><br>
+          Funchal, Madeira<br>
+          <a href="https://maps.google.com" style="color: #1E1F1E; font-weight: 600; text-decoration: underline;">View on Google Maps →</a>
+        </p>
+      </div>
+
+      <div style="background: #F5F5F0; padding: 20px; margin: 0 0 24px 0; border-radius: 4px;">
+        <h3 style="color: #1E1F1E; font-size: 16px; margin: 0 0 12px 0; font-weight: 600;">💬 Need Help?</h3>
+        <p style="color: #1E1F1E; font-size: 14px; line-height: 1.6; margin: 0;">
+          Our team is here to help! Reach out anytime:<br>
+          <strong>Email:</strong> <a href="mailto:hello@stayatbond.com" style="color: #1E1F1E; text-decoration: underline;">hello@stayatbond.com</a><br>
+          <strong>Website:</strong> <a href="https://stayatbond.com" style="color: #1E1F1E; text-decoration: underline;">stayatbond.com</a>
+        </p>
+      </div>
 
       <p style="color: #1E1F1E; font-size: 16px; line-height: 1.6; margin: 0;">
         Happy coworking!<br>
-        <strong>The Bond Team</strong>
+        <strong>The Bond Team</strong> 🌴
       </p>
     `),
   };
