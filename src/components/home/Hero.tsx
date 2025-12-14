@@ -7,7 +7,7 @@ const Hero: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="relative h-screen min-h-[100svh] flex flex-col justify-center md:justify-end pb-12 md:pb-24 overflow-hidden">
+    <section className="relative h-screen min-h-[100svh] flex flex-col justify-center md:justify-end pb-12 md:pb-24 overflow-hidden -mt-32 md:-mt-24">
       {/* Background Image & Overlays */}
       <div className="absolute inset-0 z-0">
         <img
