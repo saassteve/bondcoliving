@@ -302,16 +302,16 @@ const CoworkingBookingPage: React.FC = () => {
                         : 'Same-day booking ends at 2pm. Select tomorrow or later.'}
                     </p>
                     <div className="relative">
-                      <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-[#C5C5B5]" />
+                      <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-[#C5C5B5] pointer-events-none z-10" />
                       <input
                         type="date"
                         value={formData.startDate}
                         onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                         min={getMinimumDate()}
-                        className="w-full pl-16 pr-5 py-5 bg-[#1E1F1E] border-2 border-[#C5C5B5]/50 rounded-2xl text-white text-lg font-medium focus:border-[#C5C5B5] focus:outline-none transition-colors [color-scheme:dark] hover:border-[#C5C5B5]/70"
+                        className="w-full pl-16 pr-24 py-5 bg-[#1E1F1E] border-2 border-[#C5C5B5]/50 rounded-2xl text-white text-lg font-medium focus:border-[#C5C5B5] focus:outline-none transition-colors [color-scheme:dark] hover:border-[#C5C5B5]/70 cursor-pointer"
                       />
                       {formData.startDate === getTodayDate() && (
-                        <div className="absolute right-5 top-1/2 -translate-y-1/2 px-3 py-1 bg-[#C5C5B5] text-[#1E1F1E] rounded-full text-xs font-bold">
+                        <div className="absolute right-5 top-1/2 -translate-y-1/2 px-3 py-1 bg-[#C5C5B5] text-[#1E1F1E] rounded-full text-xs font-bold pointer-events-none z-10">
                           Today
                         </div>
                       )}
