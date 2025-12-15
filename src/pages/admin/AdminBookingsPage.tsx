@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Plus, Download, ChevronLeft, ChevronRight, Check } from 'lucide-react';
-import { bookingService, apartmentService, availabilityService, type Booking, type Apartment } from '../../lib/supabase';
+import { bookingService, apartmentService, availabilityService, apartmentBookingService, type Booking, type Apartment } from '../../lib/supabase';
 import { supabase } from '../../lib/supabase';
 import { generateInvitationCode } from '../../lib/guestAuth';
 import BookingForm from '../../components/admin/BookingForm';
@@ -133,11 +133,23 @@ const AdminBookingsPage: React.FC = () => {
     setIsSubmitting(true);
     try {
       if (editingBooking) {
+        // For now, editing only supports regular bookings
         await bookingService.update(editingBooking.id, formData);
       } else {
-        await bookingService.create(formData);
+        // Check if this is a split booking
+        if (formData.isSplitBooking) {
+          // Use createBookingWithSegments for split bookings
+          await apartmentBookingService.createBookingWithSegments(
+            formData.guestInfo,
+            formData.segments
+          );
+        } else {
+          // Use regular create for single bookings
+          const { isSplitBooking, ...bookingData } = formData;
+          await bookingService.create(bookingData);
+        }
       }
-      
+
       resetForm();
       await fetchData();
     } catch (error) {
