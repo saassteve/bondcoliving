@@ -956,10 +956,22 @@ export class BookingService {
   static async getById(id: string): Promise<Booking | null> {
     const { data, error } = await supabase
       .from('bookings')
-      .select('*')
+      .select(`
+        *,
+        segments:apartment_booking_segments(
+          id,
+          apartment_id,
+          segment_order,
+          check_in_date,
+          check_out_date,
+          segment_price,
+          notes,
+          apartment:apartments(title)
+        )
+      `)
       .eq('id', id)
       .maybeSingle()
-    
+
     if (error) throw error
     return data
   }
@@ -1403,6 +1415,97 @@ export class ApartmentBookingService {
     if (paymentError || !payment) throw paymentError || new Error('Failed to create payment record')
 
     return { booking, payment }
+  }
+
+  static async updateBookingWithSegments(
+    bookingId: string,
+    guestInfo: {
+      guest_name: string
+      guest_email?: string | null
+      guest_phone?: string | null
+      guest_count: number
+      special_instructions?: string | null
+    },
+    segments: Array<{
+      apartment_id: string
+      check_in_date: string
+      check_out_date: string
+      segment_price: number
+      notes?: string | null
+    }>,
+    bookingSource?: string,
+    bookingReference?: string | null,
+    doorCode?: string | null,
+    status?: string
+  ): Promise<Booking> {
+    const isSplitStay = segments.length > 1
+    const totalAmount = segments.reduce((sum, seg) => sum + seg.segment_price, 0)
+
+    const firstSegment = segments[0]
+    const lastSegment = segments[segments.length - 1]
+
+    const { data: existingBooking } = await supabase
+      .from('bookings')
+      .select('is_split_stay')
+      .eq('id', bookingId)
+      .maybeSingle()
+
+    const { data: booking, error: bookingError } = await supabase
+      .from('bookings')
+      .update({
+        apartment_id: firstSegment.apartment_id,
+        guest_name: guestInfo.guest_name,
+        guest_email: guestInfo.guest_email,
+        guest_phone: guestInfo.guest_phone,
+        check_in_date: firstSegment.check_in_date,
+        check_out_date: lastSegment.check_out_date,
+        booking_source: bookingSource || 'direct',
+        booking_reference: bookingReference,
+        door_code: doorCode,
+        guest_count: guestInfo.guest_count,
+        total_amount: totalAmount,
+        status: status || 'confirmed',
+        is_split_stay: isSplitStay,
+        special_instructions: guestInfo.special_instructions,
+        metadata: {
+          split_stay: isSplitStay,
+          segment_count: segments.length
+        }
+      })
+      .eq('id', bookingId)
+      .select()
+      .single()
+
+    if (bookingError || !booking) throw bookingError || new Error('Failed to update booking')
+
+    if (existingBooking?.is_split_stay) {
+      const { error: deleteError } = await supabase
+        .from('apartment_booking_segments')
+        .delete()
+        .eq('parent_booking_id', bookingId)
+
+      if (deleteError) throw deleteError
+    }
+
+    if (isSplitStay) {
+      const segmentInserts = segments.map((seg, index) => ({
+        parent_booking_id: booking.id,
+        apartment_id: seg.apartment_id,
+        segment_order: index,
+        check_in_date: seg.check_in_date,
+        check_out_date: seg.check_out_date,
+        segment_price: seg.segment_price,
+        notes: seg.notes
+      }))
+
+      const { error: segmentError } = await supabase
+        .from('apartment_booking_segments')
+        .insert(segmentInserts)
+
+      if (segmentError) throw segmentError
+    }
+
+    return booking
   }
 
   static async getBookingWithSegments(bookingId: string): Promise<Booking | null> {

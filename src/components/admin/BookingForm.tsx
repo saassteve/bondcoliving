@@ -55,6 +55,21 @@ const BookingForm: React.FC<BookingFormProps> = ({
     fetchApartments();
   }, []);
 
+  useEffect(() => {
+    if (booking?.is_split_stay && booking.segments && booking.segments.length > 0) {
+      setSegments(
+        booking.segments.map((seg: any) => ({
+          id: seg.id || crypto.randomUUID(),
+          apartment_id: seg.apartment_id,
+          check_in_date: seg.check_in_date,
+          check_out_date: seg.check_out_date,
+          segment_price: seg.segment_price?.toString() || '',
+          notes: seg.notes || ''
+        }))
+      );
+    }
+  }, [booking]);
+
   const fetchApartments = async () => {
     try {
       const data = await apartmentService.getAll();
@@ -236,21 +251,24 @@ const BookingForm: React.FC<BookingFormProps> = ({
         
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Split Booking Toggle */}
-          {!booking && (
-            <div className="p-4 bg-gray-700 rounded-lg border border-gray-600">
-              <label className="flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={isSplitBooking}
-                  onChange={(e) => setIsSplitBooking(e.target.checked)}
-                  className="w-4 h-4 text-indigo-600 border-gray-600 rounded focus:ring-indigo-500"
-                />
-                <span className="ml-2 text-sm font-medium text-gray-300">
-                  Split Booking (Guest will stay in multiple apartments)
-                </span>
-              </label>
-            </div>
-          )}
+          <div className="p-4 bg-gray-700 rounded-lg border border-gray-600">
+            <label className="flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isSplitBooking}
+                onChange={(e) => setIsSplitBooking(e.target.checked)}
+                className="w-4 h-4 text-indigo-600 border-gray-600 rounded focus:ring-indigo-500"
+              />
+              <span className="ml-2 text-sm font-medium text-gray-300">
+                Split Booking (Guest will stay in multiple apartments)
+              </span>
+            </label>
+            {booking && (
+              <p className="mt-2 text-xs text-gray-400">
+                Toggle to convert between split and regular booking
+              </p>
+            )}
+          </div>
 
           {/* Guest Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

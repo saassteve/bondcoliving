@@ -133,18 +133,27 @@ const AdminBookingsPage: React.FC = () => {
     setIsSubmitting(true);
     try {
       if (editingBooking) {
-        // For now, editing only supports regular bookings
-        await bookingService.update(editingBooking.id, formData);
-      } else {
-        // Check if this is a split booking
         if (formData.isSplitBooking) {
-          // Use createBookingWithSegments for split bookings
+          await apartmentBookingService.updateBookingWithSegments(
+            editingBooking.id,
+            formData.guestInfo,
+            formData.segments,
+            formData.booking_source,
+            formData.booking_reference,
+            formData.door_code,
+            formData.status
+          );
+        } else {
+          const { isSplitBooking, ...bookingData } = formData;
+          await bookingService.update(editingBooking.id, bookingData);
+        }
+      } else {
+        if (formData.isSplitBooking) {
           await apartmentBookingService.createBookingWithSegments(
             formData.guestInfo,
             formData.segments
           );
         } else {
-          // Use regular create for single bookings
           const { isSplitBooking, ...bookingData } = formData;
           await bookingService.create(bookingData);
         }
