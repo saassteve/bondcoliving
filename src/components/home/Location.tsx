@@ -59,17 +59,6 @@ const Location: React.FC = () => {
                 loading="lazy"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#1E1F1E] via-transparent to-transparent opacity-90" />
-              
-              {/* Center Map Marker Visualization */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
-                <div className="relative">
-                  <div className="w-4 h-4 bg-[#C5C5B5] rounded-full animate-ping absolute inset-0" />
-                  <div className="w-4 h-4 bg-[#C5C5B5] rounded-full relative shadow-[0_0_20px_rgba(197,197,181,0.5)]" />
-                </div>
-                <div className="mt-4 px-4 py-2 bg-black/50 backdrop-blur-md rounded-full border border-white/10 text-xs font-bold text-white uppercase tracking-widest">
-                  You are here
-                </div>
-              </div>
             </div>
 
             {/* HUD Stats Overlay (Floating Bar) */}
