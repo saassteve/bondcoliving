@@ -252,7 +252,7 @@ const RoomDetailPage: React.FC = () => {
                     <div className="w-10 h-10 rounded-full bg-[#1E1F1E] flex items-center justify-center text-[#C5C5B5] shadow-lg">
                        <Star className="w-5 h-5" />
                     </div>
-                    <span className="text-white/80">Weekly Cleaning</span>
+                    <span className="text-white/80">Bi-Weekly Cleaning</span>
                   </div>
                 </div>
               </AnimatedSection>
