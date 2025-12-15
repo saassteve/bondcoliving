@@ -1,11 +1,12 @@
 // components/Location.tsx
 import React from 'react';
-import { 
-  Coffee, Palmtree, Bus, ShoppingBag, Utensils, 
-  Building, Waves, Mountain, MapPin, Clock, 
-  ThermometerSun, Sun, Globe, Navigation 
+import {
+  Coffee, Palmtree, Bus, ShoppingBag, Utensils,
+  Building, Waves, Mountain, MapPin, Clock,
+  ThermometerSun, Sun, Globe, Navigation
 } from 'lucide-react';
 import AnimatedSection from '../AnimatedSection';
+import mapImage from '../../assets/bond_location_map-min.png';
 
 const nearbyHighlights = [
   { icon: Coffee, title: 'Cafes', description: '2 min walk', distance: '150m' },
@@ -51,8 +52,8 @@ const Location: React.FC = () => {
             
             {/* Map Image */}
             <div className="aspect-[16/9] md:aspect-[21/9] relative">
-              <img 
-                src="https://ucarecdn.com/91ae305f-9593-43fa-91e3-54d21cb31b81/bondmap.png"
+              <img
+                src={mapImage}
                 alt="Map of Funchal showing Bond location"
                 className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-[2s]"
                 loading="lazy"
