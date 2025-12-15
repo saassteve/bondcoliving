@@ -1101,16 +1101,26 @@ export class BookingService {
   static async getBookingsForMonth(year: number, month: number): Promise<Booking[]> {
     const startDate = new Date(year, month, 1).toISOString().split('T')[0]
     const endDate = new Date(year, month + 1, 0).toISOString().split('T')[0]
-    
+
     const { data, error } = await supabase
       .from('bookings')
       .select(`
         *,
-        apartment:apartments(title)
+        apartment:apartments(title),
+        segments:apartment_booking_segments(
+          id,
+          apartment_id,
+          segment_order,
+          check_in_date,
+          check_out_date,
+          segment_price,
+          notes,
+          apartment:apartments(title)
+        )
       `)
       .or(`and(check_in_date.lte.${endDate},check_out_date.gte.${startDate})`)
       .order('check_in_date', { ascending: true })
-    
+
     if (error) throw error
     return data || []
   }

@@ -70,23 +70,45 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const today = new Date();
     const todayString = today.toISOString().split('T')[0];
-    
+
     const days = [];
-    
+
     // Empty cells for days before month starts
     for (let i = 0; i < firstDay; i++) {
       days.push(<div key={`empty-${i}`} className="h-28 bg-slate-900 border border-slate-700"></div>);
     }
-    
+
     // Days of the month
     for (let day = 1; day <= daysInMonth; day++) {
       const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
       const isToday = dateString === todayString;
       const isPast = dateString < todayString;
-      
-      // Find bookings for this day
-      const dayBookings = calendarBookings.filter(booking => {
-        return dateString >= booking.check_in_date && dateString < booking.check_out_date;
+
+      // Find bookings for this day - handle both regular and split bookings
+      const dayBookings: any[] = [];
+
+      calendarBookings.forEach(booking => {
+        if (booking.is_split_stay && booking.segments && booking.segments.length > 0) {
+          // For split bookings, show each segment
+          booking.segments.forEach((segment: any) => {
+            if (dateString >= segment.check_in_date && dateString < segment.check_out_date) {
+              dayBookings.push({
+                ...segment,
+                id: `segment-${segment.id}`,
+                parent_booking_id: booking.id,
+                guest_name: booking.guest_name,
+                status: booking.status,
+                is_segment: true,
+                apartment_title: segment.apartment?.title || 'Unknown'
+              });
+            }
+          });
+        } else {
+          // For regular bookings, show the booking itself
+          if (dateString >= booking.check_in_date && dateString < booking.check_out_date) {
+            dayBookings.push(booking);
+          }
+        }
       });
       
       // Find availability blocks for this day
@@ -113,7 +135,7 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
         ...dayBookings.map(booking => ({
           ...booking,
           type: 'booking',
-          apartment_title: getApartmentTitle(booking.apartment_id)
+          apartment_title: booking.is_segment ? booking.apartment_title : getApartmentTitle(booking.apartment_id)
         })),
         ...dayAvailabilityBlocks
       ];
@@ -133,11 +155,20 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
           {allDayItems.length > 0 ? (
             <div className="space-y-1">
               {allDayItems.map(item => (
-                <div 
-                  key={item.id} 
+                <div
+                  key={item.id}
                   onClick={() => {
                     if (item.type === 'booking') {
-                      onBookingClick(item as Booking);
+                      // For segments, we need to fetch the parent booking
+                      if (item.is_segment) {
+                        // Find the parent booking from calendarBookings
+                        const parentBooking = calendarBookings.find(b => b.id === item.parent_booking_id);
+                        if (parentBooking) {
+                          onBookingClick(parentBooking);
+                        }
+                      } else {
+                        onBookingClick(item as Booking);
+                      }
                     }
                   }}
                   className={`text-xs p-1.5 rounded-md truncate border transition-all ${item.type === 'booking' ? 'cursor-pointer hover:shadow-sm hover:scale-105' : ''} ${
@@ -147,13 +178,14 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
                     )
                   }`}
                   title={
-                    item.type === 'booking' 
-                      ? `${(item as any).guest_name} - ${item.apartment_title}` 
+                    item.type === 'booking'
+                      ? `${(item as any).guest_name} - ${item.apartment_title}${item.is_segment ? ' (Split Stay)' : ''}`
                       : `${item.status.toUpperCase()} - ${item.apartment_title}${item.notes ? ` (${item.notes})` : ''}`
                   }
                 >
-                  <div className="font-medium">
-                    {item.type === 'booking' ? (item as any).guest_name : item.status.toUpperCase()}
+                  <div className="font-medium flex items-center justify-between">
+                    <span className="truncate">{item.type === 'booking' ? (item as any).guest_name : item.status.toUpperCase()}</span>
+                    {item.is_segment && <span className="text-[10px] opacity-60 ml-1">🔗</span>}
                   </div>
                   <div className="text-xs opacity-75 truncate">
                     {item.apartment_title}

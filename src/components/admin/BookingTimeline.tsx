@@ -211,7 +211,32 @@ const BookingTimeline: React.FC<BookingTimelineProps> = ({
             </div>
           ) : (
             apartments.map((apartment) => {
-              const apartmentBookings = bookings.filter(booking => booking.apartment_id === apartment.id);
+              // Get bookings for this apartment, handling both regular and split bookings
+              const apartmentBookings: any[] = [];
+
+              bookings.forEach(booking => {
+                if (booking.is_split_stay && booking.segments && booking.segments.length > 0) {
+                  // For split bookings, show segments for this apartment
+                  booking.segments.forEach((segment: any) => {
+                    if (segment.apartment_id === apartment.id) {
+                      apartmentBookings.push({
+                        ...booking,
+                        id: `segment-${segment.id}`,
+                        check_in_date: segment.check_in_date,
+                        check_out_date: segment.check_out_date,
+                        is_segment: true,
+                        parent_booking_id: booking.id,
+                        segment_data: segment
+                      });
+                    }
+                  });
+                } else {
+                  // For regular bookings, show if it's for this apartment
+                  if (booking.apartment_id === apartment.id) {
+                    apartmentBookings.push(booking);
+                  }
+                }
+              });
 
               return (
                 <div key={apartment.id} className="border-b border-slate-700 hover:bg-slate-700">
@@ -250,32 +275,49 @@ const BookingTimeline: React.FC<BookingTimelineProps> = ({
                           );
                         })}
                       </div>
-                      
+
                       {/* Booking Bars */}
                       {apartmentBookings.map((booking) => {
                         const position = calculateBookingPosition(booking, timelineDates);
                         if (!position) return null;
-                        
+
                         const { left, width } = position;
                         
+                        // For segments, find the parent booking to pass to onBookingClick
+                        const clickHandler = () => {
+                          if (booking.is_segment) {
+                            const parentBooking = bookings.find(b => b.id === booking.parent_booking_id);
+                            if (parentBooking) {
+                              onBookingClick(parentBooking);
+                            }
+                          } else {
+                            onBookingClick(booking);
+                          }
+                        };
+
                         return (
                           <div
                             key={booking.id}
-                            onClick={() => onBookingClick(booking)}
+                            onClick={clickHandler}
                             className={`absolute top-2 h-12 rounded-md cursor-pointer transition-all ${getBookingColor(booking.status)} text-xs font-medium flex items-center px-2 shadow-sm hover:shadow-md hover:scale-105 z-20 border-2`}
                             style={{
                               left: `${left}px`,
                               width: `${Math.max(width, 48)}px`
                             }}
-                            title={`${booking.guest_name} - ${formatDate(booking.check_in_date)} to ${formatDate(booking.check_out_date)} (${booking.status})`}
+                            title={`${booking.guest_name} - ${formatDate(booking.check_in_date)} to ${formatDate(booking.check_out_date)} (${booking.status})${booking.is_segment ? ' - Split Stay' : ''}`}
                           >
-                            <div className="truncate w-full">
-                              <div className="font-medium truncate">{booking.guest_name}</div>
-                              {width > 120 && (
-                                <div className="text-xs opacity-90 truncate">
-                                  {booking.check_in_date.split('-')[2]}/{booking.check_in_date.split('-')[1]} - {booking.check_out_date.split('-')[2]}/{booking.check_out_date.split('-')[1]}
+                            <div className="truncate w-full flex items-center justify-between">
+                              <div className="truncate flex-1">
+                                <div className="font-medium truncate flex items-center gap-1">
+                                  {booking.guest_name}
+                                  {booking.is_segment && <span className="opacity-60">🔗</span>}
                                 </div>
-                              )}
+                                {width > 120 && (
+                                  <div className="text-xs opacity-90 truncate">
+                                    {booking.check_in_date.split('-')[2]}/{booking.check_in_date.split('-')[1]} - {booking.check_out_date.split('-')[2]}/{booking.check_out_date.split('-')[1]}
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </div>
                         );
