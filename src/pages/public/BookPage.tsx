@@ -10,21 +10,15 @@ import {
   Check,
   Clock,
   CalendarDays,
-  Users,
-  ArrowRight,
-  Bell,
-  Building2,
 } from 'lucide-react';
 import DateSelectionStep from '../../components/booking/DateSelectionStep';
 import ApartmentSelectionStep from '../../components/booking/ApartmentSelectionStep';
 import GuestInfoStep from '../../components/booking/GuestInfoStep';
 import { apartmentBookingService, type Apartment, type BookingSettings } from '../../lib/supabase';
-import { apartmentService, buildingService } from '../../lib/services';
-import type { Building } from '../../lib/services/types';
 import AnimatedSection from '../../components/AnimatedSection';
 
 type StayType = 'short_term' | 'long_term' | null;
-type BookingStep = 'stay-type' | 'unit' | 'dates' | 'guest-info' | 'checkout';
+type BookingStep = 'stay-type' | 'dates' | 'unit' | 'guest-info' | 'checkout';
 
 interface BookingData {
   stayType: StayType;
@@ -46,8 +40,6 @@ interface BookingData {
 const BookPage: React.FC = () => {
   const [currentStep, setCurrentStep] = useState<BookingStep>('stay-type');
   const [bookingSettings, setBookingSettings] = useState<BookingSettings | null>(null);
-  const [apartments, setApartments] = useState<Apartment[]>([]);
-  const [buildings, setBuildings] = useState<Building[]>([]);
   const [selectedApartment, setSelectedApartment] = useState<Apartment | null>(null);
   const [loading, setLoading] = useState(true);
   const [bookingData, setBookingData] = useState<BookingData>({
@@ -69,14 +61,8 @@ const BookPage: React.FC = () => {
 
   const loadData = async () => {
     try {
-      const [settings, allApartments, allBuildings] = await Promise.all([
-        apartmentBookingService.getBookingSettings(),
-        apartmentService.getAll(),
-        buildingService.getAll(),
-      ]);
+      const settings = await apartmentBookingService.getBookingSettings();
       setBookingSettings(settings);
-      setApartments(allApartments);
-      setBuildings(allBuildings);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -84,31 +70,8 @@ const BookPage: React.FC = () => {
     }
   };
 
-  const getFilteredApartments = () => {
-    if (!bookingData.stayType) return apartments;
-
-    const activeBuildings = buildings.filter(
-      (b) => b.stay_type === bookingData.stayType && b.status === 'active'
-    );
-    const activeBuildingIds = activeBuildings.map((b) => b.id);
-
-    return apartments.filter((apt) => activeBuildingIds.includes(apt.building_id || ''));
-  };
-
-  const getComingSoonBuildings = () => {
-    if (!bookingData.stayType) return [];
-    return buildings.filter(
-      (b) => b.stay_type === bookingData.stayType && b.status === 'coming_soon'
-    );
-  };
-
   const handleStayTypeSelect = (type: StayType) => {
     setBookingData((prev) => ({ ...prev, stayType: type }));
-    setCurrentStep('unit');
-  };
-
-  const handleApartmentSelect = (apartment: Apartment) => {
-    setSelectedApartment(apartment);
     setCurrentStep('dates');
   };
 
@@ -140,8 +103,8 @@ const BookPage: React.FC = () => {
 
   const steps = [
     { id: 'stay-type' as BookingStep, label: 'Stay Type', icon: Clock },
-    { id: 'unit' as BookingStep, label: 'Unit', icon: Home },
     { id: 'dates' as BookingStep, label: 'Dates', icon: Calendar },
+    { id: 'unit' as BookingStep, label: 'Apartment', icon: Home },
     { id: 'guest-info' as BookingStep, label: 'Guest Info', icon: User },
     { id: 'checkout' as BookingStep, label: 'Payment', icon: CreditCard },
   ];
@@ -314,16 +277,30 @@ const BookPage: React.FC = () => {
                     </div>
                   )}
 
-                  {currentStep === 'unit' && (
+                  {currentStep === 'unit' && bookingData.checkInDate && bookingData.checkOutDate && (
+                    <ApartmentSelectionStep
+                      checkInDate={bookingData.checkInDate}
+                      checkOutDate={bookingData.checkOutDate}
+                      enableSplitStays={true}
+                      maxSplitSegments={3}
+                      initialSelection={bookingData.selectedSegments}
+                      onComplete={(segments) => {
+                        setSelectedApartment(segments[0]?.apartment || null);
+                        handleStepComplete('unit', {
+                          selectedSegments: segments,
+                        });
+                      }}
+                      onBack={() => goToStep('dates')}
+                    />
+                  )}
+
+                  {currentStep === 'dates' && (
                     <div>
                       <div className="flex items-center justify-between mb-6">
                         <div>
-                          <h2 className="text-2xl font-bold text-[#C5C5B5] mb-1">
-                            Choose Your Apartment
-                          </h2>
+                          <h2 className="text-2xl font-bold text-[#C5C5B5] mb-1">Select Your Dates</h2>
                           <p className="text-[#C5C5B5]/60 text-sm">
-                            {bookingData.stayType === 'short_term' ? 'Short stay' : 'Monthly stay'}{' '}
-                            apartments
+                            {bookingData.stayType === 'short_term' ? 'Short stay' : 'Monthly stay'}
                           </p>
                         </div>
                         <button
@@ -334,139 +311,6 @@ const BookPage: React.FC = () => {
                           Change stay type
                         </button>
                       </div>
-
-                      {getFilteredApartments().length === 0 ? (
-                        <div className="text-center py-12">
-                          <Building2 className="w-16 h-16 text-[#C5C5B5]/20 mx-auto mb-4" />
-                          <h3 className="text-xl font-bold text-[#C5C5B5] mb-2">
-                            No units available yet
-                          </h3>
-                          <p className="text-[#C5C5B5]/60 mb-6">
-                            We're preparing new apartments for{' '}
-                            {bookingData.stayType === 'short_term' ? 'short' : 'monthly'} stays.
-                          </p>
-                          {getComingSoonBuildings().length > 0 && (
-                            <div className="bg-amber-500/10 rounded-xl p-6 max-w-md mx-auto border border-amber-500/20">
-                              <Bell className="w-8 h-8 text-amber-400 mx-auto mb-3" />
-                              <h4 className="font-bold text-white mb-2">Get notified</h4>
-                              <p className="text-[#C5C5B5]/60 text-sm mb-4">
-                                {getComingSoonBuildings()
-                                  .map((b) => b.name)
-                                  .join(' and ')}{' '}
-                                coming soon.
-                              </p>
-                              <Link
-                                to={`/location/${getComingSoonBuildings()[0]?.slug}`}
-                                className="inline-flex items-center gap-2 text-amber-400 hover:text-amber-300 text-sm font-medium"
-                              >
-                                View location
-                                <ArrowRight className="w-4 h-4" />
-                              </Link>
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {getFilteredApartments().map((apartment) => (
-                            <button
-                              key={apartment.id}
-                              onClick={() => handleApartmentSelect(apartment)}
-                              className="group text-left bg-[#C5C5B5]/5 rounded-xl border border-[#C5C5B5]/10 overflow-hidden hover:border-[#C5C5B5]/30 transition-all"
-                            >
-                              <div className="aspect-[16/10] overflow-hidden relative">
-                                <img
-                                  src={apartment.image_url}
-                                  alt={apartment.title}
-                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                />
-                                <div className="absolute top-3 right-3">
-                                  <span
-                                    className={`px-3 py-1 text-xs font-medium rounded-full backdrop-blur-md ${
-                                      apartment.status === 'available'
-                                        ? 'bg-green-500/30 text-green-200'
-                                        : 'bg-amber-500/30 text-amber-200'
-                                    }`}
-                                  >
-                                    {apartment.status === 'available' ? 'Available' : 'Occupied'}
-                                  </span>
-                                </div>
-                              </div>
-                              <div className="p-4">
-                                <h3 className="font-bold text-white mb-1 group-hover:text-[#C5C5B5] transition-colors">
-                                  {apartment.title}
-                                </h3>
-                                <div className="flex items-center gap-3 text-sm text-[#C5C5B5]/60 mb-3">
-                                  <span>{apartment.size}</span>
-                                  <span>&middot;</span>
-                                  <span className="flex items-center gap-1">
-                                    <Users className="w-3 h-3" />
-                                    {apartment.capacity}
-                                  </span>
-                                </div>
-                                <div className="flex items-baseline justify-between">
-                                  <div>
-                                    <span className="text-xl font-bold text-[#C5C5B5]">
-                                      {formatCurrency(apartment.price)}
-                                    </span>
-                                    <span className="text-[#C5C5B5]/60 text-sm">/month</span>
-                                  </div>
-                                  <span className="text-[#C5C5B5] group-hover:text-white transition-colors flex items-center gap-1 text-sm font-medium">
-                                    Select
-                                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                  </span>
-                                </div>
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-
-                      {getComingSoonBuildings().length > 0 && getFilteredApartments().length > 0 && (
-                        <div className="mt-8 pt-8 border-t border-[#C5C5B5]/10">
-                          <h3 className="text-lg font-bold text-[#C5C5B5] mb-4">
-                            More locations coming soon
-                          </h3>
-                          <div className="flex flex-wrap gap-4">
-                            {getComingSoonBuildings().map((building) => (
-                              <Link
-                                key={building.id}
-                                to={`/location/${building.slug}`}
-                                className="flex items-center gap-3 p-3 bg-amber-500/10 rounded-lg border border-amber-500/20 hover:bg-amber-500/20 transition-colors"
-                              >
-                                <Bell className="w-5 h-5 text-amber-400" />
-                                <div>
-                                  <span className="font-medium text-white text-sm">
-                                    {building.name}
-                                  </span>
-                                  <span className="text-amber-400/70 text-xs block">
-                                    Get notified
-                                  </span>
-                                </div>
-                              </Link>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {currentStep === 'dates' && selectedApartment && (
-                    <div>
-                      <div className="flex items-center justify-between mb-6">
-                        <div>
-                          <h2 className="text-2xl font-bold text-[#C5C5B5] mb-1">Select Your Dates</h2>
-                          <p className="text-[#C5C5B5]/60 text-sm">
-                            Booking {selectedApartment.title}
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => goToStep('unit')}
-                          className="text-[#C5C5B5]/60 hover:text-[#C5C5B5] text-sm flex items-center gap-1"
-                        >
-                          <ArrowLeft className="w-4 h-4" />
-                          Change unit
-                        </button>
-                      </div>
                       <DateSelectionStep
                         minimumStayDays={bookingSettings.minimum_stay_days}
                         enableSplitStays={false}
@@ -474,26 +318,9 @@ const BookPage: React.FC = () => {
                         initialCheckIn={bookingData.checkInDate || ''}
                         initialCheckOut={bookingData.checkOutDate || ''}
                         onComplete={(checkInDate, checkOutDate) => {
-                          const nights = Math.ceil(
-                            (new Date(checkOutDate).getTime() - new Date(checkInDate).getTime()) /
-                              (1000 * 60 * 60 * 24)
-                          );
-                          const totalPrice =
-                            bookingData.stayType === 'short_term' && selectedApartment.nightly_price
-                              ? selectedApartment.nightly_price * nights
-                              : selectedApartment.price;
-
                           handleStepComplete('dates', {
                             checkInDate,
                             checkOutDate,
-                            selectedSegments: [
-                              {
-                                apartment: selectedApartment,
-                                checkIn: checkInDate,
-                                checkOut: checkOutDate,
-                                price: totalPrice,
-                              },
-                            ],
                           });
                         }}
                       />
