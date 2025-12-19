@@ -324,8 +324,11 @@ const ApartmentSelectionStep: React.FC<ApartmentSelectionStepProps> = ({
               <div>
                 <h3 className="text-blue-400 font-semibold mb-2">Split-Stay Options Available</h3>
                 <p className="text-[#C5C5B5]/80 text-sm leading-relaxed">
-                  No single apartment is available for your entire stay, but you can split your booking across multiple apartments.
-                  We'll handle everything - just pack your bags and move on your scheduled dates. All cleaning and transitions are coordinated for you.
+                  {availableApartments.length === 0
+                    ? "No single apartment is available for your entire stay, but you can split your booking across multiple apartments."
+                    : "You can also choose to split your stay across multiple apartments for more flexibility."
+                  }
+                  {" "}We'll handle everything - just pack your bags and move on your scheduled dates. All cleaning and transitions are coordinated for you.
                 </p>
               </div>
             </div>

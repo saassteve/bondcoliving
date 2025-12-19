@@ -268,6 +268,18 @@ export class ApartmentBookingService {
     const end = new Date(endDate)
     const dailyRate = (monthlyPrice: number) => monthlyPrice / 30
 
+    const formatDate = (date: Date): string => {
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      return `${year}-${month}-${day}`
+    }
+
+    const parseDate = (dateStr: string): Date => {
+      const [year, month, day] = dateStr.split('-').map(Number)
+      return new Date(year, month - 1, day)
+    }
+
     type AvailablePeriod = {
       apartment: Apartment
       startDate: Date
@@ -284,10 +296,11 @@ export class ApartmentBookingService {
 
         const periods: AvailablePeriod[] = []
         let periodStart: Date | null = null
-        let currentDate = new Date(start)
+        let currentDate = parseDate(startDate)
+        const endDateObj = parseDate(endDate)
 
-        while (currentDate < end) {
-          const dateStr = currentDate.toISOString().split('T')[0]
+        while (currentDate < endDateObj) {
+          const dateStr = formatDate(currentDate)
           const isAvailable = !unavailableDates.has(dateStr)
 
           if (isAvailable) {
@@ -312,7 +325,7 @@ export class ApartmentBookingService {
           periods.push({
             apartment,
             startDate: new Date(periodStart),
-            endDate: new Date(end)
+            endDate: new Date(endDateObj)
           })
         }
 
@@ -325,15 +338,21 @@ export class ApartmentBookingService {
       return days >= 1
     })
 
+    if (allPeriods.length === 0) return []
+
     const splitOptions: Array<Array<{ apartment: Apartment; checkIn: string; checkOut: string; price: number }>> = []
 
     function findCombinations(
       targetStart: Date,
       segments: Array<{ apartment: Apartment; checkIn: string; checkOut: string; price: number }>,
+      usedApartmentIds: Set<string>,
       depth: number
     ) {
-      if (targetStart >= end) {
-        if (segments.length > 0 && segments.length <= maxSegments) {
+      const targetStartTime = targetStart.getTime()
+      const endTime = end.getTime()
+
+      if (targetStartTime >= endTime) {
+        if (segments.length > 1 && segments.length <= maxSegments) {
           splitOptions.push([...segments])
         }
         return
@@ -342,33 +361,40 @@ export class ApartmentBookingService {
       if (depth >= maxSegments) return
 
       for (const period of allPeriods) {
-        if (period.startDate <= targetStart && period.endDate > targetStart) {
+        const periodStartTime = period.startDate.getTime()
+        const periodEndTime = period.endDate.getTime()
+
+        if (periodStartTime <= targetStartTime && periodEndTime > targetStartTime) {
           const segmentStart = new Date(targetStart)
-          const segmentEnd = period.endDate < end ? new Date(period.endDate) : new Date(end)
+          const segmentEnd = periodEndTime < endTime ? new Date(period.endDate) : new Date(end)
           const segmentDays = Math.ceil((segmentEnd.getTime() - segmentStart.getTime()) / (1000 * 60 * 60 * 24))
 
           if (segmentDays >= 1) {
             const segmentPrice = dailyRate(period.apartment.price) * segmentDays
+            const newUsedIds = new Set(usedApartmentIds)
 
             segments.push({
               apartment: period.apartment,
-              checkIn: segmentStart.toISOString().split('T')[0],
-              checkOut: segmentEnd.toISOString().split('T')[0],
+              checkIn: formatDate(segmentStart),
+              checkOut: formatDate(segmentEnd),
               price: Math.round(segmentPrice * 100) / 100
             })
+            newUsedIds.add(period.apartment.id)
 
-            findCombinations(segmentEnd, segments, depth + 1)
+            findCombinations(segmentEnd, segments, newUsedIds, depth + 1)
             segments.pop()
           }
         }
       }
     }
 
-    findCombinations(start, [], 0)
+    findCombinations(parseDate(startDate), [], new Set(), 0)
 
     const validOptions = splitOptions.filter(option => {
+      if (option.length < 2) return false
       const lastSegment = option[option.length - 1]
-      return lastSegment && new Date(lastSegment.checkOut) >= end
+      const lastCheckout = parseDate(lastSegment.checkOut)
+      return lastCheckout.getTime() >= end.getTime()
     })
 
     const uniqueOptions = validOptions.filter((option, index, self) => {

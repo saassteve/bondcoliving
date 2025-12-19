@@ -35,7 +35,7 @@ export class AvailabilityService {
       .select('status')
       .eq('apartment_id', apartmentId)
       .gte('date', startDate)
-      .lte('date', endDate)
+      .lt('date', endDate)
       .in('status', ['booked', 'blocked'])
 
     if (error) throw error
@@ -50,7 +50,7 @@ export class AvailabilityService {
       .select('date')
       .eq('apartment_id', apartmentId)
       .gte('date', startDate)
-      .lte('date', endDate)
+      .lt('date', endDate)
       .in('status', ['booked', 'blocked'])
 
     if (error) throw error
