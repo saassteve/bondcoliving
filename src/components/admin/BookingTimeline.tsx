@@ -99,61 +99,63 @@ const BookingTimeline: React.FC<BookingTimelineProps> = ({
   return (
     <div className="bg-slate-800 rounded-lg shadow-sm overflow-hidden border border-slate-600">
       {/* Timeline Controls */}
-      <div className="p-4 border-b border-slate-600 flex items-center justify-between bg-slate-800">
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={onPreviousPeriod}
-            className="p-2 rounded hover:bg-slate-700 transition-colors text-gray-300 hover:text-white"
-            title="Previous period"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <button
-            onClick={onNextPeriod}
-            className="p-2 rounded hover:bg-slate-700 transition-colors text-gray-300 hover:text-white"
-            title="Next period"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-        </div>
+      <div className="p-4 border-b border-slate-600 bg-slate-800">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          {/* Navigation and Date Range */}
+          <div className="flex items-center justify-between sm:justify-start gap-2">
+            <div className="flex items-center">
+              <button
+                onClick={onPreviousPeriod}
+                className="p-2 rounded hover:bg-slate-700 transition-colors text-gray-300 hover:text-white"
+                title="Previous period"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <button
+                onClick={onNextPeriod}
+                className="p-2 rounded hover:bg-slate-700 transition-colors text-gray-300 hover:text-white"
+                title="Next period"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
+            <span className="text-sm font-semibold text-white">
+              {timelineStartDate.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric'
+              })} - {new Date(timelineStartDate.getTime() + (timelineDays - 1) * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+              })}
+            </span>
+          </div>
 
-        <div className="flex items-center space-x-3">
-          <span className="text-sm font-semibold text-white">
-            {timelineStartDate.toLocaleDateString('en-US', {
-              month: 'short',
-              day: 'numeric',
-              year: 'numeric'
-            })} - {new Date(timelineStartDate.getTime() + (timelineDays - 1) * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', {
-              month: 'short',
-              day: 'numeric',
-              year: 'numeric'
-            })}
-          </span>
-        </div>
-
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={onGoToToday}
-            className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-          >
-            Today
-          </button>
-          <button
-            onClick={onGoToNextBooking}
-            className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
-          >
-            Next Booking
-          </button>
-          <select
-            value={timelineDays}
-            onChange={(e) => onTimelineDaysChange(parseInt(e.target.value))}
-            className="px-2 py-1 text-sm bg-slate-700 text-white border border-slate-600 rounded"
-          >
-            <option value={14}>14 days</option>
-            <option value={30}>30 days</option>
-            <option value={60}>60 days</option>
-            <option value={90}>90 days</option>
-          </select>
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2 overflow-x-auto">
+            <button
+              onClick={onGoToToday}
+              className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors whitespace-nowrap"
+            >
+              Today
+            </button>
+            <button
+              onClick={onGoToNextBooking}
+              className="px-3 py-1.5 text-sm bg-green-600 text-white rounded hover:bg-green-700 transition-colors whitespace-nowrap"
+            >
+              Next Booking
+            </button>
+            <select
+              value={timelineDays}
+              onChange={(e) => onTimelineDaysChange(parseInt(e.target.value))}
+              className="px-2 py-1.5 text-sm bg-slate-700 text-white border border-slate-600 rounded"
+            >
+              <option value={14}>14 days</option>
+              <option value={30}>30 days</option>
+              <option value={60}>60 days</option>
+              <option value={90}>90 days</option>
+            </select>
+          </div>
         </div>
       </div>
       
@@ -162,11 +164,11 @@ const BookingTimeline: React.FC<BookingTimelineProps> = ({
         <div style={{ width: `${totalTimelineWidth}px`, minWidth: `${totalTimelineWidth}px` }}>
           
           {/* Timeline Header */}
-          <div className="sticky top-0 z-10 bg-slate-800 border-b border-slate-600">
+          <div className="sticky top-0 z-20 bg-slate-800 border-b border-slate-600">
             <div className="flex">
-              {/* Apartment Column Header */}
+              {/* Apartment Column Header - Sticky both vertically and horizontally */}
               <div
-                className="bg-slate-800 border-r border-slate-600 p-3 text-sm font-semibold text-white flex items-center"
+                className="sticky left-0 z-30 bg-slate-800 border-r border-slate-600 p-3 text-sm font-semibold text-white flex items-center"
                 style={{ width: `${apartmentColumnWidth}px`, minWidth: `${apartmentColumnWidth}px` }}
               >
                 Apartments
@@ -239,11 +241,11 @@ const BookingTimeline: React.FC<BookingTimelineProps> = ({
               });
 
               return (
-                <div key={apartment.id} className="border-b border-slate-700 hover:bg-slate-700">
+                <div key={apartment.id} className="border-b border-slate-700">
                   <div className="flex">
-                    {/* Apartment Name Column */}
+                    {/* Apartment Name Column - Sticky horizontally */}
                     <div
-                      className="border-r border-slate-600 p-4 bg-slate-800 flex flex-col justify-center"
+                      className="sticky left-0 z-10 border-r border-slate-600 p-4 bg-slate-800 flex flex-col justify-center hover:bg-slate-700 transition-colors"
                       style={{ width: `${apartmentColumnWidth}px`, minWidth: `${apartmentColumnWidth}px` }}
                     >
                       <div className="text-sm font-semibold text-white truncate" title={apartment.title}>

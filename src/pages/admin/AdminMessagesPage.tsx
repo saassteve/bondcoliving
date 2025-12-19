@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { MessageSquare, Send, X, Clock, CheckCircle, AlertCircle, User } from 'lucide-react';
+import { MessageSquare, Send, X, Clock, CheckCircle, AlertCircle, User, ChevronLeft } from 'lucide-react';
 
 interface SupportTicket {
   id: string;
@@ -202,18 +202,18 @@ export default function AdminMessagesPage() {
   };
 
   return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-8">
+    <div className="p-4 sm:p-8">
+      <div className="flex items-center justify-between mb-6 sm:mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-white mb-2">Guest Messages</h1>
-          <p className="text-gray-300">Respond to guest inquiries and support requests</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">Guest Messages</h1>
+          <p className="text-gray-300 text-sm sm:text-base">Respond to guest inquiries and support requests</p>
         </div>
       </div>
 
-      <div className="flex gap-2 mb-6">
+      <div className="flex gap-2 mb-6 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
         <button
           onClick={() => setFilterStatus('all')}
-          className={`px-4 py-2 rounded-lg font-medium transition ${
+          className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition text-sm whitespace-nowrap ${
             filterStatus === 'all'
               ? 'bg-indigo-600 text-white'
               : 'bg-gray-700 text-gray-200 hover:bg-gray-600'
@@ -223,7 +223,7 @@ export default function AdminMessagesPage() {
         </button>
         <button
           onClick={() => setFilterStatus('open')}
-          className={`px-4 py-2 rounded-lg font-medium transition ${
+          className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition text-sm whitespace-nowrap ${
             filterStatus === 'open'
               ? 'bg-indigo-600 text-white'
               : 'bg-gray-700 text-gray-200 hover:bg-gray-600'
@@ -233,7 +233,7 @@ export default function AdminMessagesPage() {
         </button>
         <button
           onClick={() => setFilterStatus('in_progress')}
-          className={`px-4 py-2 rounded-lg font-medium transition ${
+          className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition text-sm whitespace-nowrap ${
             filterStatus === 'in_progress'
               ? 'bg-indigo-600 text-white'
               : 'bg-gray-700 text-gray-200 hover:bg-gray-600'
@@ -243,7 +243,7 @@ export default function AdminMessagesPage() {
         </button>
         <button
           onClick={() => setFilterStatus('resolved')}
-          className={`px-4 py-2 rounded-lg font-medium transition ${
+          className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition text-sm whitespace-nowrap ${
             filterStatus === 'resolved'
               ? 'bg-indigo-600 text-white'
               : 'bg-gray-700 text-gray-200 hover:bg-gray-600'
@@ -258,14 +258,14 @@ export default function AdminMessagesPage() {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
         </div>
       ) : (
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Tickets List */}
-          <div className="lg:col-span-1">
+        <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
+          {/* Tickets List - Hidden on mobile when conversation is selected */}
+          <div className={`lg:col-span-1 ${selectedTicket ? 'hidden lg:block' : ''}`}>
             <div className="bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-gray-700">
               <div className="p-4 border-b border-gray-700">
                 <h2 className="font-semibold text-white">Conversations ({tickets.length})</h2>
               </div>
-              <div className="divide-y divide-gray-700 max-h-[700px] overflow-y-auto">
+              <div className="divide-y divide-gray-700 max-h-[500px] sm:max-h-[700px] overflow-y-auto">
                 {tickets.length === 0 ? (
                   <div className="p-8 text-center">
                     <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-3" />
@@ -276,20 +276,20 @@ export default function AdminMessagesPage() {
                     <button
                       key={ticket.id}
                       onClick={() => setSelectedTicket(ticket)}
-                      className={`w-full text-left p-4 hover:bg-gray-750 transition ${
+                      className={`w-full text-left p-3 sm:p-4 hover:bg-gray-750 transition ${
                         selectedTicket?.id === ticket.id ? 'bg-gray-750' : ''
                       }`}
                     >
                       <div className="flex items-start justify-between mb-2">
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                           <h3 className="font-semibold text-white text-sm line-clamp-1 mb-1">
                             {ticket.subject}
                           </h3>
-                          <p className="text-xs text-gray-400">
+                          <p className="text-xs text-gray-400 truncate">
                             {ticket.guest_users?.full_name} • {ticket.guest_users?.user_type}
                           </p>
                         </div>
-                        <div className="ml-2">{getStatusIcon(ticket.status)}</div>
+                        <div className="ml-2 flex-shrink-0">{getStatusIcon(ticket.status)}</div>
                       </div>
                       {ticket.last_message_preview && (
                         <p className="text-xs text-gray-400 line-clamp-2 mb-2">
@@ -314,34 +314,42 @@ export default function AdminMessagesPage() {
             </div>
           </div>
 
-          {/* Messages Area */}
-          <div className="lg:col-span-2">
+          {/* Messages Area - Full width on mobile when conversation is selected */}
+          <div className={`lg:col-span-2 ${selectedTicket ? '' : 'hidden lg:block'}`}>
             {selectedTicket ? (
-              <div className="bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-gray-700 flex flex-col h-[700px]">
+              <div className="bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-gray-700 flex flex-col h-[calc(100vh-280px)] sm:h-[700px]">
                 {/* Header */}
-                <div className="p-4 border-b border-gray-700">
+                <div className="p-3 sm:p-4 border-b border-gray-700">
                   <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <h2 className="font-semibold text-white">{selectedTicket.subject}</h2>
-                      <div className="flex items-center gap-2 mt-1 text-sm text-gray-400">
-                        <User className="h-4 w-4" />
-                        <span>{selectedTicket.guest_users?.full_name}</span>
-                        <span>•</span>
-                        <span>{selectedTicket.guest_users?.email}</span>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <button
+                        onClick={() => setSelectedTicket(null)}
+                        className="lg:hidden text-gray-400 hover:text-white transition p-1"
+                      >
+                        <ChevronLeft className="h-5 w-5" />
+                      </button>
+                      <div className="min-w-0">
+                        <h2 className="font-semibold text-white text-sm sm:text-base truncate">{selectedTicket.subject}</h2>
+                        <div className="flex items-center gap-1 sm:gap-2 mt-1 text-xs sm:text-sm text-gray-400">
+                          <User className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                          <span className="truncate">{selectedTicket.guest_users?.full_name}</span>
+                          <span className="hidden sm:inline">•</span>
+                          <span className="hidden sm:inline truncate">{selectedTicket.guest_users?.email}</span>
+                        </div>
                       </div>
                     </div>
                     <button
                       onClick={() => setSelectedTicket(null)}
-                      className="text-gray-400 hover:text-white transition lg:hidden"
+                      className="text-gray-400 hover:text-white transition hidden lg:block"
                     >
                       <X className="h-5 w-5" />
                     </button>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <select
                       value={selectedTicket.status}
                       onChange={(e) => updateTicketStatus(selectedTicket.id, e.target.value)}
-                      className="px-3 py-1.5 text-sm bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-indigo-500"
+                      className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-indigo-500"
                     >
                       <option value="open">Open</option>
                       <option value="in_progress">In Progress</option>
@@ -351,14 +359,14 @@ export default function AdminMessagesPage() {
                     <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${getPriorityColor(selectedTicket.priority)}`}>
                       {selectedTicket.priority}
                     </span>
-                    <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-700 text-gray-300 border border-gray-600">
+                    <span className="hidden sm:inline-flex px-2 py-0.5 text-xs font-medium rounded-full bg-gray-700 text-gray-300 border border-gray-600">
                       {selectedTicket.category}
                     </span>
                   </div>
                 </div>
 
                 {/* Messages */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4">
                   {loadingMessages ? (
                     <div className="flex items-center justify-center py-12">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
@@ -370,7 +378,7 @@ export default function AdminMessagesPage() {
                         className={`flex ${message.sender_type === 'admin' ? 'justify-end' : 'justify-start'}`}
                       >
                         <div
-                          className={`max-w-[70%] rounded-xl p-4 ${
+                          className={`max-w-[85%] sm:max-w-[70%] rounded-xl p-3 sm:p-4 ${
                             message.sender_type === 'admin'
                               ? 'bg-indigo-600 text-white'
                               : 'bg-gray-700 text-gray-100 border border-gray-600'
@@ -394,20 +402,20 @@ export default function AdminMessagesPage() {
 
                 {/* Message Input */}
                 {selectedTicket.status !== 'closed' && (
-                  <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-700">
+                  <form onSubmit={handleSendMessage} className="p-3 sm:p-4 border-t border-gray-700">
                     <div className="flex gap-2">
                       <input
                         type="text"
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                         placeholder="Type your reply..."
-                        className="flex-1 px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent placeholder-gray-400"
+                        className="flex-1 px-3 sm:px-4 py-2.5 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent placeholder-gray-400 text-sm sm:text-base"
                         disabled={sending}
                       />
                       <button
                         type="submit"
                         disabled={sending || !newMessage.trim()}
-                        className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-3 sm:px-4 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Send className="h-5 w-5" />
                       </button>

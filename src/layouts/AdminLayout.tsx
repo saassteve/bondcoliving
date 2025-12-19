@@ -79,17 +79,28 @@ const AdminLayout: React.FC = () => {
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
       <div className="flex h-screen bg-slate-900">
-        {/* Sidebar for desktop */}
+        {/* Mobile overlay backdrop */}
+        {isSidebarOpen && (
+          <div
+            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
+            onClick={closeSidebar}
+          />
+        )}
+
+        {/* Sidebar */}
         <aside className={`fixed inset-y-0 left-0 z-50 w-64 transform bg-gray-900 transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:h-screen ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}>
           <div className="flex items-center justify-between h-16 px-4 bg-gray-800 text-white">
-            <Link to="/admin" className="text-xl font-bold">Bond Admin</Link>
-            <button className="md:hidden p-2 focus:outline-none" onClick={closeSidebar}>
+            <Link to="/admin" className="text-xl font-bold" onClick={closeSidebar}>Bond Admin</Link>
+            <button
+              className="md:hidden p-2 rounded-lg hover:bg-gray-700 focus:outline-none transition-colors"
+              onClick={closeSidebar}
+            >
               <X className="w-5 h-5" />
             </button>
           </div>
-          <nav className="mt-5 px-2 space-y-1">
+          <nav className="mt-3 px-2 space-y-0.5 overflow-y-auto max-h-[calc(100vh-8rem)]">
             {navItems.map((item) => {
               const Icon = item.icon;
               const hasChildren = item.children && item.children.length > 0;
@@ -100,38 +111,38 @@ const AdminLayout: React.FC = () => {
                   <div key={item.name}>
                     <button
                       onClick={() => toggleExpanded(item.name)}
-                      className={`flex items-center justify-between w-full px-4 py-3 text-sm font-medium rounded-md transition-colors ${
+                      className={`flex items-center justify-between w-full px-4 py-3.5 text-sm font-medium rounded-lg transition-colors ${
                         isParentActive(item)
                           ? 'bg-gray-800 text-white'
                           : 'text-gray-300 hover:bg-gray-700 hover:text-white'
                       }`}
                     >
                       <div className="flex items-center">
-                        <Icon className="w-5 h-5 mr-3" aria-hidden="true" />
+                        <Icon className="w-5 h-5 mr-3 flex-shrink-0" aria-hidden="true" />
                         {item.name}
                       </div>
                       {isExpanded ? (
-                        <ChevronDown className="w-4 h-4" />
+                        <ChevronDown className="w-4 h-4 flex-shrink-0" />
                       ) : (
-                        <ChevronRight className="w-4 h-4" />
+                        <ChevronRight className="w-4 h-4 flex-shrink-0" />
                       )}
                     </button>
                     {isExpanded && (
-                      <div className="mt-1 space-y-1">
+                      <div className="mt-0.5 space-y-0.5">
                         {item.children!.map((child) => {
                           const ChildIcon = child.icon;
                           return (
                             <Link
                               key={child.path}
                               to={child.path!}
-                              className={`flex items-center pl-12 pr-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                              className={`flex items-center pl-12 pr-4 py-2.5 text-sm font-medium rounded-lg transition-colors ${
                                 isActive(child.path!)
                                   ? 'bg-gray-800 text-white'
                                   : 'text-gray-300 hover:bg-gray-700 hover:text-white'
                               }`}
                               onClick={closeSidebar}
                             >
-                              <ChildIcon className="w-4 h-4 mr-3" aria-hidden="true" />
+                              <ChildIcon className="w-4 h-4 mr-3 flex-shrink-0" aria-hidden="true" />
                               {child.name}
                             </Link>
                           );
@@ -146,14 +157,14 @@ const AdminLayout: React.FC = () => {
                 <Link
                   key={item.path}
                   to={item.path!}
-                  className={`flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${
+                  className={`flex items-center px-4 py-3.5 text-sm font-medium rounded-lg transition-colors ${
                     isActive(item.path!)
                       ? 'bg-gray-800 text-white'
                       : 'text-gray-300 hover:bg-gray-700 hover:text-white'
                   }`}
                   onClick={closeSidebar}
                 >
-                  <Icon className="w-5 h-5 mr-3" aria-hidden="true" />
+                  <Icon className="w-5 h-5 mr-3 flex-shrink-0" aria-hidden="true" />
                   {item.name}
                 </Link>
               );

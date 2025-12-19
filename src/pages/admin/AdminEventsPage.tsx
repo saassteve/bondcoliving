@@ -205,15 +205,15 @@ export default function AdminEventsPage() {
   };
 
   return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-8">
+    <div className="p-4 sm:p-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-white mb-2">Community Events</h1>
-          <p className="text-gray-300">Organize events and activities for guests</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">Community Events</h1>
+          <p className="text-gray-300 text-sm sm:text-base">Organize events and activities for guests</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+          className="flex items-center justify-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition w-full sm:w-auto"
         >
           <Plus className="h-5 w-5 mr-2" />
           New Event
@@ -238,7 +238,7 @@ export default function AdminEventsPage() {
           </button>
         </div>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {events.map((event) => (
             <div
               key={event.id}
@@ -250,11 +250,11 @@ export default function AdminEventsPage() {
                 <img
                   src={event.image_url}
                   alt={event.title}
-                  className="w-full h-48 object-cover"
+                  className="w-full h-36 sm:h-48 object-cover"
                 />
               )}
 
-              <div className="p-6">
+              <div className="p-4 sm:p-6">
                 <div className="flex items-center justify-between mb-3">
                   <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                     isUpcoming(event.event_date)
@@ -270,31 +270,31 @@ export default function AdminEventsPage() {
                   )}
                 </div>
 
-                <h3 className="text-xl font-bold text-white mb-2">{event.title}</h3>
-                <p className="text-gray-300 mb-4 line-clamp-2">{event.description}</p>
+                <h3 className="text-lg sm:text-xl font-bold text-white mb-2">{event.title}</h3>
+                <p className="text-gray-300 text-sm mb-4 line-clamp-2">{event.description}</p>
 
                 <div className="space-y-2 mb-4">
-                  <div className="flex items-center text-sm text-gray-300">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    {formatDate(event.event_date)}
+                  <div className="flex items-center text-xs sm:text-sm text-gray-300">
+                    <Calendar className="h-4 w-4 mr-2 flex-shrink-0" />
+                    <span className="truncate">{formatDate(event.event_date)}</span>
                   </div>
-                  <div className="flex items-center text-sm text-gray-300">
-                    <MapPin className="h-4 w-4 mr-2" />
-                    {event.location}
+                  <div className="flex items-center text-xs sm:text-sm text-gray-300">
+                    <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
+                    <span className="truncate">{event.location}</span>
                   </div>
-                  <div className="flex items-center text-sm text-gray-300">
-                    <Users className="h-4 w-4 mr-2" />
+                  <div className="flex items-center text-xs sm:text-sm text-gray-300">
+                    <Users className="h-4 w-4 mr-2 flex-shrink-0" />
                     {event.rsvp_count || 0}
                     {event.max_attendees && ` / ${event.max_attendees}`} attending
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 sm:gap-2">
                   <button
                     onClick={() => viewRSVPs(event.id)}
-                    className="flex-1 px-3 py-2 text-sm bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-600 transition"
+                    className="flex-1 px-2 sm:px-3 py-2 text-xs sm:text-sm bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-600 transition"
                   >
-                    View RSVPs
+                    RSVPs
                   </button>
                   <button
                     onClick={() => togglePublished(event.id, event.is_published)}
@@ -302,22 +302,22 @@ export default function AdminEventsPage() {
                     title={event.is_published ? 'Unpublish' : 'Publish'}
                   >
                     {event.is_published ? (
-                      <Eye className="h-5 w-5 text-green-500" />
+                      <Eye className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />
                     ) : (
-                      <EyeOff className="h-5 w-5 text-gray-400" />
+                      <EyeOff className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                     )}
                   </button>
                   <button
                     onClick={() => handleEdit(event)}
                     className="p-2 hover:bg-gray-700 rounded-lg transition"
                   >
-                    <Edit2 className="h-5 w-5 text-indigo-400" />
+                    <Edit2 className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-400" />
                   </button>
                   <button
                     onClick={() => handleDelete(event.id)}
                     className="p-2 hover:bg-gray-700 rounded-lg transition"
                   >
-                    <Trash2 className="h-5 w-5 text-red-400" />
+                    <Trash2 className="h-4 w-4 sm:h-5 sm:w-5 text-red-400" />
                   </button>
                 </div>
               </div>

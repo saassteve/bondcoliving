@@ -252,14 +252,14 @@ const AdminRoomsPage: React.FC = () => {
       </Helmet>
       
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold text-white">Manage Apartments</h1>
             <p className="text-gray-300">Add, edit, and organize your apartment listings</p>
           </div>
           <button
             onClick={() => setShowForm(true)}
-            className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
+            className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 w-full sm:w-auto"
           >
             <Plus className="w-4 h-4" />
             Add Apartment
@@ -286,22 +286,22 @@ const AdminRoomsPage: React.FC = () => {
               <table className="w-full border border-gray-600">
                 <thead className="bg-gray-700">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-200 uppercase tracking-wider">
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-200 uppercase tracking-wider">
                       Apartment
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-200 uppercase tracking-wider">
+                    <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-semibold text-gray-200 uppercase tracking-wider">
                       Details
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-200 uppercase tracking-wider">
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-200 uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-200 uppercase tracking-wider">
+                    <th className="hidden lg:table-cell px-6 py-3 text-left text-xs font-semibold text-gray-200 uppercase tracking-wider">
                       Availability
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-200 uppercase tracking-wider">
+                    <th className="hidden xl:table-cell px-6 py-3 text-left text-xs font-semibold text-gray-200 uppercase tracking-wider">
                       Features
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-semibold text-gray-200 uppercase tracking-wider">
+                    <th className="px-4 sm:px-6 py-3 text-right text-xs font-semibold text-gray-200 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
@@ -309,40 +309,43 @@ const AdminRoomsPage: React.FC = () => {
                 <tbody className="bg-gray-800 divide-y divide-gray-600">
                   {apartments.map((apartment) => {
                     const apartmentFeatures = getApartmentFeatures(apartment.id);
-                    
+
                     return (
                       <tr key={apartment.id} className="hover:bg-gray-700 border-b border-gray-600">
-                        <td className="px-6 py-4">
+                        <td className="px-4 sm:px-6 py-4">
                           <div className="flex items-center">
-                            <div className="flex-shrink-0 h-16 w-16">
+                            <div className="flex-shrink-0 h-12 w-12 sm:h-16 sm:w-16">
                               <img
-                                className="h-16 w-16 rounded-lg object-cover"
+                                className="h-12 w-12 sm:h-16 sm:w-16 rounded-lg object-cover"
                                 src={apartment.image_url}
                                 alt={apartment.title}
                               />
                             </div>
-                            <div className="ml-4">
+                            <div className="ml-3 sm:ml-4">
                               <div className="text-sm font-medium text-white">
                                 {apartment.title}
                               </div>
-                              <div className="text-sm text-gray-300 line-clamp-2">
+                              <div className="text-sm text-gray-300 line-clamp-1 sm:line-clamp-2 max-w-[150px] sm:max-w-none">
                                 {apartment.description}
+                              </div>
+                              <div className="sm:hidden text-xs text-gray-400 mt-1">
+                                €{apartment.price.toLocaleString()}/mo
                               </div>
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="hidden sm:table-cell px-6 py-4">
                           <div className="text-sm text-white">
                             <div>€{apartment.price.toLocaleString()}/month</div>
                             <div className="text-gray-300">{apartment.size} • {apartment.capacity}</div>
                           </div>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-4 sm:px-6 py-4">
                           <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(apartment.status)}`}>
                             {apartment.status}
                           </span>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="hidden lg:table-cell px-6 py-4">
                           <div className="text-sm text-white">
                             {apartment.available_from && (
                               <div className="font-medium">From: {new Date(apartment.available_from).toLocaleDateString()}</div>
@@ -355,7 +358,7 @@ const AdminRoomsPage: React.FC = () => {
                             )}
                           </div>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="hidden xl:table-cell px-6 py-4">
                           <div className="flex flex-wrap gap-1">
                             {apartmentFeatures.slice(0, 3).map((feature) => (
                               <span
@@ -372,39 +375,39 @@ const AdminRoomsPage: React.FC = () => {
                             )}
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-right text-sm font-medium">
-                          <div className="flex items-center justify-end gap-2">
+                        <td className="px-4 sm:px-6 py-4 text-right text-sm font-medium">
+                          <div className="flex items-center justify-end gap-1 sm:gap-2">
                             <button
                               onClick={() => setShowImageManager(apartment.id)}
-                              className="text-purple-600 hover:text-purple-900 p-1 font-medium"
+                              className="text-purple-400 hover:text-purple-300 p-2 font-medium rounded-lg hover:bg-gray-600 transition-colors"
                               title="Manage images"
                             >
                               <Images className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => setShowFeatureManager(apartment.id)}
-                              className="text-blue-600 hover:text-blue-900 p-1 font-medium"
+                              className="hidden sm:block text-blue-400 hover:text-blue-300 p-2 font-medium rounded-lg hover:bg-gray-600 transition-colors"
                               title="Manage features"
                             >
                               <Settings className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => setShowCalendarManager({ id: apartment.id, title: apartment.title })}
-                              className="text-green-600 hover:text-green-900 p-1 font-medium"
+                              className="hidden sm:block text-green-400 hover:text-green-300 p-2 font-medium rounded-lg hover:bg-gray-600 transition-colors"
                               title="Manage calendar"
                             >
                               <Calendar className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleEdit(apartment)}
-                              className="text-indigo-600 hover:text-indigo-900 p-1 font-medium"
+                              className="text-indigo-400 hover:text-indigo-300 p-2 font-medium rounded-lg hover:bg-gray-600 transition-colors"
                               title="Edit apartment"
                             >
                               <Edit className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDelete(apartment.id)}
-                              className="text-red-600 hover:text-red-900 p-1 font-medium"
+                              className="text-red-400 hover:text-red-300 p-2 font-medium rounded-lg hover:bg-gray-600 transition-colors"
                               title="Delete apartment"
                             >
                               <Trash2 className="w-4 h-4" />
