@@ -3,13 +3,14 @@ import { Helmet } from 'react-helmet-async';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, ArrowRight, Users, MapPin, ChevronLeft, ChevronRight,
-  Share2, Star, Check, Wifi, Maximize2, Calendar
+  Share2, Star, Check, Wifi, Maximize2, Calendar, Building2
 } from 'lucide-react';
 import { apartmentService, availabilityService, type Apartment } from '../../lib/supabase';
 import { getIconComponent } from '../../lib/iconUtils';
 import CalendarAvailability from '../../components/CalendarAvailability';
 import AnimatedSection from '../../components/AnimatedSection';
 import OptimizedImage from '../../components/OptimizedImage';
+import { getApartmentPrice, getAccommodationTypeLabel, getAccommodationTypeColor } from '../../lib/priceUtils';
 
 const formatMoney = (amount: number, currency: 'EUR' | 'GBP' | 'USD') =>
   new Intl.NumberFormat('en-GB', { style: 'currency', currency, maximumFractionDigits: 0 }).format(amount);
@@ -117,10 +118,12 @@ const RoomDetailPage: React.FC = () => {
 
   const currentImage = apartment.images && apartment.images.length > 0 ? apartment.images[currentImageIndex] : null;
   const displayImageUrl = currentImage?.image_url || apartment.image_url;
-  
-  const eur = formatMoney(apartment.price, 'EUR');
-  const usd = formatMoney(Math.round(apartment.price * 1.05), 'USD');
-  const gbp = formatMoney(Math.round(apartment.price * 0.85), 'GBP');
+
+  const priceInfo = getApartmentPrice(apartment);
+  const eur = priceInfo.formatted;
+  const usd = formatMoney(Math.round(priceInfo.amount * 1.05), 'USD');
+  const gbp = formatMoney(Math.round(priceInfo.amount * 0.85), 'GBP');
+  const isShortTerm = apartment.accommodation_type === 'short_term';
 
   return (
     <>
@@ -193,9 +196,16 @@ const RoomDetailPage: React.FC = () => {
               {/* Title Header */}
               <AnimatedSection animation="fadeInUp" className="mb-12">
                 <div className="flex flex-wrap gap-3 mb-6">
-                  <span className="px-3 py-1 rounded-full bg-[#C5C5B5]/10 border border-[#C5C5B5]/20 text-[#C5C5B5] text-xs uppercase tracking-wider font-bold">
-                    Premium Apartment
-                  </span>
+                  {apartment.building && (
+                    <span className="px-3 py-1 rounded-full bg-white/10 border border-white/20 text-white text-xs uppercase tracking-wider font-bold flex items-center gap-2">
+                      <Building2 className="w-3 h-3" /> {apartment.building.name}
+                    </span>
+                  )}
+                  {apartment.accommodation_type && (
+                    <span className={`px-3 py-1 rounded-full text-xs uppercase tracking-wider font-bold ${getAccommodationTypeColor(apartment.accommodation_type)}`}>
+                      {getAccommodationTypeLabel(apartment.accommodation_type)}
+                    </span>
+                  )}
                   {apartment.available_from && new Date(apartment.available_from) <= new Date() && (
                     <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs uppercase tracking-wider font-bold flex items-center gap-1">
                       <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Available Now
@@ -279,10 +289,10 @@ const RoomDetailPage: React.FC = () => {
                     <div className="absolute top-0 right-0 w-40 h-40 bg-[#C5C5B5]/10 rounded-full blur-[60px] pointer-events-none" />
 
                     <div className="mb-6">
-                       <p className="text-sm text-white/50 mb-1 uppercase tracking-widest font-bold">Monthly Rate</p>
+                       <p className="text-sm text-white/50 mb-1 uppercase tracking-widest font-bold">{isShortTerm ? 'Nightly Rate' : 'Monthly Rate'}</p>
                        <div className="flex items-baseline gap-2">
                          <span className="text-4xl md:text-5xl font-bold text-white tracking-tight">{eur}</span>
-                         <span className="text-white/40">/ mo</span>
+                         <span className="text-white/40">/ {priceInfo.period}</span>
                        </div>
                        <div className="text-xs text-white/30 mt-2 flex gap-2">
                           <span>≈ {usd}</span> • <span>≈ {gbp}</span>
@@ -290,35 +300,72 @@ const RoomDetailPage: React.FC = () => {
                     </div>
 
                     <div className="space-y-4 mb-8">
+                       {!isShortTerm ? (
+                         <>
+                           <div className="flex items-center gap-3 text-sm text-white/70">
+                              <div className="w-6 h-6 rounded-full bg-[#C5C5B5]/20 flex items-center justify-center text-[#C5C5B5]">
+                                 <Check className="w-3 h-3" />
+                              </div>
+                              <span>All utilities included</span>
+                           </div>
+                           <div className="flex items-center gap-3 text-sm text-white/70">
+                              <div className="w-6 h-6 rounded-full bg-[#C5C5B5]/20 flex items-center justify-center text-[#C5C5B5]">
+                                 <Check className="w-3 h-3" />
+                              </div>
+                              <span>Bi-weekly cleaning</span>
+                           </div>
+                           <div className="flex items-center gap-3 text-sm text-white/70">
+                              <div className="w-6 h-6 rounded-full bg-[#C5C5B5]/20 flex items-center justify-center text-[#C5C5B5]">
+                                 <Check className="w-3 h-3" />
+                              </div>
+                              <span>Laundry access</span>
+                           </div>
+                           <div className="flex items-center gap-3 text-sm text-white/70">
+                              <div className="w-6 h-6 rounded-full bg-[#C5C5B5]/20 flex items-center justify-center text-[#C5C5B5]">
+                                 <Check className="w-3 h-3" />
+                              </div>
+                              <span>Flexible monthly contracts</span>
+                           </div>
+                         </>
+                       ) : (
+                         <>
+                           <div className="flex items-center gap-3 text-sm text-white/70">
+                              <div className="w-6 h-6 rounded-full bg-[#C5C5B5]/20 flex items-center justify-center text-[#C5C5B5]">
+                                 <Check className="w-3 h-3" />
+                              </div>
+                              <span>All utilities included</span>
+                           </div>
+                           <div className="flex items-center gap-3 text-sm text-white/70">
+                              <div className="w-6 h-6 rounded-full bg-[#C5C5B5]/20 flex items-center justify-center text-[#C5C5B5]">
+                                 <Check className="w-3 h-3" />
+                              </div>
+                              <span>No hidden fees</span>
+                           </div>
+                           <div className="flex items-center gap-3 text-sm text-white/70">
+                              <div className="w-6 h-6 rounded-full bg-[#C5C5B5]/20 flex items-center justify-center text-[#C5C5B5]">
+                                 <Check className="w-3 h-3" />
+                              </div>
+                              <span>Pay-per-use services available</span>
+                           </div>
+                         </>
+                       )}
                        <div className="flex items-center gap-3 text-sm text-white/70">
                           <div className="w-6 h-6 rounded-full bg-[#C5C5B5]/20 flex items-center justify-center text-[#C5C5B5]">
                              <Check className="w-3 h-3" />
                           </div>
-                          <span>All utilities included</span>
-                       </div>
-                       <div className="flex items-center gap-3 text-sm text-white/70">
-                          <div className="w-6 h-6 rounded-full bg-[#C5C5B5]/20 flex items-center justify-center text-[#C5C5B5]">
-                             <Check className="w-3 h-3" />
-                          </div>
-                          <span>No hidden fees</span>
-                       </div>
-                       <div className="flex items-center gap-3 text-sm text-white/70">
-                          <div className="w-6 h-6 rounded-full bg-[#C5C5B5]/20 flex items-center justify-center text-[#C5C5B5]">
-                             <Check className="w-3 h-3" />
-                          </div>
-                          <span>Flexible monthly contracts</span>
+                          <span>Coworking access {apartment.building?.has_on_site_coworking ? 'on-site' : 'at Bond - Carreira'}</span>
                        </div>
                     </div>
 
-                    <button 
+                    <button
                       onClick={handleBookNow}
                       className="w-full py-4 bg-[#C5C5B5] hover:bg-white text-[#1E1F1E] rounded-xl font-bold text-lg transition-all transform hover:scale-[1.02] shadow-lg hover:shadow-[#C5C5B5]/25 flex items-center justify-center gap-2"
                     >
                       Book Now <ArrowRight className="w-5 h-5" />
                     </button>
-                    
+
                     <p className="text-center text-white/30 text-xs mt-4">
-                       Minimum stay 30 days
+                       {priceInfo.subtitle}
                     </p>
                   </div>
                 </AnimatedSection>

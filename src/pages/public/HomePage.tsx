@@ -1,8 +1,9 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import Hero from '../../components/home/Hero';
-import Marquee from '../../components/Marquee'; // Import the new component
+import Marquee from '../../components/Marquee';
 import Intro from '../../components/home/Intro';
+import BuildingsOverview from '../../components/home/BuildingsOverview';
 import ApartmentPreview from '../../components/home/ApartmentPreview';
 import ValueComparison from '../../components/home/ValueComparison';
 import FeatureHighlights from '../../components/home/FeatureHighlights';
@@ -45,9 +46,10 @@ const HomePage: React.FC = () => {
       </Helmet>
 
       <Hero />
-      <Marquee /> 
+      <Marquee />
       <ApartmentPreview />
       <Intro />
+      <BuildingsOverview />
       <ValueComparison />
       <FeatureHighlights />
       <Reviews />

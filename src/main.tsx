@@ -35,6 +35,7 @@ import BookingSuccessPage from './pages/public/BookingSuccessPage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import AdminBookingsPage from './pages/admin/AdminBookingsPage';
 import AdminRoomsPage from './pages/admin/AdminRoomsPage';
+import AdminBuildingsPage from './pages/admin/AdminBuildingsPage';
 import AdminCoworkingPage from './pages/admin/AdminCoworkingPage';
 import AdminGuestsPage from './pages/admin/AdminGuestsPage';
 import AdminPromotionsPage from './pages/admin/AdminPromotionsPage';
@@ -113,6 +114,7 @@ const App = () => {
             <Route index element={<ProtectedRoute><AdminDashboardPage /></ProtectedRoute>} />
             <Route path="bookings" element={<ProtectedRoute><AdminBookingsPage /></ProtectedRoute>} />
             <Route path="rooms" element={<ProtectedRoute><AdminRoomsPage /></ProtectedRoute>} />
+            <Route path="buildings" element={<ProtectedRoute><AdminBuildingsPage /></ProtectedRoute>} />
             <Route path="ical" element={<ProtectedRoute><AdminICalPage /></ProtectedRoute>} />
             <Route path="coworking" element={<ProtectedRoute><AdminCoworkingPage /></ProtectedRoute>} />
             <Route path="guests" element={<ProtectedRoute><AdminGuestsPage /></ProtectedRoute>} />

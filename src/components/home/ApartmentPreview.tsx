@@ -4,6 +4,7 @@ import { ArrowRight, ChevronLeft, ChevronRight, RefreshCw, Sparkles, GripHorizon
 import { apartmentService, availabilityService, type Apartment } from '../../lib/supabase';
 import AnimatedSection from '../AnimatedSection';
 import OptimizedImage from '../OptimizedImage';
+import { getApartmentPrice, getAccommodationTypeLabel, getAccommodationTypeColor } from '../../lib/priceUtils';
 
 type ApartmentWithExtras = Apartment & {
   image_url?: string;
@@ -308,7 +309,21 @@ const ApartmentPreview: React.FC = () => {
                   <div className="relative aspect-[4/5] rounded-[2.5rem] overflow-hidden bg-[#1E1F1E] border border-white/10 shadow-2xl transition-all duration-500 group-hover:shadow-[0_20px_50px_-12px_rgba(197,197,181,0.1)] group-hover:border-[#C5C5B5]/30">
                     
                     <AvailabilityBadge iso={a.available_from} />
-                    
+
+                    {/* Building & Type Badges */}
+                    <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">
+                      {a.building && (
+                        <span className="px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-xl border bg-[#1E1F1E]/60 text-white border-white/10">
+                          {a.building.name}
+                        </span>
+                      )}
+                      {a.accommodation_type && (
+                        <span className={`px-3 py-1.5 rounded-full text-xs font-bold ${getAccommodationTypeColor(a.accommodation_type)}`}>
+                          {getAccommodationTypeLabel(a.accommodation_type)}
+                        </span>
+                      )}
+                    </div>
+
                     {/* Image */}
                     <div className="absolute inset-0 overflow-hidden bg-[#1E1F1E]">
                       <OptimizedImage
@@ -335,7 +350,15 @@ const ApartmentPreview: React.FC = () => {
                           <p className="text-sm text-white/50 line-clamp-1">{a.description.split('.')[0]}</p>
                         </div>
                         <div className="text-right bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/5">
-                          <div className="text-lg font-bold text-[#C5C5B5]">{formatMoney(a.price, 'EUR')}</div>
+                          {(() => {
+                            const priceInfo = getApartmentPrice(a);
+                            return (
+                              <>
+                                <div className="text-lg font-bold text-[#C5C5B5]">{priceInfo.formatted}</div>
+                                <div className="text-xs text-white/50">/{priceInfo.period}</div>
+                              </>
+                            );
+                          })()}
                         </div>
                       </div>
 

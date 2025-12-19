@@ -1,9 +1,30 @@
+export interface Building {
+  id: string
+  slug: string
+  name: string
+  address: string
+  description?: string
+  has_on_site_coworking: boolean
+  check_in_instructions?: string
+  latitude?: number
+  longitude?: number
+  image_url?: string
+  sort_order?: number
+  created_at?: string
+  updated_at?: string
+}
+
 export interface Apartment {
   id: string
   slug?: string
   title: string
   description: string
   price: number
+  building_id?: string
+  accommodation_type?: 'short_term' | 'long_term'
+  nightly_price?: number
+  minimum_stay_nights?: number
+  minimum_stay_months?: number
   size: string
   capacity: string
   image_url: string
@@ -13,6 +34,7 @@ export interface Apartment {
   available_until?: string
   created_at?: string
   updated_at?: string
+  building?: Building
 }
 
 export interface ApartmentFeature {

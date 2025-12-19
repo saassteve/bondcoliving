@@ -40,9 +40,14 @@ const Location: React.FC = () => {
                 <span className="text-[#C5C5B5]">Funchal.</span>
               </h2>
             </div>
-            <p className="text-lg text-white/60 max-w-md leading-relaxed">
-              Central Funchal puts you minutes from the ocean, cafes, and city amenities. Work productively while living in paradise.
-            </p>
+            <div className="max-w-md space-y-4">
+              <p className="text-lg text-white/60 leading-relaxed">
+                Central Funchal puts you minutes from the ocean, cafes, and city amenities. Work productively while living in paradise.
+              </p>
+              <p className="text-sm text-white/40 leading-relaxed">
+                Our three buildings (Carreira, São João, and Pretas) are all within 5-10 minutes walking distance of each other in the heart of Funchal.
+              </p>
+            </div>
           </div>
         </AnimatedSection>
 

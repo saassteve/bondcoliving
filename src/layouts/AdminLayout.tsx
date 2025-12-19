@@ -53,6 +53,7 @@ const AdminLayout: React.FC = () => {
     { name: 'Dashboard', path: '/admin', icon: LayoutDashboard },
     { name: 'Bookings', path: '/admin/bookings', icon: Calendar },
     { name: 'Rooms', path: '/admin/rooms', icon: Building },
+    { name: 'Buildings', path: '/admin/buildings', icon: Home },
     { name: 'iCal Sync', path: '/admin/ical', icon: CalendarCheck },
     { name: 'Coworking', path: '/admin/coworking', icon: Coffee },
     {

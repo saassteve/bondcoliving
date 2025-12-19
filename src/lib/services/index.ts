@@ -10,7 +10,9 @@ export {
   FeatureHighlightService,
   featureHighlightService,
   SiteSettingService,
-  siteSettingService
+  siteSettingService,
+  BuildingService,
+  buildingService
 } from './apartment'
 
 export {

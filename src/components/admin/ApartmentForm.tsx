@@ -1,11 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
+import { buildingService } from '../../lib/services';
+import type { Building } from '../../lib/services/types';
 
 interface Apartment {
   id: string;
   title: string;
   description: string;
   price: number;
+  building_id?: string;
+  accommodation_type?: 'short_term' | 'long_term';
+  nightly_price?: number;
+  minimum_stay_nights?: number;
+  minimum_stay_months?: number;
   size: string;
   capacity: string;
   image_url: string;
@@ -30,10 +37,16 @@ const ApartmentForm: React.FC<ApartmentFormProps> = ({
   onCancel,
   isSubmitting = false
 }) => {
+  const [buildings, setBuildings] = useState<Building[]>([]);
   const [formData, setFormData] = useState({
     title: apartment?.title || '',
     description: apartment?.description || '',
     price: apartment?.price?.toString() || '',
+    building_id: apartment?.building_id || '',
+    accommodation_type: apartment?.accommodation_type || 'long_term' as const,
+    nightly_price: apartment?.nightly_price?.toString() || '',
+    minimum_stay_nights: apartment?.minimum_stay_nights?.toString() || '2',
+    minimum_stay_months: apartment?.minimum_stay_months?.toString() || '1',
     size: apartment?.size || '',
     capacity: apartment?.capacity || '',
     image_url: apartment?.image_url || '',
@@ -43,33 +56,65 @@ const ApartmentForm: React.FC<ApartmentFormProps> = ({
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  useEffect(() => {
+    const loadBuildings = async () => {
+      try {
+        const buildingsData = await buildingService.getAll();
+        setBuildings(buildingsData);
+        if (!apartment && buildingsData.length > 0 && !formData.building_id) {
+          setFormData(prev => ({ ...prev, building_id: buildingsData[0].id }));
+        }
+      } catch (error) {
+        console.error('Error loading buildings:', error);
+      }
+    };
+    loadBuildings();
+  }, [apartment]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
-    
+
     // Validate form data
     const newErrors: Record<string, string> = {};
     if (!formData.title.trim()) newErrors.title = 'Title is required';
     if (!formData.description.trim()) newErrors.description = 'Description is required';
-    if (!formData.price || parseInt(formData.price) <= 0) newErrors.price = 'Valid price is required';
+    if (!formData.building_id) newErrors.building_id = 'Building is required';
+
+    if (formData.accommodation_type === 'long_term') {
+      if (!formData.price || parseInt(formData.price) <= 0) {
+        newErrors.price = 'Valid monthly price is required';
+      }
+      if (!formData.minimum_stay_months || parseInt(formData.minimum_stay_months) < 1) {
+        newErrors.minimum_stay_months = 'Minimum stay months must be at least 1';
+      }
+    } else {
+      if (!formData.nightly_price || parseInt(formData.nightly_price) <= 0) {
+        newErrors.nightly_price = 'Valid nightly price is required';
+      }
+      if (!formData.minimum_stay_nights || parseInt(formData.minimum_stay_nights) < 1) {
+        newErrors.minimum_stay_nights = 'Minimum stay nights must be at least 1';
+      }
+    }
+
     if (!formData.size.trim()) newErrors.size = 'Size is required';
     if (!formData.capacity.trim()) newErrors.capacity = 'Capacity is required';
     if (!formData.image_url.trim()) newErrors.image_url = 'Image URL is required';
-    
+
     // Validate availability dates
     if (!formData.available_from) newErrors.available_from = 'Available from date is required';
-    if (formData.available_until && formData.available_from && 
+    if (formData.available_until && formData.available_from &&
         new Date(formData.available_until) <= new Date(formData.available_from)) {
       newErrors.available_until = 'Available until date must be after available from date';
     }
-    
+
     // Validate image URL format
     try {
       new URL(formData.image_url);
     } catch {
       newErrors.image_url = 'Please enter a valid URL';
     }
-    
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
@@ -77,18 +122,25 @@ const ApartmentForm: React.FC<ApartmentFormProps> = ({
 
     const submitData = {
       ...formData,
-      price: parseInt(formData.price),
+      price: formData.accommodation_type === 'long_term' ? parseInt(formData.price) : 0,
+      nightly_price: formData.accommodation_type === 'short_term' ? parseInt(formData.nightly_price) : null,
+      minimum_stay_nights: parseInt(formData.minimum_stay_nights),
+      minimum_stay_months: parseInt(formData.minimum_stay_months),
       available_until: formData.available_until || null
     };
 
     try {
       await onSubmit(submitData);
-      // Clear form data after successful submission
       if (!apartment) {
         setFormData({
           title: '',
           description: '',
           price: '',
+          building_id: buildings.length > 0 ? buildings[0].id : '',
+          accommodation_type: 'long_term' as const,
+          nightly_price: '',
+          minimum_stay_nights: '2',
+          minimum_stay_months: '1',
           size: '',
           capacity: '',
           image_url: '',
@@ -168,24 +220,123 @@ const ApartmentForm: React.FC<ApartmentFormProps> = ({
             {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">
-                Price (€/month)
+                Building Location *
               </label>
-              <input
-                type="number"
-                name="price"
-                value={formData.price}
+              <select
+                name="building_id"
+                value={formData.building_id}
                 onChange={handleChange}
                 className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                  errors.price ? 'border-red-300' : 'border-gray-600'
+                  errors.building_id ? 'border-red-300' : 'border-gray-600'
                 }`}
-                min="1"
                 required
-              />
-              {errors.price && <p className="mt-1 text-sm text-red-600">{errors.price}</p>}
+              >
+                <option value="">Select a building</option>
+                {buildings.map((building) => (
+                  <option key={building.id} value={building.id}>
+                    {building.name}
+                  </option>
+                ))}
+              </select>
+              {errors.building_id && <p className="mt-1 text-sm text-red-600">{errors.building_id}</p>}
             </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">
+                Accommodation Type *
+              </label>
+              <select
+                name="accommodation_type"
+                value={formData.accommodation_type}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                required
+              >
+                <option value="long_term">Long-term (Monthly)</option>
+                <option value="short_term">Short-term (Nightly)</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {formData.accommodation_type === 'long_term' ? (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                    Monthly Price (€) *
+                  </label>
+                  <input
+                    type="number"
+                    name="price"
+                    value={formData.price}
+                    onChange={handleChange}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                      errors.price ? 'border-red-300' : 'border-gray-600'
+                    }`}
+                    min="1"
+                    required
+                  />
+                  {errors.price && <p className="mt-1 text-sm text-red-600">{errors.price}</p>}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                    Minimum Stay (Months) *
+                  </label>
+                  <input
+                    type="number"
+                    name="minimum_stay_months"
+                    value={formData.minimum_stay_months}
+                    onChange={handleChange}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                      errors.minimum_stay_months ? 'border-red-300' : 'border-gray-600'
+                    }`}
+                    min="1"
+                    required
+                  />
+                  {errors.minimum_stay_months && <p className="mt-1 text-sm text-red-600">{errors.minimum_stay_months}</p>}
+                </div>
+              </>
+            ) : (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                    Nightly Price (€) *
+                  </label>
+                  <input
+                    type="number"
+                    name="nightly_price"
+                    value={formData.nightly_price}
+                    onChange={handleChange}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                      errors.nightly_price ? 'border-red-300' : 'border-gray-600'
+                    }`}
+                    min="1"
+                    required
+                  />
+                  {errors.nightly_price && <p className="mt-1 text-sm text-red-600">{errors.nightly_price}</p>}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                    Minimum Stay (Nights) *
+                  </label>
+                  <input
+                    type="number"
+                    name="minimum_stay_nights"
+                    value={formData.minimum_stay_nights}
+                    onChange={handleChange}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                      errors.minimum_stay_nights ? 'border-red-300' : 'border-gray-600'
+                    }`}
+                    min="1"
+                    required
+                  />
+                  {errors.minimum_stay_nights && <p className="mt-1 text-sm text-red-600">{errors.minimum_stay_nights}</p>}
+                </div>
+              </>
+            )}
 
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">

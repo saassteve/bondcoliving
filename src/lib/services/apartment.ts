@@ -1,6 +1,6 @@
 import { supabase } from './client'
 import { availabilityService } from './availability'
-import type { Apartment, ApartmentFeature, ApartmentImage, Review, FeatureHighlight, SiteSetting } from './types'
+import type { Apartment, ApartmentFeature, ApartmentImage, Review, FeatureHighlight, SiteSetting, Building } from './types'
 
 export class ApartmentService {
   static generateSlug(title: string): string {
@@ -26,7 +26,10 @@ export class ApartmentService {
   static async getAll(): Promise<Apartment[]> {
     const { data, error } = await supabase
       .from('apartments')
-      .select('*')
+      .select(`
+        *,
+        building:buildings(*)
+      `)
       .order('sort_order', { ascending: true })
 
     if (error) throw error
@@ -58,7 +61,10 @@ export class ApartmentService {
   static async getById(id: string): Promise<Apartment | null> {
     const { data, error } = await supabase
       .from('apartments')
-      .select('*')
+      .select(`
+        *,
+        building:buildings(*)
+      `)
       .eq('id', id)
       .maybeSingle()
 
@@ -370,7 +376,77 @@ export class SiteSettingService {
   }
 }
 
+export class BuildingService {
+  static async getAll(): Promise<Building[]> {
+    const { data, error } = await supabase
+      .from('buildings')
+      .select('*')
+      .order('sort_order', { ascending: true })
+
+    if (error) throw error
+    return data || []
+  }
+
+  static async getById(id: string): Promise<Building | null> {
+    const { data, error } = await supabase
+      .from('buildings')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle()
+
+    if (error) throw error
+    return data
+  }
+
+  static async getBySlug(slug: string): Promise<Building | null> {
+    const { data, error } = await supabase
+      .from('buildings')
+      .select('*')
+      .eq('slug', slug)
+      .maybeSingle()
+
+    if (error) throw error
+    return data
+  }
+
+  static async create(building: Omit<Building, 'id' | 'created_at' | 'updated_at'>): Promise<Building> {
+    const { data, error } = await supabase
+      .from('buildings')
+      .insert(building)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  }
+
+  static async update(id: string, building: Partial<Building>): Promise<Building> {
+    const { data, error } = await supabase
+      .from('buildings')
+      .update({
+        ...building,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  }
+
+  static async delete(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('buildings')
+      .delete()
+      .eq('id', id)
+
+    if (error) throw error
+  }
+}
+
 export const apartmentService = ApartmentService
 export const reviewService = ReviewService
 export const featureHighlightService = FeatureHighlightService
 export const siteSettingService = SiteSettingService
+export const buildingService = BuildingService
