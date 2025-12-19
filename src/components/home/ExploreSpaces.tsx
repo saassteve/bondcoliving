@@ -8,6 +8,7 @@ import AnimatedSection from '../AnimatedSection';
 interface BuildingWithCount extends Building {
   apartmentCount: number;
   availableCount: number;
+  firstApartmentImage: string | null;
 }
 
 const ExploreSpaces: React.FC = () => {
@@ -29,11 +30,15 @@ const ExploreSpaces: React.FC = () => {
           const availableApartments = buildingApartments.filter(
             (apt) => apt.status === 'available'
           );
+          const firstApartmentImage = buildingApartments.length > 0
+            ? buildingApartments[0].image_url
+            : null;
 
           return {
             ...building,
             apartmentCount: buildingApartments.length,
             availableCount: availableApartments.length,
+            firstApartmentImage,
           };
         });
 
@@ -76,7 +81,7 @@ const ExploreSpaces: React.FC = () => {
           {buildings.map((building, index) => {
             const isComingSoon = building.status === 'coming_soon';
             const isShortTerm = building.stay_type === 'short_term';
-            const imageUrl = building.hero_image_url || building.image_url || placeholderImages[building.slug] || placeholderImages.carreira;
+            const imageUrl = building.hero_image_url || building.image_url || building.firstApartmentImage || placeholderImages[building.slug] || placeholderImages.carreira;
 
             return (
               <AnimatedSection

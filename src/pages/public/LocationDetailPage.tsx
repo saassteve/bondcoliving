@@ -83,7 +83,18 @@ const LocationDetailPage: React.FC = () => {
 
   const isComingSoon = building.status === 'coming_soon';
   const isShortTerm = building.stay_type === 'short_term';
-  const galleryImages = building.gallery_images || [];
+
+  const getGalleryImages = (): string[] => {
+    if (building.gallery_images && building.gallery_images.length > 0) {
+      return building.gallery_images;
+    }
+    if (apartments.length > 0) {
+      return apartments.map(apt => apt.image_url).filter(url => url && !url.includes('undefined'));
+    }
+    return [];
+  };
+
+  const galleryImages = getGalleryImages();
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-GB', {
@@ -113,11 +124,11 @@ const LocationDetailPage: React.FC = () => {
       <div className="min-h-screen bg-[#1E1F1E]">
         <div className="container py-8">
           <Link
-            to="/"
+            to="/locations"
             className="inline-flex items-center text-[#C5C5B5]/60 hover:text-[#C5C5B5] mb-8 transition-colors"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Home
+            All Locations
           </Link>
 
           <AnimatedSection animation="fadeInUp">

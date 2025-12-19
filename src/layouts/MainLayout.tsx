@@ -35,7 +35,7 @@ const MainLayout: React.FC = () => {
 
   const navLinks = [
     { name: 'Home', path: '/', icon: Home },
-    { name: 'Locations', path: '/location/carreira', icon: Building2 },
+    { name: 'Locations', path: '/locations', icon: Building2 },
     { name: 'About', path: '/about', icon: Book },
     { name: 'Coworking', path: '/coworking', icon: Coffee },
   ];
