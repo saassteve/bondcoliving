@@ -78,7 +78,7 @@ const BookPage: React.FC = () => {
   const handleStepComplete = (step: BookingStep, data: Partial<BookingData>) => {
     setBookingData((prev) => ({ ...prev, ...data }));
 
-    const stepOrder: BookingStep[] = ['stay-type', 'unit', 'dates', 'guest-info', 'checkout'];
+    const stepOrder: BookingStep[] = ['stay-type', 'dates', 'unit', 'guest-info', 'checkout'];
     const currentIndex = stepOrder.indexOf(step);
     if (currentIndex < stepOrder.length - 1) {
       setCurrentStep(stepOrder[currentIndex + 1]);
