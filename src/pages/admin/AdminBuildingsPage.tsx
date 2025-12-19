@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Plus, Edit, Trash2, MapPin, Building2 } from 'lucide-react';
+import { Plus, Edit, Trash2, MapPin, Building2, Clock, CalendarDays, X } from 'lucide-react';
 import { buildingService } from '../../lib/services';
 import type { Building } from '../../lib/services/types';
 
@@ -10,16 +10,22 @@ const AdminBuildingsPage: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingBuilding, setEditingBuilding] = useState<Building | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [newGalleryImage, setNewGalleryImage] = useState('');
   const [formData, setFormData] = useState({
     slug: '',
     name: '',
     address: '',
     description: '',
+    tagline: '',
     has_on_site_coworking: false,
+    stay_type: 'long_term' as 'short_term' | 'long_term',
+    status: 'active' as 'active' | 'coming_soon',
     check_in_instructions: '',
     latitude: '',
     longitude: '',
     image_url: '',
+    hero_image_url: '',
+    gallery_images: [] as string[],
     sort_order: 0
   });
 
@@ -47,11 +53,16 @@ const AdminBuildingsPage: React.FC = () => {
       name: building.name,
       address: building.address,
       description: building.description || '',
+      tagline: building.tagline || '',
       has_on_site_coworking: building.has_on_site_coworking,
+      stay_type: building.stay_type || 'long_term',
+      status: building.status || 'active',
       check_in_instructions: building.check_in_instructions || '',
       latitude: building.latitude?.toString() || '',
       longitude: building.longitude?.toString() || '',
       image_url: building.image_url || '',
+      hero_image_url: building.hero_image_url || '',
+      gallery_images: building.gallery_images || [],
       sort_order: building.sort_order || 0
     });
     setShowForm(true);
@@ -102,18 +113,41 @@ const AdminBuildingsPage: React.FC = () => {
   const resetForm = () => {
     setShowForm(false);
     setEditingBuilding(null);
+    setNewGalleryImage('');
     setFormData({
       slug: '',
       name: '',
       address: '',
       description: '',
+      tagline: '',
       has_on_site_coworking: false,
+      stay_type: 'long_term',
+      status: 'active',
       check_in_instructions: '',
       latitude: '',
       longitude: '',
       image_url: '',
+      hero_image_url: '',
+      gallery_images: [],
       sort_order: 0
     });
+  };
+
+  const addGalleryImage = () => {
+    if (newGalleryImage.trim()) {
+      setFormData(prev => ({
+        ...prev,
+        gallery_images: [...prev.gallery_images, newGalleryImage.trim()]
+      }));
+      setNewGalleryImage('');
+    }
+  };
+
+  const removeGalleryImage = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      gallery_images: prev.gallery_images.filter((_, i) => i !== index)
+    }));
   };
 
   if (loading) {
@@ -159,11 +193,24 @@ const AdminBuildingsPage: React.FC = () => {
                   <Building2 className="w-5 h-5 text-blue-600" />
                   <h3 className="font-semibold text-lg">{building.name}</h3>
                 </div>
-                {building.has_on_site_coworking && (
-                  <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                    Coworking
-                  </span>
-                )}
+                <div className="flex gap-2">
+                  {building.stay_type === 'short_term' ? (
+                    <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      Short
+                    </span>
+                  ) : (
+                    <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full flex items-center gap-1">
+                      <CalendarDays className="w-3 h-3" />
+                      Monthly
+                    </span>
+                  )}
+                  {building.status === 'coming_soon' && (
+                    <span className="px-2 py-1 bg-amber-100 text-amber-800 text-xs rounded-full">
+                      Coming Soon
+                    </span>
+                  )}
+                </div>
               </div>
 
               <div className="space-y-2 mb-4">
@@ -171,8 +218,16 @@ const AdminBuildingsPage: React.FC = () => {
                   <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
                   <span>{building.address}</span>
                 </div>
+                {building.tagline && (
+                  <p className="text-sm text-gray-500 italic">{building.tagline}</p>
+                )}
                 {building.description && (
                   <p className="text-sm text-gray-600 line-clamp-2">{building.description}</p>
+                )}
+                {building.has_on_site_coworking && (
+                  <span className="inline-block px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                    Coworking on-site
+                  </span>
                 )}
               </div>
 
@@ -241,6 +296,19 @@ const AdminBuildingsPage: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Tagline
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.tagline}
+                    onChange={(e) => setFormData({ ...formData, tagline: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    placeholder="Short marketing tagline"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Address *
                   </label>
                   <input
@@ -262,6 +330,36 @@ const AdminBuildingsPage: React.FC = () => {
                     rows={3}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Stay Type *
+                    </label>
+                    <select
+                      value={formData.stay_type}
+                      onChange={(e) => setFormData({ ...formData, stay_type: e.target.value as 'short_term' | 'long_term' })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="long_term">Long-term (Monthly)</option>
+                      <option value="short_term">Short-term (Nightly)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Status *
+                    </label>
+                    <select
+                      value={formData.status}
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value as 'active' | 'coming_soon' })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="active">Active</option>
+                      <option value="coming_soon">Coming Soon</option>
+                    </select>
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -322,7 +420,62 @@ const AdminBuildingsPage: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Image URL
+                    Hero Image URL
+                  </label>
+                  <input
+                    type="url"
+                    value={formData.hero_image_url}
+                    onChange={(e) => setFormData({ ...formData, hero_image_url: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    placeholder="https://..."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Gallery Images
+                  </label>
+                  <div className="flex gap-2 mb-2">
+                    <input
+                      type="url"
+                      value={newGalleryImage}
+                      onChange={(e) => setNewGalleryImage(e.target.value)}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      placeholder="Add image URL"
+                    />
+                    <button
+                      type="button"
+                      onClick={addGalleryImage}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    >
+                      Add
+                    </button>
+                  </div>
+                  {formData.gallery_images.length > 0 && (
+                    <div className="grid grid-cols-3 gap-2">
+                      {formData.gallery_images.map((url, index) => (
+                        <div key={index} className="relative group">
+                          <img
+                            src={url}
+                            alt={`Gallery ${index + 1}`}
+                            className="w-full h-20 object-cover rounded"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeGalleryImage(index)}
+                            className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Card Image URL (legacy)
                   </label>
                   <input
                     type="url"

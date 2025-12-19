@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Menu, X, Book, Home, Coffee, ArrowRight, Instagram, Mail, MapPin } from 'lucide-react';
+import { Menu, X, Book, Home, Coffee, ArrowRight, Instagram, Mail, MapPin, Building2 } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import PromotionBanner from '../components/PromotionBanner';
 
@@ -35,6 +35,7 @@ const MainLayout: React.FC = () => {
 
   const navLinks = [
     { name: 'Home', path: '/', icon: Home },
+    { name: 'Locations', path: '/location/carreira', icon: Building2 },
     { name: 'About', path: '/about', icon: Book },
     { name: 'Coworking', path: '/coworking', icon: Coffee },
   ];

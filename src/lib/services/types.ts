@@ -10,6 +10,11 @@ export interface Building {
   longitude?: number
   image_url?: string
   sort_order?: number
+  stay_type?: 'short_term' | 'long_term'
+  status?: 'active' | 'coming_soon'
+  gallery_images?: string[]
+  hero_image_url?: string
+  tagline?: string
   created_at?: string
   updated_at?: string
 }

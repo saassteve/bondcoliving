@@ -30,6 +30,7 @@ import LoginPage from './pages/public/LoginPage';
 import SearchResultsPage from './pages/public/SearchResultsPage';
 import BookPage from './pages/public/BookPage';
 import BookingSuccessPage from './pages/public/BookingSuccessPage';
+import LocationDetailPage from './pages/public/LocationDetailPage';
 
 // Admin Pages
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
@@ -98,6 +99,7 @@ const App = () => {
             <Route path="coworking/booking/success" element={<CoworkingBookingSuccessPage />} />
             <Route path="coworking/booking/lookup" element={<CoworkingBookingLookupPage />} />
             <Route path="room/:roomSlug" element={<RoomDetailPage />} />
+            <Route path="location/:slug" element={<LocationDetailPage />} />
             <Route path="login" element={<LoginPage />} />
             <Route path="search" element={<SearchResultsPage />} />
             {/* Catch-all route for 404s */}

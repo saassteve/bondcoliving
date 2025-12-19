@@ -3,8 +3,8 @@ import { Helmet } from 'react-helmet-async';
 import Hero from '../../components/home/Hero';
 import Marquee from '../../components/Marquee';
 import Intro from '../../components/home/Intro';
+import ExploreSpaces from '../../components/home/ExploreSpaces';
 import BuildingsOverview from '../../components/home/BuildingsOverview';
-import ApartmentPreview from '../../components/home/ApartmentPreview';
 import ValueComparison from '../../components/home/ValueComparison';
 import FeatureHighlights from '../../components/home/FeatureHighlights';
 import Reviews from '../../components/home/Reviews';
@@ -47,13 +47,13 @@ const HomePage: React.FC = () => {
 
       <Hero />
       <Marquee />
-      <ApartmentPreview />
       <Intro />
-      <BuildingsOverview />
-      <ValueComparison />
-      <FeatureHighlights />
-      <Reviews />
+      <ExploreSpaces />
       <WhoItsFor />
+      <FeatureHighlights />
+      <ValueComparison />
+      <Reviews />
+      <BuildingsOverview />
       <Location />
       <FAQSection />
       <FinalCTA />
