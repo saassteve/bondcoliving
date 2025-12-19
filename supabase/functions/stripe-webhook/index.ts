@@ -8,7 +8,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
-async function sendEmail(
+async function sendCoworkingEmail(
   supabaseUrl: string,
   supabaseServiceKey: string,
   emailData: {
@@ -17,9 +17,7 @@ async function sendEmail(
     recipientEmail?: string;
     recipientName?: string;
   }
-): Promise<void> {
-  const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
+): Promise<any> {
   const response = await fetch(
     `${supabaseUrl}/functions/v1/send-coworking-email`,
     {
@@ -35,6 +33,36 @@ async function sendEmail(
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.error || "Failed to send email");
+  }
+
+  return await response.json();
+}
+
+async function sendApartmentEmail(
+  supabaseUrl: string,
+  supabaseServiceKey: string,
+  emailData: {
+    emailType: string;
+    bookingId: string;
+    recipientEmail?: string;
+    recipientName?: string;
+  }
+): Promise<any> {
+  const response = await fetch(
+    `${supabaseUrl}/functions/v1/send-apartment-email`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${supabaseServiceKey}`,
+      },
+      body: JSON.stringify(emailData),
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to send apartment email");
   }
 
   return await response.json();
@@ -209,6 +237,39 @@ Deno.serve(async (req: Request) => {
           }
 
           console.log("Updated apartment availability for booking:", bookingId);
+
+          try {
+            console.log("Attempting to send apartment booking confirmation email for:", bookingId);
+            const confirmationResult = await sendApartmentEmail(supabaseUrl, supabaseServiceKey, {
+              emailType: "booking_confirmation",
+              bookingId: bookingId,
+            });
+            console.log("Sent apartment booking confirmation email successfully:", confirmationResult);
+          } catch (emailError) {
+            console.error("Failed to send apartment confirmation email:", {
+              error: emailError,
+              message: emailError instanceof Error ? emailError.message : String(emailError),
+              bookingId: bookingId
+            });
+          }
+
+          try {
+            const adminEmail = Deno.env.get("ADMIN_EMAIL") || "hello@stayatbond.com";
+            console.log("Attempting to send apartment admin notification to:", adminEmail);
+            const adminResult = await sendApartmentEmail(supabaseUrl, supabaseServiceKey, {
+              emailType: "admin_notification",
+              bookingId: bookingId,
+              recipientEmail: adminEmail,
+              recipientName: "Admin",
+            });
+            console.log("Sent apartment admin notification successfully:", adminResult);
+          } catch (emailError) {
+            console.error("Failed to send apartment admin notification:", {
+              error: emailError,
+              message: emailError instanceof Error ? emailError.message : String(emailError),
+              bookingId: bookingId
+            });
+          }
         } else {
           console.log("Processing coworking booking:", bookingId);
 
@@ -279,7 +340,7 @@ Deno.serve(async (req: Request) => {
 
           try {
             console.log("Attempting to send booking confirmation email for:", bookingId);
-            const confirmationResult = await sendEmail(supabaseUrl, supabaseServiceKey, {
+            const confirmationResult = await sendCoworkingEmail(supabaseUrl, supabaseServiceKey, {
               emailType: "booking_confirmation",
               bookingId: bookingId,
             });
@@ -295,7 +356,7 @@ Deno.serve(async (req: Request) => {
           try {
             const adminEmail = Deno.env.get("ADMIN_EMAIL") || "hello@stayatbond.com";
             console.log("Attempting to send admin notification to:", adminEmail);
-            const adminResult = await sendEmail(supabaseUrl, supabaseServiceKey, {
+            const adminResult = await sendCoworkingEmail(supabaseUrl, supabaseServiceKey, {
               emailType: "admin_notification",
               bookingId: bookingId,
               recipientEmail: adminEmail,
@@ -403,7 +464,7 @@ Deno.serve(async (req: Request) => {
             .eq("id", payment.booking_id);
 
           try {
-            await sendEmail(supabaseUrl, supabaseServiceKey, {
+            await sendCoworkingEmail(supabaseUrl, supabaseServiceKey, {
               emailType: "payment_failed",
               bookingId: payment.booking_id,
             });
@@ -442,7 +503,7 @@ Deno.serve(async (req: Request) => {
               .eq("id", payment.booking_id);
 
             try {
-              await sendEmail(supabaseUrl, supabaseServiceKey, {
+              await sendCoworkingEmail(supabaseUrl, supabaseServiceKey, {
                 emailType: "booking_cancelled",
                 bookingId: payment.booking_id,
               });
