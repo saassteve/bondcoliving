@@ -229,30 +229,15 @@ const BookPage: React.FC = () => {
                                 segment_price: seg.price,
                               }));
 
-                              const response = await fetch(
-                                `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-apartment-checkout`,
-                                {
-                                  method: 'POST',
-                                  headers: {
-                                    'Content-Type': 'application/json',
-                                    'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-                                  },
-                                  body: JSON.stringify({
-                                    guestName: bookingData.guestName,
-                                    guestEmail: bookingData.guestEmail,
-                                    guestPhone: bookingData.guestPhone,
-                                    guestCount: bookingData.guestCount,
-                                    specialInstructions: bookingData.specialInstructions,
-                                    segments,
-                                  }),
-                                }
-                              );
+                              const { url } = await apartmentBookingService.createCheckoutSession({
+                                guestName: bookingData.guestName,
+                                guestEmail: bookingData.guestEmail,
+                                guestPhone: bookingData.guestPhone,
+                                guestCount: bookingData.guestCount,
+                                specialInstructions: bookingData.specialInstructions,
+                                segments,
+                              });
 
-                              if (!response.ok) {
-                                throw new Error('Failed to create checkout session');
-                              }
-
-                              const { url } = await response.json();
                               window.location.href = url;
                             } catch (error) {
                               console.error('Error creating checkout:', error);
