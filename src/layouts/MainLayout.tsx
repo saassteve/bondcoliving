@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, Book, Home, Coffee, ArrowRight, Instagram, Mail, MapPin, Building2 } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import PromotionBanner from '../components/PromotionBanner';
@@ -8,6 +8,7 @@ const MainLayout: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const closeMenu = () => setIsMenuOpen(false);
@@ -40,17 +41,22 @@ const MainLayout: React.FC = () => {
     { name: 'Coworking', path: '/coworking', icon: Coffee },
   ];
 
-  const handleFAQClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (location.pathname !== '/') {
-      window.location.href = '/#faq';
-      return;
-    }
+  const scrollToFaq = () => {
     const faqSection = document.getElementById('faq');
     if (faqSection) {
       faqSection.scrollIntoView({ behavior: 'smooth' });
     }
+  };
+
+  const handleFAQClick = (e: React.MouseEvent) => {
+    e.preventDefault();
     closeMenu();
+    if (location.pathname !== '/') {
+      navigate('/');
+      setTimeout(scrollToFaq, 100);
+    } else {
+      scrollToFaq();
+    }
   };
 
   return (
