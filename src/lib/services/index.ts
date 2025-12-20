@@ -44,3 +44,8 @@ export {
   ICalService,
   icalService
 } from './ical'
+
+export {
+  ICalExportService,
+  icalExportService
+} from './icalExport'

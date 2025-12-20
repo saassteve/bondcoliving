@@ -245,7 +245,7 @@ const BookingTimeline: React.FC<BookingTimelineProps> = ({
                   <div className="flex">
                     {/* Apartment Name Column - Sticky horizontally */}
                     <div
-                      className="sticky left-0 z-10 border-r border-slate-600 p-4 bg-slate-800 flex flex-col justify-center hover:bg-slate-700 transition-colors"
+                      className="sticky left-0 z-30 border-r border-slate-600 p-4 bg-slate-800 flex flex-col justify-center hover:bg-slate-700 transition-colors"
                       style={{ width: `${apartmentColumnWidth}px`, minWidth: `${apartmentColumnWidth}px` }}
                     >
                       <div className="text-sm font-semibold text-white truncate" title={apartment.title}>

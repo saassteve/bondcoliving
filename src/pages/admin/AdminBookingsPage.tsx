@@ -303,13 +303,15 @@ const AdminBookingsPage: React.FC = () => {
 
   const previousTimelinePeriod = () => {
     const newDate = new Date(timelineStartDate);
-    newDate.setDate(newDate.getDate() - timelineDays);
+    newDate.setDate(1);
+    newDate.setMonth(newDate.getMonth() - 1);
     setTimelineStartDate(newDate);
   };
 
   const nextTimelinePeriod = () => {
     const newDate = new Date(timelineStartDate);
-    newDate.setDate(newDate.getDate() + timelineDays);
+    newDate.setDate(1);
+    newDate.setMonth(newDate.getMonth() + 1);
     setTimelineStartDate(newDate);
   };
 

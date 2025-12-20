@@ -117,6 +117,15 @@ export interface ApartmentICalFeed {
   created_at?: string
 }
 
+export interface ApartmentICalExport {
+  id: string
+  apartment_id: string
+  export_token: string
+  is_active?: boolean
+  created_at?: string
+  updated_at?: string
+}
+
 export interface Booking {
   id: string
   apartment_id: string

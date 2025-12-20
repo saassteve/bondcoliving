@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, RefreshCw, Calendar, ExternalLink, AlertCircle } from 'lucide-react';
-import { icalService, apartmentService, type ApartmentICalFeed, type Apartment } from '../../lib/supabase';
+import { Plus, Trash2, RefreshCw, Calendar, ExternalLink, AlertCircle, Copy, Check } from 'lucide-react';
+import { icalService, icalExportService, apartmentService, type ApartmentICalFeed, type Apartment } from '../../lib/supabase';
 
 const ICalManager: React.FC = () => {
   const [feeds, setFeeds] = useState<ApartmentICalFeed[]>([]);
@@ -16,6 +16,8 @@ const ICalManager: React.FC = () => {
   });
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [exportUrls, setExportUrls] = useState<Record<string, string>>({});
+  const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -30,12 +32,35 @@ const ICalManager: React.FC = () => {
       ]);
       setFeeds(feedsData);
       setApartments(apartmentsData);
+
+      if (apartmentsData.length > 0) {
+        fetchExportUrls(apartmentsData);
+      }
     } catch (err) {
       setError('Failed to load iCal feeds');
       console.error('Error fetching data:', err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchExportUrls = async (apartmentList: Apartment[]) => {
+    const urls: Record<string, string> = {};
+    for (const apartment of apartmentList) {
+      try {
+        const url = await icalExportService.getExportUrl(apartment.id);
+        if (url) urls[apartment.id] = url;
+      } catch (error) {
+        console.error(`Error fetching export URL for ${apartment.id}:`, error);
+      }
+    }
+    setExportUrls(urls);
+  };
+
+  const copyToClipboard = async (url: string, apartmentId: string) => {
+    await navigator.clipboard.writeText(url);
+    setCopiedUrl(apartmentId);
+    setTimeout(() => setCopiedUrl(null), 2000);
   };
 
   const handleAddFeed = async (e: React.FormEvent) => {
@@ -365,6 +390,55 @@ const ICalManager: React.FC = () => {
             </button>
           </div>
         )}
+      </div>
+
+      <div className="admin-card p-6 mt-8">
+        <h2 className="text-2xl font-bold text-white mb-2">Export Calendars to External Platforms</h2>
+        <p className="text-slate-300 mb-6">
+          Share your Bond booking calendars with external platforms (Airbnb, Booking.com, VRBO, etc.) to automatically block dates and prevent double bookings.
+        </p>
+
+        <div className="space-y-4">
+          {apartments.map((apartment) => (
+            <div key={apartment.id} className="p-4 bg-slate-800 rounded-lg border border-slate-700">
+              <h3 className="text-lg font-semibold text-white mb-3">{apartment.title}</h3>
+
+              {exportUrls[apartment.id] ? (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={exportUrls[apartment.id]}
+                      readOnly
+                      className="flex-1 px-3 py-2 bg-slate-900 border border-slate-600 rounded text-sm text-slate-300 font-mono"
+                    />
+                    <button
+                      onClick={() => copyToClipboard(exportUrls[apartment.id], apartment.id)}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded flex items-center gap-2 transition-colors"
+                    >
+                      {copiedUrl === apartment.id ? (
+                        <>
+                          <Check className="w-4 h-4" />
+                          Copied!
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-4 h-4" />
+                          Copy
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  <p className="text-xs text-slate-400">
+                    Use this URL to import Bond bookings into other platforms. The calendar includes all confirmed bookings and manual blocks.
+                  </p>
+                </div>
+              ) : (
+                <div className="text-sm text-slate-400">Loading export URL...</div>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
