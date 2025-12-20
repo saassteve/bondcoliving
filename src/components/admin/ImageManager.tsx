@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, X, Star, StarOff, Trash2, GripVertical, Save } from 'lucide-react';
-import { apartmentService, type ApartmentImage } from '../../lib/supabase';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, Star, Trash2, GripVertical, Save, Upload, Loader2 } from 'lucide-react';
+import { apartmentService, storageService, type ApartmentImage } from '../../lib/supabase';
 
 interface ImageManagerProps {
   apartmentId: string;
@@ -10,11 +10,13 @@ interface ImageManagerProps {
 const ImageManager: React.FC<ImageManagerProps> = ({ apartmentId, onClose }) => {
   const [images, setImages] = useState<ApartmentImage[]>([]);
   const [loading, setLoading] = useState(true);
-  const [newImageUrl, setNewImageUrl] = useState('');
-  const [isAdding, setIsAdding] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDraggingFile, setIsDraggingFile] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchImages();
@@ -31,26 +33,55 @@ const ImageManager: React.FC<ImageManagerProps> = ({ apartmentId, onClose }) => 
     }
   };
 
-  const handleAddImage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newImageUrl.trim()) return;
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      await handleUploadFiles(Array.from(files));
+    }
+  };
 
-    setIsAdding(true);
-    try {
-      await apartmentService.addImage({
-        apartment_id: apartmentId,
-        image_url: newImageUrl.trim(),
-        is_featured: images.length === 0, // First image is featured by default
-        sort_order: images.length
-      });
-      
-      setNewImageUrl('');
-      await fetchImages();
-    } catch (error) {
-      console.error('Error adding image:', error);
-      alert('Failed to add image');
-    } finally {
-      setIsAdding(false);
+  const handleFileDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingFile(false);
+
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+    if (files.length > 0) {
+      await handleUploadFiles(files);
+    }
+  };
+
+  const handleUploadFiles = async (files: File[]) => {
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    let completed = 0;
+    const totalFiles = files.length;
+
+    for (const file of files) {
+      try {
+        const result = await storageService.uploadImage(file, 'apartments');
+
+        await apartmentService.addImage({
+          apartment_id: apartmentId,
+          image_url: result.url,
+          is_featured: images.length === 0 && completed === 0,
+          sort_order: images.length + completed
+        });
+
+        completed++;
+        setUploadProgress(Math.round((completed / totalFiles) * 100));
+      } catch (error) {
+        console.error('Error uploading image:', error);
+      }
+    }
+
+    await fetchImages();
+    setIsUploading(false);
+    setUploadProgress(0);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -131,10 +162,15 @@ const ImageManager: React.FC<ImageManagerProps> = ({ apartmentId, onClose }) => 
     }
   };
 
-  const handleDeleteImage = async (imageId: string) => {
+  const handleDeleteImage = async (imageId: string, imageUrl: string) => {
     if (!window.confirm('Are you sure you want to delete this image?')) return;
 
     try {
+      const path = storageService.getPathFromUrl(imageUrl);
+      if (path) {
+        await storageService.deleteImage(path);
+      }
+
       await apartmentService.deleteImage(imageId);
       await fetchImages();
     } catch (error) {
@@ -180,30 +216,43 @@ const ImageManager: React.FC<ImageManagerProps> = ({ apartmentId, onClose }) => 
           </div>
         </div>
 
-        {/* Add new image form */}
-        <form onSubmit={handleAddImage} className="mb-6 p-4 bg-gray-50 rounded-lg">
-          <label className="block text-sm font-medium text-gray-300 mb-2">
-            Add New Image
-          </label>
-          <div className="flex gap-2">
-            <input
-              type="url"
-              value={newImageUrl}
-              onChange={(e) => setNewImageUrl(e.target.value)}
-              placeholder="Enter image URL..."
-              className="flex-1 px-3 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              required
-            />
-            <button
-              type="submit"
-              disabled={isAdding}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              {isAdding ? 'Adding...' : 'Add'}
-            </button>
+        {/* Upload area */}
+        <div
+          onClick={() => fileInputRef.current?.click()}
+          onDragOver={(e) => { e.preventDefault(); setIsDraggingFile(true); }}
+          onDragLeave={(e) => { e.preventDefault(); setIsDraggingFile(false); }}
+          onDrop={handleFileDrop}
+          className={`
+            mb-6 p-6 border-2 border-dashed rounded-lg cursor-pointer transition-all
+            ${isDraggingFile ? 'border-blue-500 bg-blue-500/10' : 'border-gray-600 hover:border-gray-500 hover:bg-gray-700/50'}
+          `}
+        >
+          <div className="flex flex-col items-center justify-center">
+            {isUploading ? (
+              <>
+                <Loader2 className="w-10 h-10 text-gray-400 animate-spin mb-3" />
+                <span className="text-sm text-gray-300">Uploading... {uploadProgress}%</span>
+              </>
+            ) : (
+              <>
+                <Upload className="w-10 h-10 text-gray-400 mb-3" />
+                <span className="text-sm text-gray-300 font-medium mb-1">
+                  Drop images here or click to upload
+                </span>
+                <span className="text-xs text-gray-500">JPG, PNG, WebP or GIF (max 5MB each)</span>
+              </>
+            )}
           </div>
-        </form>
+        </div>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          multiple
+          onChange={handleFileSelect}
+          className="hidden"
+        />
 
         {/* Images grid */}
         {images.length === 0 ? (
@@ -287,7 +336,7 @@ const ImageManager: React.FC<ImageManagerProps> = ({ apartmentId, onClose }) => 
                     )}
                     
                     <button
-                      onClick={() => handleDeleteImage(image.id)}
+                      onClick={() => handleDeleteImage(image.id, image.image_url)}
                       className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors"
                       title="Delete image"
                     >

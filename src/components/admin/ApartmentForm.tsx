@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { buildingService } from '../../lib/services';
 import type { Building } from '../../lib/services/types';
+import ImageUploader from './ImageUploader';
 
 interface Apartment {
   id: string;
@@ -108,12 +109,6 @@ const ApartmentForm: React.FC<ApartmentFormProps> = ({
       newErrors.available_until = 'Available until date must be after available from date';
     }
 
-    // Validate image URL format
-    try {
-      new URL(formData.image_url);
-    } catch {
-      newErrors.image_url = 'Please enter a valid URL';
-    }
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -375,25 +370,20 @@ const ApartmentForm: React.FC<ApartmentFormProps> = ({
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
-              Main Image URL
-            </label>
-            <input
-              type="url"
-              name="image_url"
-              value={formData.image_url}
-              onChange={handleChange}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                errors.image_url ? 'border-red-300' : 'border-gray-600'
-              }`}
-              required
-            />
-            {errors.image_url && <p className="mt-1 text-sm text-red-600">{errors.image_url}</p>}
-            <p className="text-sm text-gray-500 mt-1">
-              This will be used as the default image. You can add more images after creating the apartment.
-            </p>
-          </div>
+          <ImageUploader
+            folder="apartments"
+            currentImageUrl={formData.image_url}
+            onUploadComplete={(url) => {
+              setFormData(prev => ({ ...prev, image_url: url }));
+              if (errors.image_url) {
+                setErrors(prev => ({ ...prev, image_url: '' }));
+              }
+            }}
+            onRemove={() => setFormData(prev => ({ ...prev, image_url: '' }))}
+            label="Main Image"
+            hint="This will be the primary image. Add more images after creating the apartment."
+          />
+          {errors.image_url && <p className="mt-1 text-sm text-red-600">{errors.image_url}</p>}
 
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-1">

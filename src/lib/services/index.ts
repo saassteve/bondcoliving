@@ -61,3 +61,9 @@ export {
 export {
   communicationsService
 } from './communications'
+
+export {
+  storageService,
+  type ImageFolder,
+  type UploadResult
+} from './storage'

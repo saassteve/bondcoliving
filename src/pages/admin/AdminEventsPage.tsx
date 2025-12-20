@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Calendar, Plus, Edit2, Trash2, Eye, EyeOff, Users, MapPin } from 'lucide-react';
+import ImageUploader from '../../components/admin/ImageUploader';
 
 interface Event {
   id: string;
@@ -403,34 +404,28 @@ export default function AdminEventsPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Max Attendees (Optional)
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.max_attendees}
-                    onChange={(e) => setFormData({ ...formData, max_attendees: e.target.value })}
-                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    placeholder="Unlimited"
-                    min="1"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Image URL (Optional)
-                  </label>
-                  <input
-                    type="url"
-                    value={formData.image_url}
-                    onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    placeholder="https://..."
-                  />
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Max Attendees (Optional)
+                </label>
+                <input
+                  type="number"
+                  value={formData.max_attendees}
+                  onChange={(e) => setFormData({ ...formData, max_attendees: e.target.value })}
+                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  placeholder="Unlimited"
+                  min="1"
+                />
               </div>
+
+              <ImageUploader
+                folder="events"
+                currentImageUrl={formData.image_url}
+                onUploadComplete={(url) => setFormData({ ...formData, image_url: url })}
+                onRemove={() => setFormData({ ...formData, image_url: '' })}
+                label="Event Image (Optional)"
+                hint="Upload an image to promote this event"
+              />
 
               <label className="flex items-center">
                 <input

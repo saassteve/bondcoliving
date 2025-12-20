@@ -1,19 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Trash, Edit, X, Check, Image as ImageIcon, MoveUp, MoveDown } from 'lucide-react';
-import { coworkingImageService, type CoworkingImage } from '../../lib/supabase';
+import React, { useState, useEffect, useRef } from 'react';
+import { Trash, Edit, X, Check, Image as ImageIcon, MoveUp, MoveDown, Upload, Loader2 } from 'lucide-react';
+import { coworkingImageService, storageService, type CoworkingImage } from '../../lib/supabase';
 
 const CoworkingImageManager: React.FC = () => {
   const [images, setImages] = useState<CoworkingImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingImage, setEditingImage] = useState<CoworkingImage | null>(null);
-  const [isAdding, setIsAdding] = useState(false);
-  const [newImage, setNewImage] = useState({
-    image_url: '',
-    caption: '',
-    alt_text: '',
-    is_active: true,
-    sort_order: 0
-  });
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchImages();
@@ -32,29 +28,61 @@ const CoworkingImageManager: React.FC = () => {
     }
   };
 
-  const handleAdd = async () => {
-    try {
-      const maxSortOrder = images.length > 0
-        ? Math.max(...images.map(img => img.sort_order))
-        : -1;
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      await handleUploadFiles(Array.from(files));
+    }
+  };
 
-      await coworkingImageService.create({
-        ...newImage,
-        sort_order: maxSortOrder + 1
-      });
+  const handleFileDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
 
-      setNewImage({
-        image_url: '',
-        caption: '',
-        alt_text: '',
-        is_active: true,
-        sort_order: 0
-      });
-      setIsAdding(false);
-      await fetchImages();
-    } catch (error) {
-      console.error('Error adding image:', error);
-      alert('Failed to add image');
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+    if (files.length > 0) {
+      await handleUploadFiles(files);
+    }
+  };
+
+  const handleUploadFiles = async (files: File[]) => {
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    const maxSortOrder = images.length > 0
+      ? Math.max(...images.map(img => img.sort_order))
+      : -1;
+
+    let completed = 0;
+    const totalFiles = files.length;
+
+    for (const file of files) {
+      try {
+        const result = await storageService.uploadImage(file, 'coworking');
+        const fileName = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+
+        await coworkingImageService.create({
+          image_url: result.url,
+          caption: '',
+          alt_text: fileName,
+          is_active: true,
+          sort_order: maxSortOrder + 1 + completed
+        });
+
+        completed++;
+        setUploadProgress(Math.round((completed / totalFiles) * 100));
+      } catch (error) {
+        console.error('Error uploading image:', error);
+      }
+    }
+
+    await fetchImages();
+    setIsUploading(false);
+    setUploadProgress(0);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -80,10 +108,15 @@ const CoworkingImageManager: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: string, imageUrl: string) => {
     if (!window.confirm('Are you sure you want to delete this image?')) return;
 
     try {
+      const path = storageService.getPathFromUrl(imageUrl);
+      if (path) {
+        await storageService.deleteImage(path);
+      }
+
       await coworkingImageService.delete(id);
       await fetchImages();
     } catch (error) {
@@ -130,97 +163,45 @@ const CoworkingImageManager: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-100">Coworking Space Images</h2>
-        <button
-          onClick={() => setIsAdding(true)}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Image
-        </button>
       </div>
 
-      {isAdding && (
-        <div className="bg-gray-800 rounded-lg p-6 space-y-4">
-          <h3 className="text-lg font-semibold text-gray-100">Add New Image</h3>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Image URL (use UploadCare or external URL)
-            </label>
-            <input
-              type="text"
-              value={newImage.image_url}
-              onChange={(e) => setNewImage({ ...newImage, image_url: e.target.value })}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="https://ucarecdn.com/..."
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Alt Text (required for accessibility)
-            </label>
-            <input
-              type="text"
-              value={newImage.alt_text}
-              onChange={(e) => setNewImage({ ...newImage, alt_text: e.target.value })}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Description of the image"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Caption (optional)
-            </label>
-            <input
-              type="text"
-              value={newImage.caption}
-              onChange={(e) => setNewImage({ ...newImage, caption: e.target.value })}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Optional caption"
-            />
-          </div>
-
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              id="is-active"
-              checked={newImage.is_active}
-              onChange={(e) => setNewImage({ ...newImage, is_active: e.target.checked })}
-              className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
-            />
-            <label htmlFor="is-active" className="ml-2 text-sm text-gray-300">
-              Active (display on website)
-            </label>
-          </div>
-
-          <div className="flex gap-2">
-            <button
-              onClick={handleAdd}
-              disabled={!newImage.image_url || !newImage.alt_text}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Save
-            </button>
-            <button
-              onClick={() => {
-                setIsAdding(false);
-                setNewImage({
-                  image_url: '',
-                  caption: '',
-                  alt_text: '',
-                  is_active: true,
-                  sort_order: 0
-                });
-              }}
-              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-            >
-              Cancel
-            </button>
-          </div>
+      {/* Upload area */}
+      <div
+        onClick={() => fileInputRef.current?.click()}
+        onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+        onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
+        onDrop={handleFileDrop}
+        className={`
+          p-8 border-2 border-dashed rounded-lg cursor-pointer transition-all
+          ${isDragging ? 'border-blue-500 bg-blue-500/10' : 'border-gray-600 hover:border-gray-500 hover:bg-gray-700/50'}
+        `}
+      >
+        <div className="flex flex-col items-center justify-center">
+          {isUploading ? (
+            <>
+              <Loader2 className="w-12 h-12 text-gray-400 animate-spin mb-3" />
+              <span className="text-sm text-gray-300">Uploading... {uploadProgress}%</span>
+            </>
+          ) : (
+            <>
+              <Upload className="w-12 h-12 text-gray-400 mb-3" />
+              <span className="text-lg text-gray-300 font-medium mb-1">
+                Drop images here or click to upload
+              </span>
+              <span className="text-sm text-gray-500">JPG, PNG, WebP or GIF (max 5MB each)</span>
+            </>
+          )}
         </div>
-      )}
+      </div>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        multiple
+        onChange={handleFileSelect}
+        className="hidden"
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {images.map((image, index) => (
@@ -353,7 +334,7 @@ const CoworkingImageManager: React.FC = () => {
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => handleDelete(image.id)}
+                        onClick={() => handleDelete(image.id, image.image_url)}
                         className="p-1.5 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
                         title="Delete"
                       >
@@ -368,10 +349,10 @@ const CoworkingImageManager: React.FC = () => {
         ))}
       </div>
 
-      {images.length === 0 && !isAdding && (
+      {images.length === 0 && (
         <div className="text-center py-12 text-gray-400">
           <ImageIcon className="w-16 h-16 mx-auto mb-4 opacity-50" />
-          <p>No images yet. Add your first coworking space image!</p>
+          <p>No images yet. Upload your first coworking space image above!</p>
         </div>
       )}
     </div>

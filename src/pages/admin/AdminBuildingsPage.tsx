@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Plus, Edit, Trash2, MapPin, Building2, Clock, CalendarDays, X } from 'lucide-react';
-import { buildingService } from '../../lib/services';
+import { Plus, Edit, Trash2, MapPin, Building2, Clock, CalendarDays } from 'lucide-react';
+import { buildingService, storageService } from '../../lib/services';
 import type { Building } from '../../lib/services/types';
+import ImageUploader from '../../components/admin/ImageUploader';
+import MultiImageUploader from '../../components/admin/MultiImageUploader';
 
 const AdminBuildingsPage: React.FC = () => {
   const [buildings, setBuildings] = useState<Building[]>([]);
@@ -10,7 +12,6 @@ const AdminBuildingsPage: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingBuilding, setEditingBuilding] = useState<Building | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [newGalleryImage, setNewGalleryImage] = useState('');
   const [formData, setFormData] = useState({
     slug: '',
     name: '',
@@ -113,7 +114,6 @@ const AdminBuildingsPage: React.FC = () => {
   const resetForm = () => {
     setShowForm(false);
     setEditingBuilding(null);
-    setNewGalleryImage('');
     setFormData({
       slug: '',
       name: '',
@@ -131,23 +131,6 @@ const AdminBuildingsPage: React.FC = () => {
       gallery_images: [],
       sort_order: 0
     });
-  };
-
-  const addGalleryImage = () => {
-    if (newGalleryImage.trim()) {
-      setFormData(prev => ({
-        ...prev,
-        gallery_images: [...prev.gallery_images, newGalleryImage.trim()]
-      }));
-      setNewGalleryImage('');
-    }
-  };
-
-  const removeGalleryImage = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      gallery_images: prev.gallery_images.filter((_, i) => i !== index)
-    }));
   };
 
   if (loading) {
@@ -418,73 +401,32 @@ const AdminBuildingsPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Hero Image URL
-                  </label>
-                  <input
-                    type="url"
-                    value={formData.hero_image_url}
-                    onChange={(e) => setFormData({ ...formData, hero_image_url: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    placeholder="https://..."
-                  />
-                </div>
+                <ImageUploader
+                  folder="buildings"
+                  currentImageUrl={formData.hero_image_url}
+                  onUploadComplete={(url) => setFormData({ ...formData, hero_image_url: url })}
+                  onRemove={() => setFormData({ ...formData, hero_image_url: '' })}
+                  label="Hero Image"
+                  hint="Main banner image for the building page"
+                />
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Gallery Images
-                  </label>
-                  <div className="flex gap-2 mb-2">
-                    <input
-                      type="url"
-                      value={newGalleryImage}
-                      onChange={(e) => setNewGalleryImage(e.target.value)}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      placeholder="Add image URL"
-                    />
-                    <button
-                      type="button"
-                      onClick={addGalleryImage}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                    >
-                      Add
-                    </button>
-                  </div>
-                  {formData.gallery_images.length > 0 && (
-                    <div className="grid grid-cols-3 gap-2">
-                      {formData.gallery_images.map((url, index) => (
-                        <div key={index} className="relative group">
-                          <img
-                            src={url}
-                            alt={`Gallery ${index + 1}`}
-                            className="w-full h-20 object-cover rounded"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeGalleryImage(index)}
-                            className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                <MultiImageUploader
+                  folder="buildings"
+                  images={formData.gallery_images}
+                  onImagesChange={(urls) => setFormData({ ...formData, gallery_images: urls })}
+                  maxImages={12}
+                  label="Gallery Images"
+                  hint="Additional photos showcasing the building"
+                />
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Card Image URL (legacy)
-                  </label>
-                  <input
-                    type="url"
-                    value={formData.image_url}
-                    onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    placeholder="https://..."
-                  />
-                </div>
+                <ImageUploader
+                  folder="buildings"
+                  currentImageUrl={formData.image_url}
+                  onUploadComplete={(url) => setFormData({ ...formData, image_url: url })}
+                  onRemove={() => setFormData({ ...formData, image_url: '' })}
+                  label="Card Thumbnail"
+                  hint="Image shown on building cards and previews"
+                />
 
                 <div className="flex justify-end gap-3 pt-4">
                   <button
