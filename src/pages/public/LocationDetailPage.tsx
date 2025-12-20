@@ -276,7 +276,7 @@ const LocationDetailPage: React.FC = () => {
                         {apartments.slice(0, 4).map((apartment) => (
                           <Link
                             key={apartment.id}
-                            to={`/book`}
+                            to={`/room/${apartmentService.generateSlug(apartment.title)}`}
                             className="group bg-[#C5C5B5]/5 rounded-xl border border-[#C5C5B5]/10 overflow-hidden hover:border-[#C5C5B5]/30 transition-all"
                           >
                             <div className="aspect-[16/10] overflow-hidden">
