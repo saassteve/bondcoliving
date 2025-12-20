@@ -14,8 +14,7 @@ export class ICalExportService {
     if (!data) return null
 
     const baseUrl = import.meta.env.VITE_SUPABASE_URL
-    // Add .ics extension for compatibility with booking platforms (Airbnb, Booking.com, etc.)
-    return `${baseUrl}/functions/v1/export-ical.ics?token=${data}`
+    return `${baseUrl}/functions/v1/ical/calendar.ics?token=${data}`
   }
 
   static async regenerateToken(apartmentId: string): Promise<string> {
