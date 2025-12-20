@@ -13,6 +13,9 @@ Deno.serve(async (req: Request) => {
 
   try {
     const url = new URL(req.url);
+
+    // Support both /export-ical?token=X and /export-ical.ics?token=X
+    // This ensures compatibility with booking platforms that require .ics extension
     const token = url.searchParams.get("token");
 
     if (!token) {
