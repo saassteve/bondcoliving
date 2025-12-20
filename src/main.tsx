@@ -49,6 +49,7 @@ import AdminLocalInfoPage from './pages/admin/AdminLocalInfoPage';
 import AdminServicesPage from './pages/admin/AdminServicesPage';
 import AdminMessagesPage from './pages/admin/AdminMessagesPage';
 import AdminOperationsPage from './pages/admin/AdminOperationsPage';
+import AdminCommunicationsPage from './pages/admin/AdminCommunicationsPage';
 import AdminForgotPasswordPage from './pages/admin/AdminForgotPasswordPage';
 import AdminResetPasswordPage from './pages/admin/AdminResetPasswordPage';
 
@@ -129,6 +130,7 @@ const App = () => {
             <Route path="services" element={<ProtectedRoute><AdminServicesPage /></ProtectedRoute>} />
             <Route path="messages" element={<ProtectedRoute><AdminMessagesPage /></ProtectedRoute>} />
             <Route path="operations" element={<ProtectedRoute><AdminOperationsPage /></ProtectedRoute>} />
+            <Route path="communications" element={<ProtectedRoute><AdminCommunicationsPage /></ProtectedRoute>} />
             <Route path="promotions" element={<ProtectedRoute><AdminPromotionsPage /></ProtectedRoute>} />
             <Route path="account" element={<ProtectedRoute><AdminAccountPage /></ProtectedRoute>} />
             {/* Admin catch-all */}

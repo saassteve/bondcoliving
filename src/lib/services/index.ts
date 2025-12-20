@@ -57,3 +57,7 @@ export {
 export {
   operationsService
 } from './operations'
+
+export {
+  communicationsService
+} from './communications'

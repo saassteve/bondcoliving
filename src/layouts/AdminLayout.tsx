@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { Menu, X, Home, Building, Coffee, LogOut, LayoutDashboard, Settings, Calendar, CalendarCheck, Megaphone, UserCheck, Bell, PartyPopper, MapPin, Wrench, MessageSquare, ChevronDown, ChevronRight } from 'lucide-react';
+import { Menu, X, Home, Building, Coffee, LogOut, LayoutDashboard, Settings, Calendar, CalendarCheck, Megaphone, UserCheck, Bell, PartyPopper, MapPin, Wrench, MessageSquare, Mail, ChevronDown, ChevronRight } from 'lucide-react';
 import { authService, useAuth } from '../lib/auth';
 
 interface NavItem {
@@ -57,6 +57,7 @@ const AdminLayout: React.FC = () => {
     { name: 'iCal Sync', path: '/admin/ical', icon: CalendarCheck },
     { name: 'Coworking', path: '/admin/coworking', icon: Coffee },
     { name: 'Operations', path: '/admin/operations', icon: Wrench },
+    { name: 'Communications', path: '/admin/communications', icon: Mail },
     {
       name: 'Guest Platform',
       icon: UserCheck,
