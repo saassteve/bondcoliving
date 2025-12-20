@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
-import { Building, Coffee, Calendar, Clock, DollarSign } from 'lucide-react';
-import { apartmentService, reviewService, featureHighlightService, bookingService, type Booking } from '../../lib/supabase';
+import { Building, Coffee, Calendar, Clock, DollarSign, TrendingUp, TrendingDown, Activity, AlertTriangle, CheckCircle2, Wrench } from 'lucide-react';
+import { apartmentService, reviewService, featureHighlightService, bookingService, analyticsService, operationsService, type Booking } from '../../lib/services';
+import SimpleLineChart from '../../components/admin/SimpleLineChart';
+import SimpleBarChart from '../../components/admin/SimpleBarChart';
 
 const AdminDashboardPage: React.FC = () => {
   const [stats, setStats] = useState({
@@ -16,6 +18,11 @@ const AdminDashboardPage: React.FC = () => {
     upcomingCheckIns: 0,
     monthlyRevenue: 0,
   });
+  const [analyticsStats, setAnalyticsStats] = useState<any>(null);
+  const [revenueTrends, setRevenueTrends] = useState<any[]>([]);
+  const [revenueBySource, setRevenueBySource] = useState<any[]>([]);
+  const [upcomingCleanings, setUpcomingCleanings] = useState<any[]>([]);
+  const [urgentMaintenance, setUrgentMaintenance] = useState<any[]>([]);
   const [recentBookings, setRecentBookings] = useState<Booking[]>([]);
   const [upcomingBookings, setUpcomingBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,12 +36,23 @@ const AdminDashboardPage: React.FC = () => {
       setLoading(true);
 
       // Fetch all data in parallel
-      const [apartments, reviews, features, bookings] = await Promise.all([
+      const [apartments, reviews, features, bookings, analytics, trends, sources, cleanings, maintenance] = await Promise.all([
         apartmentService.getAll(),
         reviewService.getFeatured(),
         featureHighlightService.getActive(),
         bookingService.getAll(),
+        analyticsService.getDashboardStats().catch(() => null),
+        analyticsService.getRevenueTrends(30).catch(() => []),
+        analyticsService.getRevenueBySource(30).catch(() => []),
+        operationsService.getUpcomingCleanings(7).catch(() => []),
+        operationsService.getUrgentMaintenanceRequests().catch(() => []),
       ]);
+
+      setAnalyticsStats(analytics);
+      setRevenueTrends(trends);
+      setRevenueBySource(sources);
+      setUpcomingCleanings(cleanings);
+      setUrgentMaintenance(maintenance);
 
       // Calculate stats
       const availableApartments = apartments.filter(apt => apt.status === 'available').length;
@@ -347,7 +365,7 @@ const AdminDashboardPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Quick Stats */}
           <div className="bg-slate-800 rounded-lg shadow-sm p-6 border border-slate-700">
             <div className="flex justify-between items-center mb-4">
@@ -358,19 +376,34 @@ const AdminDashboardPage: React.FC = () => {
               <div className="flex justify-between items-center">
                 <span className="text-sm text-slate-300 font-medium">Occupancy Rate</span>
                 <span className="text-sm font-semibold text-slate-100">
-                  {stats.totalApartments > 0
-                    ? Math.round(((stats.totalApartments - stats.availableApartments) / stats.totalApartments) * 100)
-                    : 0
-                  }%
+                  {analyticsStats ? `${analyticsStats.occupancyRate.toFixed(1)}%` :
+                    stats.totalApartments > 0
+                      ? `${Math.round(((stats.totalApartments - stats.availableApartments) / stats.totalApartments) * 100)}%`
+                      : '0%'
+                  }
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-slate-300 font-medium">Total Bookings</span>
-                <span className="text-sm font-semibold text-slate-100">{stats.totalBookings}</span>
+                <span className="text-sm text-slate-300 font-medium">Average Booking Value</span>
+                <span className="text-sm font-semibold text-slate-100">
+                  {analyticsStats ? `€${analyticsStats.averageBookingValue.toFixed(0)}` : '€0'}
+                </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-slate-300 font-medium">Average Response Time</span>
-                <span className="text-sm font-semibold text-slate-100">{"< 24 hours"}</span>
+                <span className="text-sm text-slate-300 font-medium">Revenue Growth</span>
+                <div className="flex items-center gap-2">
+                  {analyticsStats && analyticsStats.revenueGrowth !== 0 && (
+                    analyticsStats.revenueGrowth > 0 ?
+                      <TrendingUp className="w-4 h-4 text-green-400" /> :
+                      <TrendingDown className="w-4 h-4 text-red-400" />
+                  )}
+                  <span className={`text-sm font-semibold ${
+                    analyticsStats && analyticsStats.revenueGrowth > 0 ? 'text-green-400' :
+                    analyticsStats && analyticsStats.revenueGrowth < 0 ? 'text-red-400' : 'text-slate-100'
+                  }`}>
+                    {analyticsStats ? `${analyticsStats.revenueGrowth > 0 ? '+' : ''}${analyticsStats.revenueGrowth.toFixed(1)}%` : '0%'}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -381,11 +414,15 @@ const AdminDashboardPage: React.FC = () => {
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-slate-300 font-medium">Monthly Revenue</span>
-                <span className="text-sm font-semibold text-slate-100">€{stats.monthlyRevenue.toLocaleString()}</span>
+                <span className="text-sm font-semibold text-slate-100">
+                  €{analyticsStats ? analyticsStats.monthlyRevenue.toLocaleString() : stats.monthlyRevenue.toLocaleString()}
+                </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-slate-300 font-medium">Active Bookings</span>
-                <span className="text-sm font-semibold text-slate-100">{stats.confirmedBookings + stats.checkedInBookings}</span>
+                <span className="text-sm font-semibold text-slate-100">
+                  {analyticsStats ? analyticsStats.activeBookings : (stats.confirmedBookings + stats.checkedInBookings)}
+                </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-slate-300 font-medium">Check-ins This Week</span>
@@ -394,6 +431,139 @@ const AdminDashboardPage: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Revenue Trends */}
+          <div className="bg-slate-800 rounded-lg shadow-sm p-6 border border-slate-700">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-slate-100">Revenue Trends (30 Days)</h2>
+              <Activity className="w-5 h-5 text-indigo-400" />
+            </div>
+            {revenueTrends.length > 0 ? (
+              <SimpleLineChart
+                data={revenueTrends.map(t => ({
+                  label: new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                  value: t.revenue
+                }))}
+                height={200}
+                color="#6366f1"
+              />
+            ) : (
+              <div className="h-48 flex items-center justify-center text-slate-400 text-sm">
+                No revenue data available yet
+              </div>
+            )}
+          </div>
+
+          {/* Revenue by Source */}
+          <div className="bg-slate-800 rounded-lg shadow-sm p-6 border border-slate-700">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-slate-100">Revenue by Source</h2>
+              <DollarSign className="w-5 h-5 text-green-400" />
+            </div>
+            {revenueBySource.length > 0 ? (
+              <SimpleBarChart
+                data={revenueBySource.slice(0, 5).map(s => ({
+                  label: s.source.charAt(0).toUpperCase() + s.source.slice(1),
+                  value: s.amount,
+                  color: s.source === 'direct' ? '#10b981' : s.source === 'airbnb' ? '#f43f5e' : '#6366f1'
+                }))}
+                height={200}
+                showValues={true}
+              />
+            ) : (
+              <div className="h-48 flex items-center justify-center text-slate-400 text-sm">
+                No source data available yet
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Operations Alerts */}
+        {(upcomingCleanings.length > 0 || urgentMaintenance.length > 0) && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            {/* Upcoming Cleanings */}
+            {upcomingCleanings.length > 0 && (
+              <div className="bg-slate-800 rounded-lg shadow-sm p-6 border border-slate-700">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-5 h-5 text-blue-400" />
+                    <h2 className="text-lg font-semibold text-slate-100">Upcoming Cleanings</h2>
+                  </div>
+                  <span className="text-sm bg-blue-900/50 text-blue-300 px-2 py-1 rounded-full">
+                    {upcomingCleanings.length}
+                  </span>
+                </div>
+                <div className="space-y-3 max-h-64 overflow-y-auto">
+                  {upcomingCleanings.slice(0, 5).map((cleaning) => (
+                    <div key={cleaning.id} className="flex items-start justify-between p-3 bg-slate-700 rounded-lg">
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-slate-100">
+                          {cleaning.apartments?.title || 'Unknown Apartment'}
+                        </div>
+                        <div className="text-xs text-slate-400 mt-1">
+                          {new Date(cleaning.scheduled_date).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </div>
+                      </div>
+                      <span className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ml-2 ${
+                        cleaning.priority === 'urgent' ? 'bg-red-900/50 text-red-300' :
+                        cleaning.priority === 'high' ? 'bg-orange-900/50 text-orange-300' :
+                        'bg-gray-700 text-gray-300'
+                      }`}>
+                        {cleaning.priority}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <Link to="/admin/operations" className="mt-4 block text-center text-sm text-indigo-400 hover:text-indigo-300">
+                  View all cleaning schedules →
+                </Link>
+              </div>
+            )}
+
+            {/* Urgent Maintenance */}
+            {urgentMaintenance.length > 0 && (
+              <div className="bg-slate-800 rounded-lg shadow-sm p-6 border border-slate-700">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Wrench className="w-5 h-5 text-red-400" />
+                    <h2 className="text-lg font-semibold text-slate-100">Urgent Maintenance</h2>
+                  </div>
+                  <span className="text-sm bg-red-900/50 text-red-300 px-2 py-1 rounded-full">
+                    {urgentMaintenance.length}
+                  </span>
+                </div>
+                <div className="space-y-3 max-h-64 overflow-y-auto">
+                  {urgentMaintenance.slice(0, 5).map((request) => (
+                    <div key={request.id} className="flex items-start justify-between p-3 bg-slate-700 rounded-lg">
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-slate-100">{request.title}</div>
+                        <div className="text-xs text-slate-400 mt-1">
+                          {request.apartments?.title || request.buildings?.name || 'General'}
+                        </div>
+                      </div>
+                      <span className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ml-2 ${
+                        request.priority === 'urgent' ? 'bg-red-900/50 text-red-300' :
+                        'bg-orange-900/50 text-orange-300'
+                      }`}>
+                        {request.priority}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <Link to="/admin/operations" className="mt-4 block text-center text-sm text-indigo-400 hover:text-indigo-300">
+                  View all maintenance requests →
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </>
   );

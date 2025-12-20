@@ -49,3 +49,11 @@ export {
   ICalExportService,
   icalExportService
 } from './icalExport'
+
+export {
+  analyticsService
+} from './analytics'
+
+export {
+  operationsService
+} from './operations'
