@@ -16,10 +16,12 @@ Deno.serve(async (req: Request) => {
 
   try {
     const url = new URL(req.url);
-    const token = url.searchParams.get("token");
+    const pathParts = url.pathname.split("/");
+    const lastPart = pathParts[pathParts.length - 1];
+    const token = lastPart.endsWith(".ics") ? lastPart.slice(0, -4) : url.searchParams.get("token");
 
     if (!token) {
-      return new Response("Missing token parameter", {
+      return new Response("Missing token - use /ical/{token}.ics format", {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "text/plain" },
       });

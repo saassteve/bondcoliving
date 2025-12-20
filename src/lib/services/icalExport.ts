@@ -14,7 +14,7 @@ export class ICalExportService {
     if (!data) return null
 
     const baseUrl = import.meta.env.VITE_SUPABASE_URL
-    return `${baseUrl}/functions/v1/ical/calendar.ics?token=${data}`
+    return `${baseUrl}/functions/v1/ical/${data}.ics`
   }
 
   static async regenerateToken(apartmentId: string): Promise<string> {
