@@ -137,8 +137,8 @@ const AdminBuildingsPage: React.FC = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-          <p className="mt-4 text-gray-600">Loading buildings...</p>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500"></div>
+          <p className="mt-4 text-gray-400">Loading buildings...</p>
         </div>
       </div>
     );
@@ -152,10 +152,10 @@ const AdminBuildingsPage: React.FC = () => {
 
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-800">Buildings Management</h1>
+          <h1 className="text-3xl font-bold text-white">Buildings Management</h1>
           <button
             onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+            className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
           >
             <Plus className="w-5 h-5" />
             Add Building
@@ -163,33 +163,33 @@ const AdminBuildingsPage: React.FC = () => {
         </div>
 
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          <div className="bg-red-900/50 border border-red-500 text-red-300 px-4 py-3 rounded mb-4">
             {error}
           </div>
         )}
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {buildings.map((building) => (
-            <div key={building.id} className="bg-white rounded-lg shadow-md p-6">
+            <div key={building.id} className="bg-gray-800 rounded-lg shadow-md p-6 border border-gray-700">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <Building2 className="w-5 h-5 text-blue-600" />
-                  <h3 className="font-semibold text-lg">{building.name}</h3>
+                  <Building2 className="w-5 h-5 text-indigo-400" />
+                  <h3 className="font-semibold text-lg text-white">{building.name}</h3>
                 </div>
                 <div className="flex gap-2">
                   {building.stay_type === 'short_term' ? (
-                    <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full flex items-center gap-1">
+                    <span className="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded-full flex items-center gap-1">
                       <Clock className="w-3 h-3" />
                       Short
                     </span>
                   ) : (
-                    <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full flex items-center gap-1">
+                    <span className="px-2 py-1 bg-green-900/50 text-green-300 text-xs rounded-full flex items-center gap-1">
                       <CalendarDays className="w-3 h-3" />
                       Monthly
                     </span>
                   )}
                   {building.status === 'coming_soon' && (
-                    <span className="px-2 py-1 bg-amber-100 text-amber-800 text-xs rounded-full">
+                    <span className="px-2 py-1 bg-amber-900/50 text-amber-300 text-xs rounded-full">
                       Coming Soon
                     </span>
                   )}
@@ -197,18 +197,18 @@ const AdminBuildingsPage: React.FC = () => {
               </div>
 
               <div className="space-y-2 mb-4">
-                <div className="flex items-start gap-2 text-sm text-gray-600">
+                <div className="flex items-start gap-2 text-sm text-gray-300">
                   <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
                   <span>{building.address}</span>
                 </div>
                 {building.tagline && (
-                  <p className="text-sm text-gray-500 italic">{building.tagline}</p>
+                  <p className="text-sm text-gray-400 italic">{building.tagline}</p>
                 )}
                 {building.description && (
-                  <p className="text-sm text-gray-600 line-clamp-2">{building.description}</p>
+                  <p className="text-sm text-gray-300 line-clamp-2">{building.description}</p>
                 )}
                 {building.has_on_site_coworking && (
-                  <span className="inline-block px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                  <span className="inline-block px-2 py-1 bg-green-900/50 text-green-300 text-xs rounded-full">
                     Coworking on-site
                   </span>
                 )}
@@ -217,7 +217,7 @@ const AdminBuildingsPage: React.FC = () => {
               <div className="flex gap-2">
                 <button
                   onClick={() => handleEdit(building)}
-                  className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700 transition-colors text-sm"
+                  className="flex-1 flex items-center justify-center gap-2 bg-indigo-600 text-white px-3 py-2 rounded hover:bg-indigo-700 transition-colors text-sm"
                 >
                   <Edit className="w-4 h-4" />
                   Edit
@@ -234,43 +234,44 @@ const AdminBuildingsPage: React.FC = () => {
         </div>
 
         {buildings.length === 0 && !loading && (
-          <div className="text-center py-12 text-gray-500">
-            <Building2 className="w-16 h-16 mx-auto mb-4 opacity-50" />
-            <p>No buildings found. Add your first building to get started.</p>
+          <div className="bg-gray-800 rounded-xl shadow-sm p-12 text-center border border-gray-700">
+            <Building2 className="w-16 h-16 mx-auto mb-4 text-gray-500" />
+            <h3 className="text-xl font-semibold text-white mb-2">No buildings yet</h3>
+            <p className="text-gray-400">Add your first building to get started.</p>
           </div>
         )}
 
         {showForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-              <h2 className="text-2xl font-bold mb-4">
+          <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
+            <div className="bg-gray-800 rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-gray-700">
+              <h2 className="text-2xl font-bold text-white mb-4">
                 {editingBuilding ? 'Edit Building' : 'Add New Building'}
               </h2>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
                       Building Name *
                     </label>
                     <input
                       type="text"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
                       Slug *
                     </label>
                     <input
                       type="text"
                       value={formData.slug}
                       onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent placeholder-gray-400"
                       placeholder="carreira, sao_joao, pretas"
                       required
                     />
@@ -278,52 +279,52 @@ const AdminBuildingsPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
                     Tagline
                   </label>
                   <input
                     type="text"
                     value={formData.tagline}
                     onChange={(e) => setFormData({ ...formData, tagline: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent placeholder-gray-400"
                     placeholder="Short marketing tagline"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
                     Address *
                   </label>
                   <input
                     type="text"
                     value={formData.address}
                     onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
                     Description
                   </label>
                   <textarea
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
                       Stay Type *
                     </label>
                     <select
                       value={formData.stay_type}
                       onChange={(e) => setFormData({ ...formData, stay_type: e.target.value as 'short_term' | 'long_term' })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     >
                       <option value="long_term">Long-term (Monthly)</option>
                       <option value="short_term">Short-term (Nightly)</option>
@@ -331,13 +332,13 @@ const AdminBuildingsPage: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
                       Status *
                     </label>
                     <select
                       value={formData.status}
                       onChange={(e) => setFormData({ ...formData, status: e.target.value as 'active' | 'coming_soon' })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     >
                       <option value="active">Active</option>
                       <option value="coming_soon">Coming Soon</option>
@@ -351,29 +352,29 @@ const AdminBuildingsPage: React.FC = () => {
                     id="has_coworking"
                     checked={formData.has_on_site_coworking}
                     onChange={(e) => setFormData({ ...formData, has_on_site_coworking: e.target.checked })}
-                    className="rounded"
+                    className="rounded bg-gray-700 border-gray-600 text-indigo-600 focus:ring-indigo-500"
                   />
-                  <label htmlFor="has_coworking" className="text-sm font-medium text-gray-700">
+                  <label htmlFor="has_coworking" className="text-sm font-medium text-gray-300">
                     Has On-site Coworking Space
                   </label>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
                     Check-in Instructions
                   </label>
                   <textarea
                     value={formData.check_in_instructions}
                     onChange={(e) => setFormData({ ...formData, check_in_instructions: e.target.value })}
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent placeholder-gray-400"
                     placeholder="Enter building-specific check-in details"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
                       Latitude
                     </label>
                     <input
@@ -381,13 +382,13 @@ const AdminBuildingsPage: React.FC = () => {
                       step="any"
                       value={formData.latitude}
                       onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent placeholder-gray-400"
                       placeholder="32.6500"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
                       Longitude
                     </label>
                     <input
@@ -395,7 +396,7 @@ const AdminBuildingsPage: React.FC = () => {
                       step="any"
                       value={formData.longitude}
                       onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent placeholder-gray-400"
                       placeholder="-16.9083"
                     />
                   </div>
@@ -432,13 +433,13 @@ const AdminBuildingsPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={resetForm}
-                    className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+                    className="px-4 py-2 text-gray-300 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
                   >
                     {editingBuilding ? 'Update' : 'Create'} Building
                   </button>
