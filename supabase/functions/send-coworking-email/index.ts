@@ -1,21 +1,13 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { Resend } from "npm:resend@3";
+import { handleCors } from "../_shared/cors.ts";
+import { jsonResponse, errorResponse } from "../_shared/response.ts";
 import { getEmailTemplate } from "./templates.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
-};
-
 Deno.serve(async (req: Request) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, {
-      status: 200,
-      headers: corsHeaders,
-    });
-  }
+  const corsResponse = handleCors(req);
+  if (corsResponse) return corsResponse;
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -24,16 +16,7 @@ Deno.serve(async (req: Request) => {
 
     if (!resendApiKey) {
       console.error("Missing RESEND_API_KEY environment variable");
-      return new Response(
-        JSON.stringify({
-          error: "Email service not configured. Please contact administrator.",
-          code: "MISSING_RESEND_API_KEY",
-        }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return errorResponse("Email service not configured. Please contact administrator.", "MISSING_RESEND_API_KEY", 500);
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -45,17 +28,7 @@ Deno.serve(async (req: Request) => {
     console.log("Processing email request:", { emailType, bookingId, recipientEmail });
 
     if (!emailType) {
-      console.error("Missing emailType in request body");
-      return new Response(
-        JSON.stringify({
-          error: "Email type is required",
-          code: "MISSING_EMAIL_TYPE",
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return errorResponse("Email type is required", "MISSING_EMAIL_TYPE", 400);
     }
 
     if (resendEmail && bookingId) {
@@ -66,39 +39,13 @@ Deno.serve(async (req: Request) => {
     if (bookingId) {
       const { data, error } = await supabase
         .from("coworking_bookings")
-        .select(`
-          *,
-          pass:coworking_passes(*)
-        `)
+        .select(`*, pass:coworking_passes(*)`)
         .eq("id", bookingId)
         .single();
 
-      if (error) {
+      if (error || !data) {
         console.error("Error fetching booking:", error);
-        return new Response(
-          JSON.stringify({
-            error: `Booking not found: ${error.message}`,
-            code: "BOOKING_NOT_FOUND",
-          }),
-          {
-            status: 404,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
-      }
-
-      if (!data) {
-        console.error("Booking not found:", bookingId);
-        return new Response(
-          JSON.stringify({
-            error: "Booking not found",
-            code: "BOOKING_NOT_FOUND",
-          }),
-          {
-            status: 404,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
+        return errorResponse(`Booking not found: ${error?.message || 'Unknown error'}`, "BOOKING_NOT_FOUND", 404);
       }
 
       booking = data;
@@ -108,37 +55,14 @@ Deno.serve(async (req: Request) => {
     const toName = recipientName || booking?.customer_name;
 
     if (!toEmail) {
-      console.error("Missing recipient email");
-      return new Response(
-        JSON.stringify({
-          error: "Recipient email is required. Check that booking has customer_email.",
-          code: "MISSING_RECIPIENT_EMAIL",
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return errorResponse("Recipient email is required. Check that booking has customer_email.", "MISSING_RECIPIENT_EMAIL", 400);
     }
 
     if (emailType === "access_code" && !booking?.access_code) {
-      console.error("Missing access code for booking:", bookingId);
-      return new Response(
-        JSON.stringify({
-          error: "Cannot send access code email: booking has no access code set.",
-          code: "MISSING_ACCESS_CODE",
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return errorResponse("Cannot send access code email: booking has no access code set.", "MISSING_ACCESS_CODE", 400);
     }
 
-    const emailContent = getEmailTemplate(emailType, {
-      booking,
-      recipientName: toName,
-    });
+    const emailContent = getEmailTemplate(emailType, { booking, recipientName: toName });
 
     const { data: resendData, error: resendError } = await resend.emails.send({
       from: "Bond Coliving <hello@stayatbond.com>",
@@ -149,7 +73,6 @@ Deno.serve(async (req: Request) => {
 
     if (resendError) {
       console.error("Resend error:", resendError);
-      
       await supabase.from("email_logs").insert({
         email_type: emailType,
         recipient_email: toEmail,
@@ -159,18 +82,7 @@ Deno.serve(async (req: Request) => {
         status: "failed",
         error_message: resendError.message,
       });
-
-      return new Response(
-        JSON.stringify({
-          error: `Failed to send email via Resend: ${resendError.message}`,
-          code: "RESEND_ERROR",
-          details: resendError,
-        }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return errorResponse(`Failed to send email via Resend: ${resendError.message}`, "RESEND_ERROR", 500, { details: resendError });
     }
 
     console.log("Email sent successfully:", resendData);
@@ -187,92 +99,40 @@ Deno.serve(async (req: Request) => {
 
     if (bookingId) {
       const updates: any = {};
-      
       if (emailType === "booking_confirmation" || emailType === "access_code") {
         updates.confirmation_email_sent = true;
       }
-      
       if (emailType === "access_code") {
         updates.access_code_email_sent_at = new Date().toISOString();
       }
-
       if (Object.keys(updates).length > 0) {
-        await supabase
-          .from("coworking_bookings")
-          .update(updates)
-          .eq("id", bookingId);
+        await supabase.from("coworking_bookings").update(updates).eq("id", bookingId);
       }
     }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        message: "Email sent successfully",
-        emailId: resendData.id,
-      }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return jsonResponse({ success: true, message: "Email sent successfully", emailId: resendData.id });
   } catch (error) {
     console.error("Error processing email:", error);
-    return new Response(
-      JSON.stringify({
-        error: error instanceof Error ? error.message : "Internal server error",
-        code: "INTERNAL_ERROR",
-        details: error instanceof Error ? error.stack : undefined,
-      }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return errorResponse(error instanceof Error ? error.message : "Internal server error", "INTERNAL_ERROR", 500);
   }
 });
 
 async function handleResendEmail(supabase: any, resend: any, bookingId: string) {
   const { data: booking, error } = await supabase
     .from("coworking_bookings")
-    .select(`
-      *,
-      pass:coworking_passes(*)
-    `)
+    .select(`*, pass:coworking_passes(*)`)
     .eq("id", bookingId)
     .single();
 
   if (error || !booking) {
-    console.error("Booking not found for resend:", bookingId, error);
-    return new Response(
-      JSON.stringify({
-        error: "Booking not found",
-        code: "BOOKING_NOT_FOUND",
-      }),
-      {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return errorResponse("Booking not found", "BOOKING_NOT_FOUND", 404);
   }
 
   if (!booking.access_code) {
-    console.error("No access code set for booking:", bookingId);
-    return new Response(
-      JSON.stringify({
-        error: "Cannot resend access code: booking has no access code set.",
-        code: "MISSING_ACCESS_CODE",
-      }),
-      {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return errorResponse("Cannot resend access code: booking has no access code set.", "MISSING_ACCESS_CODE", 400);
   }
 
-  const emailContent = getEmailTemplate("access_code", {
-    booking,
-    recipientName: booking.customer_name,
-  });
+  const emailContent = getEmailTemplate("access_code", { booking, recipientName: booking.customer_name });
 
   const { data: resendData, error: resendError } = await resend.emails.send({
     from: "Bond Coliving <hello@stayatbond.com>",
@@ -283,7 +143,6 @@ async function handleResendEmail(supabase: any, resend: any, bookingId: string) 
 
   if (resendError) {
     console.error("Resend error:", resendError);
-
     await supabase.from("email_logs").insert({
       email_type: "access_code",
       recipient_email: booking.customer_email,
@@ -294,17 +153,7 @@ async function handleResendEmail(supabase: any, resend: any, bookingId: string) 
       error_message: resendError.message,
       metadata: { resent: true },
     });
-
-    return new Response(
-      JSON.stringify({
-        error: `Failed to resend email: ${resendError.message}`,
-        code: "RESEND_ERROR",
-      }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return errorResponse(`Failed to resend email: ${resendError.message}`, "RESEND_ERROR", 500);
   }
 
   await supabase.from("email_logs").insert({
@@ -318,14 +167,5 @@ async function handleResendEmail(supabase: any, resend: any, bookingId: string) 
     metadata: { resent: true },
   });
 
-  return new Response(
-    JSON.stringify({
-      success: true,
-      message: "Access code email resent successfully",
-    }),
-    {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    }
-  );
+  return jsonResponse({ success: true, message: "Access code email resent successfully" });
 }

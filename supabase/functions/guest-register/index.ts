@@ -1,24 +1,16 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
-};
+import { corsHeaders, handleCors } from "../_shared/cors.ts";
+import { jsonResponse, errorResponse } from "../_shared/response.ts";
 
 Deno.serve(async (req: Request) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, {
-      status: 200,
-      headers: corsHeaders,
-    });
-  }
+  const corsResponse = handleCors(req);
+  if (corsResponse) return corsResponse;
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    
+
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
       auth: {
         autoRefreshToken: false,
@@ -29,16 +21,9 @@ Deno.serve(async (req: Request) => {
     const { invitationCode, password, bio, interests } = await req.json();
 
     if (!invitationCode || !password) {
-      return new Response(
-        JSON.stringify({ error: "Invitation code and password are required" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return errorResponse("Invitation code and password are required", "MISSING_FIELDS", 400);
     }
 
-    // Validate invitation code
     const { data: invitation, error: invitationError } = await supabaseAdmin
       .from("guest_invitations")
       .select("*")
@@ -47,27 +32,13 @@ Deno.serve(async (req: Request) => {
       .maybeSingle();
 
     if (invitationError || !invitation) {
-      return new Response(
-        JSON.stringify({ error: "Invalid or expired invitation code" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return errorResponse("Invalid or expired invitation code", "INVALID_CODE", 400);
     }
 
-    // Check if invitation is still valid
     if (new Date(invitation.expires_at) < new Date()) {
-      return new Response(
-        JSON.stringify({ error: "Invitation code has expired" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return errorResponse("Invitation code has expired", "EXPIRED_CODE", 400);
     }
 
-    // Create user with admin privileges (bypasses signup restrictions)
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: invitation.email,
       password: password,
@@ -79,16 +50,9 @@ Deno.serve(async (req: Request) => {
 
     if (authError || !authData.user) {
       console.error("Auth error:", authError);
-      return new Response(
-        JSON.stringify({ error: authError?.message || "Failed to create account" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return errorResponse(authError?.message || "Failed to create account", "AUTH_ERROR", 400);
     }
 
-    // Create guest user record
     const { data: guestUserData, error: guestUserError } = await supabaseAdmin
       .from("guest_users")
       .insert({
@@ -107,16 +71,9 @@ Deno.serve(async (req: Request) => {
     if (guestUserError || !guestUserData) {
       console.error("Guest user error:", guestUserError);
       await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
-      return new Response(
-        JSON.stringify({ error: "Failed to create guest user record" }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return errorResponse("Failed to create guest user record", "GUEST_CREATE_ERROR", 500);
     }
 
-    // Create guest profile
     const interestsArray = interests ? interests.split(",").map((i: string) => i.trim()).filter((i: string) => i) : [];
     await supabaseAdmin.from("guest_profiles").insert({
       guest_user_id: guestUserData.id,
@@ -125,7 +82,6 @@ Deno.serve(async (req: Request) => {
       show_in_directory: true,
     });
 
-    // Create messaging preferences
     await supabaseAdmin.from("messaging_preferences").insert({
       guest_user_id: guestUserData.id,
       allow_messages: true,
@@ -133,7 +89,6 @@ Deno.serve(async (req: Request) => {
       push_notifications: true,
     });
 
-    // Mark invitation as used
     await supabaseAdmin
       .from("guest_invitations")
       .update({
@@ -143,27 +98,15 @@ Deno.serve(async (req: Request) => {
       })
       .eq("id", invitation.id);
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        user: {
-          id: authData.user.id,
-          email: authData.user.email,
-        },
-      }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return jsonResponse({
+      success: true,
+      user: {
+        id: authData.user.id,
+        email: authData.user.email,
+      },
+    });
   } catch (error) {
     console.error("Error:", error);
-    return new Response(
-      JSON.stringify({ error: "Internal server error" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return errorResponse("Internal server error", "INTERNAL_ERROR", 500);
   }
 });

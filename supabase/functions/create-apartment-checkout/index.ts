@@ -1,20 +1,12 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import Stripe from "npm:stripe@14";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
-};
+import { corsHeaders, handleCors } from "../_shared/cors.ts";
+import { jsonResponse, errorResponse } from "../_shared/response.ts";
 
 Deno.serve(async (req: Request) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, {
-      status: 200,
-      headers: corsHeaders,
-    });
-  }
+  const corsResponse = handleCors(req);
+  if (corsResponse) return corsResponse;
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -26,27 +18,12 @@ Deno.serve(async (req: Request) => {
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const stripe = new Stripe(stripeSecretKey, {
-      apiVersion: "2023-10-16",
-    });
+    const stripe = new Stripe(stripeSecretKey, { apiVersion: "2023-10-16" });
 
-    const {
-      guestName,
-      guestEmail,
-      guestPhone,
-      guestCount,
-      specialInstructions,
-      segments,
-    } = await req.json();
+    const { guestName, guestEmail, guestPhone, guestCount, specialInstructions, segments } = await req.json();
 
     if (!guestName || !guestEmail || !guestCount || !segments || segments.length === 0) {
-      return new Response(
-        JSON.stringify({ error: "Missing required fields" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return errorResponse("Missing required fields", "MISSING_FIELDS", 400);
     }
 
     const isSplitStay = segments.length > 1;
@@ -70,26 +47,14 @@ Deno.serve(async (req: Request) => {
         payment_status: "pending",
         is_split_stay: isSplitStay,
         special_instructions: specialInstructions || null,
-        metadata: {
-          split_stay: isSplitStay,
-          segment_count: segments.length,
-        },
+        metadata: { split_stay: isSplitStay, segment_count: segments.length },
       })
       .select()
       .single();
 
     if (bookingError || !booking) {
       console.error("Booking creation error:", bookingError);
-      return new Response(
-        JSON.stringify({
-          error: "Failed to create booking",
-          details: bookingError?.message || "Unknown error",
-        }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return errorResponse("Failed to create booking", "BOOKING_CREATE_FAILED", 500, { details: bookingError?.message });
     }
 
     if (isSplitStay) {
@@ -109,13 +74,7 @@ Deno.serve(async (req: Request) => {
       if (segmentError) {
         console.error("Segment creation error:", segmentError);
         await supabase.from("bookings").delete().eq("id", booking.id);
-        return new Response(
-          JSON.stringify({ error: "Failed to create booking segments" }),
-          {
-            status: 500,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
+        return errorResponse("Failed to create booking segments", "SEGMENT_CREATE_FAILED", 500);
       }
     }
 
@@ -143,19 +102,17 @@ Deno.serve(async (req: Request) => {
             };
           })
         )
-      : [
-          {
-            price_data: {
-              currency: "eur",
-              product_data: {
-                name: `Apartment Stay - ${firstSegment.check_in_date} to ${lastSegment.check_out_date}`,
-                description: `${guestCount} guest${guestCount > 1 ? "s" : ""}`,
-              },
-              unit_amount: amountInCents,
+      : [{
+          price_data: {
+            currency: "eur",
+            product_data: {
+              name: `Apartment Stay - ${firstSegment.check_in_date} to ${lastSegment.check_out_date}`,
+              description: `${guestCount} guest${guestCount > 1 ? "s" : ""}`,
             },
-            quantity: 1,
+            unit_amount: amountInCents,
           },
-        ];
+          quantity: 1,
+        }];
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -172,33 +129,17 @@ Deno.serve(async (req: Request) => {
       },
     });
 
-    await supabase
-      .from("apartment_payments")
-      .insert({
-        booking_id: booking.id,
-        stripe_checkout_session_id: session.id,
-        amount: totalAmount,
-        currency: "EUR",
-        status: "pending",
-      });
+    await supabase.from("apartment_payments").insert({
+      booking_id: booking.id,
+      stripe_checkout_session_id: session.id,
+      amount: totalAmount,
+      currency: "EUR",
+      status: "pending",
+    });
 
-    return new Response(
-      JSON.stringify({ url: session.url, booking_id: booking.id }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return jsonResponse({ url: session.url, booking_id: booking.id });
   } catch (error) {
     console.error("Error creating checkout:", error);
-    return new Response(
-      JSON.stringify({
-        error: error instanceof Error ? error.message : "Internal server error",
-      }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return errorResponse(error instanceof Error ? error.message : "Internal server error", "INTERNAL_ERROR", 500);
   }
 });

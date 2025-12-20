@@ -1,10 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
-};
+import { corsHeaders, handleCors } from "../_shared/cors.ts";
+import { jsonResponse, errorResponse } from "../_shared/response.ts";
 
 interface ICalEvent {
   uid: string;
@@ -94,18 +90,10 @@ function parseICalFeed(icalData: string): ICalEvent[] {
       current.sequence = parseInt(value) || 0;
     } else if (name === "DTSTART") {
       const isDate = params["VALUE"] === "DATE" || /^\d{8}$/.test(value);
-      current.dtstart = {
-        raw: value,
-        isDate: isDate,
-        tzid: params["TZID"]
-      };
+      current.dtstart = { raw: value, isDate, tzid: params["TZID"] };
     } else if (name === "DTEND") {
       const isDate = params["VALUE"] === "DATE" || /^\d{8}$/.test(value);
-      current.dtend = {
-        raw: value,
-        isDate: isDate,
-        tzid: params["TZID"]
-      };
+      current.dtend = { raw: value, isDate, tzid: params["TZID"] };
     }
   }
 
@@ -113,18 +101,14 @@ function parseICalFeed(icalData: string): ICalEvent[] {
 }
 
 Deno.serve(async (req: Request) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { status: 200, headers: corsHeaders });
-  }
+  const corsResponse = handleCors(req);
+  if (corsResponse) return corsResponse;
 
   try {
     const { feedId, apartmentId } = await req.json();
 
     if (!feedId && !apartmentId) {
-      return new Response(
-        JSON.stringify({ error: "Either feedId or apartmentId is required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("Either feedId or apartmentId is required", "MISSING_PARAMS", 400);
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -133,10 +117,7 @@ Deno.serve(async (req: Request) => {
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: "Missing authorization header" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return errorResponse("Missing authorization header", "UNAUTHORIZED", 401);
     }
 
     let feedsToSync: Feed[] = [];
@@ -156,10 +137,7 @@ Deno.serve(async (req: Request) => {
     }
 
     if (!feedsToSync?.length) {
-      return new Response(
-        JSON.stringify({ message: "No active feeds found to sync" }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return jsonResponse({ message: "No active feeds found to sync" }, 404);
     }
 
     const results: any[] = [];
@@ -303,16 +281,10 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    return new Response(
-      JSON.stringify({ message: "Sync completed", results }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return jsonResponse({ message: "Sync completed", results });
 
   } catch (error: any) {
     console.error("Error in sync-ical function:", error);
-    return new Response(
-      JSON.stringify({ error: error.message || "Internal server error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return errorResponse(error.message || "Internal server error", "INTERNAL_ERROR", 500);
   }
 });
