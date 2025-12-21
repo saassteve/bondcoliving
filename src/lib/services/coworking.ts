@@ -11,13 +11,29 @@ import type {
 
 export class CoworkingPassService {
   static async getAll(): Promise<CoworkingPass[]> {
-    const { data, error } = await supabase
-      .from('coworking_passes')
-      .select('*')
-      .order('sort_order', { ascending: true })
+    const { data, error } = await supabase.rpc('get_admin_coworking_passes')
 
-    if (error) throw error
-    return data || []
+    if (error) {
+      console.error('Error fetching passes via RPC, falling back to direct query:', error)
+      const { data: fallbackData, error: fallbackError } = await supabase
+        .from('coworking_passes')
+        .select('*')
+        .order('sort_order', { ascending: true })
+      if (fallbackError) throw fallbackError
+      return fallbackData || []
+    }
+
+    if (data?.error) {
+      console.error('RPC returned error:', data.error)
+      const { data: fallbackData, error: fallbackError } = await supabase
+        .from('coworking_passes')
+        .select('*')
+        .order('sort_order', { ascending: true })
+      if (fallbackError) throw fallbackError
+      return fallbackData || []
+    }
+
+    return (data?.passes || []) as CoworkingPass[]
   }
 
   static async getActive(): Promise<CoworkingPass[]> {
@@ -217,16 +233,29 @@ export class CoworkingPassScheduleService {
 
 export class CoworkingBookingService {
   static async getAll(): Promise<CoworkingBooking[]> {
-    const { data, error } = await supabase
-      .from('coworking_bookings')
-      .select(`
-        *,
-        pass:coworking_passes(*)
-      `)
-      .order('created_at', { ascending: false })
+    const { data, error } = await supabase.rpc('get_admin_coworking_bookings')
 
-    if (error) throw error
-    return data || []
+    if (error) {
+      console.error('Error fetching bookings via RPC, falling back to direct query:', error)
+      const { data: fallbackData, error: fallbackError } = await supabase
+        .from('coworking_bookings')
+        .select(`*, pass:coworking_passes(*)`)
+        .order('created_at', { ascending: false })
+      if (fallbackError) throw fallbackError
+      return fallbackData || []
+    }
+
+    if (data?.error) {
+      console.error('RPC returned error:', data.error)
+      const { data: fallbackData, error: fallbackError } = await supabase
+        .from('coworking_bookings')
+        .select(`*, pass:coworking_passes(*)`)
+        .order('created_at', { ascending: false })
+      if (fallbackError) throw fallbackError
+      return fallbackData || []
+    }
+
+    return (data?.bookings || []) as CoworkingBooking[]
   }
 
   static async getById(id: string): Promise<CoworkingBooking | null> {
@@ -361,12 +390,33 @@ export class CoworkingBookingService {
     by_pass_type: Record<string, number>
     count: number
   }> {
+    const { data, error } = await supabase.rpc('get_admin_coworking_stats')
+
+    if (error) {
+      console.error('Error fetching stats via RPC, falling back to direct query:', error)
+      return this.getRevenueFallback(startDate, endDate)
+    }
+
+    if (data?.error) {
+      console.error('RPC returned error:', data.error)
+      return this.getRevenueFallback(startDate, endDate)
+    }
+
+    return {
+      total: data?.total || 0,
+      by_pass_type: data?.by_pass_type || {},
+      count: data?.count || 0
+    }
+  }
+
+  private static async getRevenueFallback(startDate?: string, endDate?: string): Promise<{
+    total: number
+    by_pass_type: Record<string, number>
+    count: number
+  }> {
     let query = supabase
       .from('coworking_bookings')
-      .select(`
-        total_amount,
-        pass:coworking_passes(name)
-      `)
+      .select(`total_amount, pass:coworking_passes(name)`)
       .eq('payment_status', 'paid')
 
     if (startDate) {
