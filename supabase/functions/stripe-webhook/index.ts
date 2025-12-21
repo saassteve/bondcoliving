@@ -1,10 +1,58 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import Stripe from "npm:stripe@14";
-import { corsHeaders, handleCors } from "../_shared/cors.ts";
-import { jsonResponse, errorResponse } from "../_shared/response.ts";
 
-async function sendEmail(
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
+};
+
+function handleCors(req: Request): Response | null {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { status: 200, headers: corsHeaders });
+  }
+  return null;
+}
+
+function jsonResponse(data: unknown, status = 200): Response {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+function errorResponse(message: string, code: string, status = 400): Response {
+  return jsonResponse({ error: message, code }, status);
+}
+
+async function queueEmail(
+  supabase: any,
+  emailType: string,
+  recipientEmail: string,
+  recipientName: string | null,
+  bookingId: string,
+  bookingType: "coworking" | "apartment",
+  priority: number = 5
+): Promise<void> {
+  const { error } = await supabase.rpc("queue_email", {
+    p_email_type: emailType,
+    p_recipient_email: recipientEmail,
+    p_recipient_name: recipientName,
+    p_booking_id: bookingId,
+    p_booking_type: bookingType,
+    p_priority: priority,
+    p_metadata: {},
+  });
+
+  if (error) {
+    console.error("Failed to queue email:", error);
+    throw error;
+  }
+  console.log(`Queued ${emailType} email for ${recipientEmail}`);
+}
+
+async function sendEmailDirect(
   supabaseUrl: string,
   supabaseServiceKey: string,
   endpoint: string,
@@ -137,7 +185,7 @@ Deno.serve(async (req: Request) => {
         if (payment) {
           await supabase.from("coworking_bookings").update({ payment_status: "failed", booking_status: "cancelled" }).eq("id", payment.booking_id);
           try {
-            await sendEmail(supabaseUrl, supabaseServiceKey, "send-coworking-email", { emailType: "payment_failed", bookingId: payment.booking_id });
+            await sendEmailDirect(supabaseUrl, supabaseServiceKey, "send-coworking-email", { emailType: "payment_failed", bookingId: payment.booking_id });
             console.log("Sent payment failed email for:", payment.booking_id);
           } catch (emailError) {
             console.error("Failed to send payment failed email:", emailError);
@@ -158,7 +206,7 @@ Deno.serve(async (req: Request) => {
           if (payment) {
             await supabase.from("coworking_bookings").update({ payment_status: "refunded", booking_status: "cancelled" }).eq("id", payment.booking_id);
             try {
-              await sendEmail(supabaseUrl, supabaseServiceKey, "send-coworking-email", { emailType: "booking_cancelled", bookingId: payment.booking_id });
+              await sendEmailDirect(supabaseUrl, supabaseServiceKey, "send-coworking-email", { emailType: "booking_cancelled", bookingId: payment.booking_id });
               console.log("Sent booking cancelled email for:", payment.booking_id);
             } catch (emailError) {
               console.error("Failed to send cancelled email:", emailError);
@@ -226,19 +274,22 @@ async function handleApartmentCheckout(
 
   console.log("Updated apartment availability for booking:", bookingId);
 
-  try {
-    await sendEmail(supabaseUrl, supabaseServiceKey, "send-apartment-email", { emailType: "booking_confirmation", bookingId });
-    console.log("Sent apartment booking confirmation email");
-  } catch (emailError) {
-    console.error("Failed to send apartment confirmation email:", emailError);
-  }
+  const guestEmail = booking?.guest_email || session.customer_email;
+  const guestName = booking?.guest_name || session.metadata?.guest_name;
+  const adminEmail = Deno.env.get("ADMIN_EMAIL") || "hello@stayatbond.com";
 
   try {
-    const adminEmail = Deno.env.get("ADMIN_EMAIL") || "hello@stayatbond.com";
-    await sendEmail(supabaseUrl, supabaseServiceKey, "send-apartment-email", { emailType: "admin_notification", bookingId, recipientEmail: adminEmail, recipientName: "Admin" });
-    console.log("Sent apartment admin notification");
-  } catch (emailError) {
-    console.error("Failed to send apartment admin notification:", emailError);
+    await queueEmail(supabase, "booking_confirmation", guestEmail, guestName, bookingId, "apartment", 10);
+    await queueEmail(supabase, "admin_notification", adminEmail, "Admin", bookingId, "apartment", 5);
+    console.log("Queued apartment confirmation and admin emails");
+  } catch (queueError) {
+    console.error("Failed to queue apartment emails, trying direct send:", queueError);
+    try {
+      await sendEmailDirect(supabaseUrl, supabaseServiceKey, "send-apartment-email", { emailType: "booking_confirmation", bookingId });
+      await sendEmailDirect(supabaseUrl, supabaseServiceKey, "send-apartment-email", { emailType: "admin_notification", bookingId, recipientEmail: adminEmail, recipientName: "Admin" });
+    } catch (emailError) {
+      console.error("Failed to send apartment emails directly:", emailError);
+    }
   }
 }
 
@@ -277,12 +328,14 @@ async function handleCoworkingCheckout(
 
   console.log("Updated booking and payment for:", bookingId);
 
+  let assignedCode: string | null = null;
   try {
-    const { data: assignedCode, error: codeError } = await supabase.rpc("assign_coworking_pass_code", { p_booking_id: bookingId });
+    const { data, error: codeError } = await supabase.rpc("assign_coworking_pass_code", { p_booking_id: bookingId });
 
     if (codeError) {
       console.error("Failed to assign access code:", codeError);
-    } else if (assignedCode) {
+    } else if (data) {
+      assignedCode = data;
       await supabase.from("coworking_bookings").update({ access_code: assignedCode }).eq("id", bookingId);
       console.log("Assigned access code:", assignedCode);
     } else {
@@ -292,19 +345,28 @@ async function handleCoworkingCheckout(
     console.error("Error in access code assignment:", codeError);
   }
 
-  try {
-    await sendEmail(supabaseUrl, supabaseServiceKey, "send-coworking-email", { emailType: "booking_confirmation", bookingId });
-    console.log("Sent booking confirmation email");
-  } catch (emailError) {
-    console.error("Failed to send confirmation email:", emailError);
-  }
+  const { data: booking } = await supabase
+    .from("coworking_bookings")
+    .select("customer_email, customer_name")
+    .eq("id", bookingId)
+    .single();
+
+  const customerEmail = booking?.customer_email || session.customer_email;
+  const customerName = booking?.customer_name || session.metadata?.customer_name;
+  const adminEmail = Deno.env.get("ADMIN_EMAIL") || "hello@stayatbond.com";
 
   try {
-    const adminEmail = Deno.env.get("ADMIN_EMAIL") || "hello@stayatbond.com";
-    await sendEmail(supabaseUrl, supabaseServiceKey, "send-coworking-email", { emailType: "admin_notification", bookingId, recipientEmail: adminEmail, recipientName: "Admin" });
-    console.log("Sent admin notification");
-  } catch (emailError) {
-    console.error("Failed to send admin notification:", emailError);
+    await queueEmail(supabase, "booking_confirmation", customerEmail, customerName, bookingId, "coworking", 10);
+    await queueEmail(supabase, "admin_notification", adminEmail, "Admin", bookingId, "coworking", 5);
+    console.log("Queued confirmation and admin emails");
+  } catch (queueError) {
+    console.error("Failed to queue emails, trying direct send:", queueError);
+    try {
+      await sendEmailDirect(supabaseUrl, supabaseServiceKey, "send-coworking-email", { emailType: "booking_confirmation", bookingId });
+      await sendEmailDirect(supabaseUrl, supabaseServiceKey, "send-coworking-email", { emailType: "admin_notification", bookingId, recipientEmail: adminEmail, recipientName: "Admin" });
+    } catch (emailError) {
+      console.error("Failed to send emails directly:", emailError);
+    }
   }
 }
 

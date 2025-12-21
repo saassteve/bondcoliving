@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Settings, Image, Key } from 'lucide-react';
+import { Settings, Image, Key, Mail } from 'lucide-react';
 import { coworkingBookingService, coworkingPassService, type CoworkingBooking, type CoworkingPass } from '../../lib/supabase';
 import { supabase } from '../../lib/supabase';
 import PassAvailabilityManager from '../../components/admin/PassAvailabilityManager';
@@ -12,6 +12,7 @@ import CoworkingPassList from '../../components/admin/CoworkingPassList';
 import CoworkingCodeManager from '../../components/admin/CoworkingCodeManager';
 import CoworkingBookingEditModal from '../../components/admin/CoworkingBookingEditModal';
 import CoworkingPassEditModal from '../../components/admin/CoworkingPassEditModal';
+import EmailQueueManager from '../../components/admin/EmailQueueManager';
 
 interface PassCode {
   id: string;
@@ -22,7 +23,7 @@ interface PassCode {
   created_at: string;
 }
 
-type ViewType = 'list' | 'calendar' | 'stats' | 'passes' | 'images' | 'codes';
+type ViewType = 'list' | 'calendar' | 'stats' | 'passes' | 'images' | 'codes' | 'emails';
 
 const AdminCoworkingPage: React.FC = () => {
   const [bookings, setBookings] = useState<CoworkingBooking[]>([]);
@@ -190,6 +191,7 @@ const AdminCoworkingPage: React.FC = () => {
     { key: 'passes', label: 'Passes', icon: <Settings className="w-4 h-4 inline mr-1" /> },
     { key: 'images', label: 'Images', icon: <Image className="w-4 h-4 inline mr-1" /> },
     { key: 'codes', label: 'Codes', icon: <Key className="w-4 h-4 inline mr-1" /> },
+    { key: 'emails', label: 'Emails', icon: <Mail className="w-4 h-4 inline mr-1" /> },
   ];
 
   return (
@@ -268,6 +270,8 @@ const AdminCoworkingPage: React.FC = () => {
             onViewBooking={handleViewBookingFromCode}
           />
         )}
+
+        {currentView === 'emails' && <EmailQueueManager />}
       </div>
 
       {editingBooking && (

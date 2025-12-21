@@ -290,3 +290,30 @@ export interface CoworkingImage {
   created_at?: string
   updated_at?: string
 }
+
+export interface EmailQueueItem {
+  id: string
+  email_type: string
+  recipient_email: string
+  recipient_name?: string
+  booking_id?: string
+  booking_type: 'coworking' | 'apartment'
+  priority: number
+  status: 'pending' | 'processing' | 'sent' | 'failed' | 'cancelled'
+  attempts: number
+  max_attempts: number
+  last_attempt_at?: string
+  next_retry_at?: string
+  error_message?: string
+  metadata?: Record<string, any>
+  created_at: string
+  processed_at?: string
+}
+
+export interface EmailQueueStats {
+  pending: number
+  processing: number
+  sent: number
+  failed: number
+  total: number
+}
