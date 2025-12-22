@@ -58,9 +58,9 @@ const Hero: React.FC = () => {
                 {/* Grid: 2 columns on mobile (side-by-side), 1 column on desktop (stacked) */}
                 <div className="grid grid-cols-2 lg:grid-cols-1 gap-2">
                   
-                  {/* Apartment Card */}
+                  {/* Apartment Card - Updated to navigate to external URL */}
                   <button
-                    onClick={() => document.getElementById('apartments-section')?.scrollIntoView({ behavior: 'smooth' })}
+                    onClick={() => window.location.href = 'https://stayatbond.com/locations'}
                     className="group relative overflow-hidden rounded-2xl bg-[#1E1F1E]/60 hover:bg-[#C5C5B5] transition-all duration-500 p-4 md:p-6 text-left border border-white/5 h-full flex flex-col justify-between"
                   >
                     <div className="flex justify-between items-start mb-2 md:mb-4">
