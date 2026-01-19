@@ -30,6 +30,7 @@ import LoginPage from './pages/public/LoginPage';
 import SearchResultsPage from './pages/public/SearchResultsPage';
 import BookPage from './pages/public/BookPage';
 import BookingSuccessPage from './pages/public/BookingSuccessPage';
+import BookingLookupPage from './pages/public/BookingLookupPage';
 import LocationDetailPage from './pages/public/LocationDetailPage';
 import LocationsPage from './pages/public/LocationsPage';
 
@@ -96,6 +97,7 @@ const App = () => {
             <Route path="apply" element={<Navigate to="/book" replace />} />
             <Route path="book" element={<BookPage />} />
             <Route path="book/success" element={<BookingSuccessPage />} />
+            <Route path="book/lookup" element={<BookingLookupPage />} />
             <Route path="thank-you" element={<ThankYouPage />} />
             <Route path="coworking" element={<CoworkingPage />} />
             <Route path="coworking/book" element={<CoworkingBookingPage />} />

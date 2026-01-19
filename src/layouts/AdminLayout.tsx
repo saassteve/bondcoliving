@@ -3,6 +3,7 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Menu, X, Home, Building, Coffee, LogOut, LayoutDashboard, Settings, Calendar, CalendarCheck, Megaphone, UserCheck, Bell, PartyPopper, MapPin, Wrench, MessageSquare, Mail, ChevronDown, ChevronRight } from 'lucide-react';
 import { authService, useAuth } from '../lib/auth';
+import NotificationBell from '../components/admin/NotificationBell';
 
 interface NavItem {
   name: string;
@@ -199,7 +200,8 @@ const AdminLayout: React.FC = () => {
                   View Website
                 </Link>
               </div>
-              <div className="flex items-center">
+              <div className="flex items-center gap-4">
+                <NotificationBell />
                 <span className="text-sm font-medium text-slate-100">
                   {user?.email || 'Admin User'}
                   {user?.role === 'guest' && (

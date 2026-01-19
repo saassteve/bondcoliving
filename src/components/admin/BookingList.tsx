@@ -14,6 +14,7 @@ interface BookingListProps {
   formatDate: (dateString: string) => string;
   stats: {
     total: number;
+    pendingPayment: number;
     confirmed: number;
     checkedIn: number;
     checkedOut: number;
@@ -35,6 +36,8 @@ const BookingList: React.FC<BookingListProps> = ({
 }) => {
   const statusBadgeClass = (status: string) => {
     switch(status) {
+      case 'pending_payment':
+        return 'bg-yellow-900/50 text-yellow-300';
       case 'confirmed':
         return 'bg-blue-900/50 text-blue-300';
       case 'checked_in':
@@ -42,6 +45,19 @@ const BookingList: React.FC<BookingListProps> = ({
       case 'checked_out':
         return 'bg-gray-700 text-gray-300';
       case 'cancelled':
+        return 'bg-red-900/50 text-red-300';
+      default:
+        return 'bg-gray-700 text-gray-300';
+    }
+  };
+
+  const paymentBadgeClass = (paymentStatus: string) => {
+    switch(paymentStatus) {
+      case 'paid':
+        return 'bg-green-900/50 text-green-300';
+      case 'pending':
+        return 'bg-yellow-900/50 text-yellow-300';
+      case 'failed':
         return 'bg-red-900/50 text-red-300';
       default:
         return 'bg-gray-700 text-gray-300';
@@ -78,18 +94,28 @@ const BookingList: React.FC<BookingListProps> = ({
               <button
                 onClick={() => onFilterChange('all')}
                 className={`px-3 py-1 text-sm rounded-full ${
-                  filter === 'all' 
-                    ? 'bg-indigo-600 text-white' 
+                  filter === 'all'
+                    ? 'bg-indigo-600 text-white'
                     : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                 }`}
               >
                 All
               </button>
               <button
+                onClick={() => onFilterChange('pending_payment')}
+                className={`px-3 py-1 text-sm rounded-full ${
+                  filter === 'pending_payment'
+                    ? 'bg-yellow-600 text-white'
+                    : 'bg-yellow-900/50 text-yellow-300 hover:bg-yellow-700'
+                }`}
+              >
+                Pending Payment
+              </button>
+              <button
                 onClick={() => onFilterChange('confirmed')}
                 className={`px-3 py-1 text-sm rounded-full ${
-                  filter === 'confirmed' 
-                    ? 'bg-blue-600 text-white' 
+                  filter === 'confirmed'
+                    ? 'bg-blue-600 text-white'
                     : 'bg-blue-900/50 text-blue-300 hover:bg-blue-200'
                 }`}
               >

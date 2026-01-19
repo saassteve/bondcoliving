@@ -26,6 +26,7 @@ const AdminBookingsPage: React.FC = () => {
   const [timelineDays, setTimelineDays] = useState(30);
   const [stats, setStats] = useState({
     total: 0,
+    pendingPayment: 0,
     confirmed: 0,
     checkedIn: 0,
     checkedOut: 0,
@@ -57,6 +58,7 @@ const AdminBookingsPage: React.FC = () => {
   const updateStats = () => {
     setStats({
       total: bookings.length,
+      pendingPayment: bookings.filter(b => b.status === 'pending_payment').length,
       confirmed: bookings.filter(b => b.status === 'confirmed').length,
       checkedIn: bookings.filter(b => b.status === 'checked_in').length,
       checkedOut: bookings.filter(b => b.status === 'checked_out').length,
@@ -480,10 +482,14 @@ const AdminBookingsPage: React.FC = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 mb-6">
           <div className="bg-gray-800 rounded-lg shadow-sm p-3 sm:p-4 border border-gray-600">
             <div className="text-xl sm:text-2xl font-bold text-white">{stats.total}</div>
             <div className="text-xs sm:text-sm text-gray-300 font-semibold">Total</div>
+          </div>
+          <div className="bg-gray-800 rounded-lg shadow-sm p-3 sm:p-4 border border-gray-600">
+            <div className="text-xl sm:text-2xl font-bold text-yellow-400 animate-pulse">{stats.pendingPayment}</div>
+            <div className="text-xs sm:text-sm text-gray-300 font-semibold">Pending Payment</div>
           </div>
           <div className="bg-gray-800 rounded-lg shadow-sm p-3 sm:p-4 border border-gray-600">
             <div className="text-xl sm:text-2xl font-bold text-blue-400">{stats.confirmed}</div>
@@ -497,7 +503,7 @@ const AdminBookingsPage: React.FC = () => {
             <div className="text-xl sm:text-2xl font-bold text-gray-400">{stats.checkedOut}</div>
             <div className="text-xs sm:text-sm text-gray-300 font-semibold">Checked Out</div>
           </div>
-          <div className="bg-gray-800 rounded-lg shadow-sm p-3 sm:p-4 border border-gray-600 col-span-2 sm:col-span-1">
+          <div className="bg-gray-800 rounded-lg shadow-sm p-3 sm:p-4 border border-gray-600">
             <div className="text-xl sm:text-2xl font-bold text-red-400">{stats.cancelled}</div>
             <div className="text-xs sm:text-sm text-gray-300 font-semibold">Cancelled</div>
           </div>

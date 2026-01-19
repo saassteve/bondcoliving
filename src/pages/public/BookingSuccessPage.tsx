@@ -1,257 +1,347 @@
-import React, { useState, useEffect } from 'react';
-import { Helmet } from 'react-helmet-async';
+import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { Check, Calendar, MapPin, Users, Mail, Phone, Home, ArrowRight, Loader } from 'lucide-react';
-import { apartmentBookingService, type Booking, type ApartmentBookingSegment } from '../../lib/supabase';
+import { CheckCircle, Clock, AlertCircle, Mail, Calendar, MapPin, Users } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
 
-const BookingSuccessPage: React.FC = () => {
+interface BookingDetails {
+  id: string;
+  booking_reference: string;
+  guest_name: string;
+  guest_email: string;
+  check_in_date: string;
+  check_out_date: string;
+  guest_count: number;
+  total_amount: number;
+  status: string;
+  payment_status: string;
+  apartment: {
+    title: string;
+    building: {
+      name: string;
+      address: string;
+    };
+  };
+}
+
+export default function ApartmentBookingSuccessPage() {
   const [searchParams] = useSearchParams();
   const bookingId = searchParams.get('booking_id');
+  const [booking, setBooking] = useState<BookingDetails | null>(null);
   const [loading, setLoading] = useState(true);
-  const [booking, setBooking] = useState<Booking | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [pollCount, setPollCount] = useState(0);
 
   useEffect(() => {
-    if (bookingId) {
-      loadBooking();
-    } else {
+    if (!bookingId) {
       setError('No booking ID provided');
       setLoading(false);
+      return;
     }
+
+    loadBooking();
+
+    const pollInterval = setInterval(() => {
+      setPollCount((prev) => prev + 1);
+      loadBooking();
+    }, 3000);
+
+    setTimeout(() => {
+      clearInterval(pollInterval);
+    }, 60000);
+
+    return () => clearInterval(pollInterval);
   }, [bookingId]);
 
-  const loadBooking = async () => {
-    try {
-      setLoading(true);
-      const bookingData = await apartmentBookingService.getBookingWithSegments(bookingId!);
+  async function loadBooking() {
+    if (!bookingId) return;
 
-      if (!bookingData) {
-        setError('Booking not found');
-      } else {
-        setBooking(bookingData);
+    try {
+      const { data, error: bookingError } = await supabase
+        .from('bookings')
+        .select(`
+          id,
+          booking_reference,
+          guest_name,
+          guest_email,
+          check_in_date,
+          check_out_date,
+          guest_count,
+          total_amount,
+          status,
+          payment_status,
+          apartment:apartments(
+            title,
+            building:buildings(
+              name,
+              address
+            )
+          )
+        `)
+        .eq('id', bookingId)
+        .single();
+
+      if (bookingError) throw bookingError;
+
+      setBooking(data);
+
+      if (data.payment_status === 'paid') {
+        setLoading(false);
       }
     } catch (err) {
       console.error('Error loading booking:', err);
       setError('Failed to load booking details');
-    } finally {
       setLoading(false);
     }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-GB', {
-      style: 'currency',
-      currency: 'EUR',
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#1E1F1E] flex flex-col items-center justify-center">
-        <Helmet>
-          <title>Loading Booking - Bond Coliving</title>
-        </Helmet>
-        <Loader className="w-8 h-8 text-[#C5C5B5] animate-spin mb-4" />
-        <p className="text-[#C5C5B5]/80">Loading your booking details...</p>
-      </div>
-    );
   }
 
-  if (error || !booking) {
+  if (error) {
     return (
-      <div className="min-h-screen bg-[#1E1F1E] flex flex-col items-center justify-center px-4">
-        <Helmet>
-          <title>Booking Error - Bond Coliving</title>
-        </Helmet>
-        <div className="max-w-md text-center">
-          <h1 className="text-2xl font-bold text-[#C5C5B5] mb-4">Unable to Load Booking</h1>
-          <p className="text-[#C5C5B5]/60 mb-8">{error}</p>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Error</h1>
+          <p className="text-gray-600 mb-6">{error}</p>
           <Link
             to="/"
-            className="inline-flex items-center px-6 py-3 bg-[#C5C5B5] text-[#1E1F1E] rounded-lg hover:bg-white transition-colors font-bold"
+            className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            Return to Home
-            <ArrowRight className="w-4 h-4 ml-2" />
+            Return to Homepage
           </Link>
         </div>
       </div>
     );
   }
 
+  if (!booking) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading your booking...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const isPaymentConfirmed = booking.payment_status === 'paid';
+  const isPaymentPending = booking.payment_status === 'pending';
+
   return (
-    <>
-      <Helmet>
-        <title>Booking Confirmed - Bond Coliving</title>
-        <meta name="description" content="Your booking at Bond Coliving has been confirmed. We look forward to welcoming you!" />
-      </Helmet>
-
-      <div className="min-h-screen bg-[#1E1F1E] py-12">
-        <div className="container max-w-4xl">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/20 mb-4">
-              <Check className="w-8 h-8 text-green-400" />
-            </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-[#C5C5B5] mb-2">Booking Confirmed!</h1>
-            <p className="text-[#C5C5B5]/60 text-lg">
-              Your payment has been processed successfully
-            </p>
-          </div>
-
-          <div className="bg-[#C5C5B5]/5 rounded-2xl p-6 md:p-8 border border-[#C5C5B5]/10 mb-6">
-            <div className="flex items-center justify-between mb-6 pb-6 border-b border-[#C5C5B5]/10">
-              <div>
-                <p className="text-sm text-[#C5C5B5]/60 mb-1">Booking Reference</p>
-                <p className="text-2xl font-bold text-[#C5C5B5]">{booking.booking_reference}</p>
-              </div>
-              <div className="text-right">
-                <p className="text-sm text-[#C5C5B5]/60 mb-1">Total Paid</p>
-                <p className="text-2xl font-bold text-[#C5C5B5]">
-                  {formatCurrency(booking.total_amount || 0)}
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-start">
-                <Calendar className="w-5 h-5 text-[#C5C5B5] mr-3 mt-1" />
-                <div>
-                  <p className="text-sm text-[#C5C5B5]/60">Check-in</p>
-                  <p className="text-[#C5C5B5] font-medium">{formatDate(booking.check_in_date)}</p>
-                </div>
-              </div>
-
-              <div className="flex items-start">
-                <Calendar className="w-5 h-5 text-[#C5C5B5] mr-3 mt-1" />
-                <div>
-                  <p className="text-sm text-[#C5C5B5]/60">Check-out</p>
-                  <p className="text-[#C5C5B5] font-medium">{formatDate(booking.check_out_date)}</p>
-                </div>
-              </div>
-
-              <div className="flex items-start">
-                <Users className="w-5 h-5 text-[#C5C5B5] mr-3 mt-1" />
-                <div>
-                  <p className="text-sm text-[#C5C5B5]/60">Guests</p>
-                  <p className="text-[#C5C5B5] font-medium">{booking.guest_count} guest{booking.guest_count > 1 ? 's' : ''}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {booking.is_split_stay && booking.segments && booking.segments.length > 0 ? (
-            <div className="bg-[#C5C5B5]/5 rounded-2xl p-6 md:p-8 border border-[#C5C5B5]/10 mb-6">
-              <h2 className="text-xl font-bold text-[#C5C5B5] mb-4 flex items-center">
-                <Home className="w-5 h-5 mr-2" />
-                Your Split-Stay Journey
-              </h2>
-              <p className="text-[#C5C5B5]/60 text-sm mb-4">
-                You'll be moving between apartments during your stay. All transitions are coordinated for you.
+    <div className="min-h-screen bg-gray-50 py-12 px-4">
+      <div className="max-w-3xl mx-auto">
+        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+          {isPaymentConfirmed ? (
+            <div className="bg-green-50 border-b border-green-200 p-6 text-center">
+              <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Booking Confirmed!
+              </h1>
+              <p className="text-gray-600">
+                Your payment has been processed successfully
               </p>
-              <div className="space-y-4">
-                {booking.segments.map((segment, index) => (
-                  <div key={segment.id} className="p-4 bg-[#1E1F1E] rounded-lg border border-[#C5C5B5]/10">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <p className="text-sm text-[#C5C5B5]/60">Stay {index + 1}</p>
-                        <p className="text-lg font-bold text-[#C5C5B5]">{segment.apartment?.title}</p>
-                      </div>
-                      <p className="text-[#C5C5B5] font-medium">{formatCurrency(segment.segment_price)}</p>
-                    </div>
-                    <div className="flex items-center text-sm text-[#C5C5B5]/60">
-                      <Calendar className="w-4 h-4 mr-2" />
-                      {formatDate(segment.check_in_date)} - {formatDate(segment.check_out_date)}
-                    </div>
-                  </div>
-                ))}
-              </div>
             </div>
           ) : (
-            <div className="bg-[#C5C5B5]/5 rounded-2xl p-6 md:p-8 border border-[#C5C5B5]/10 mb-6">
-              <h2 className="text-xl font-bold text-[#C5C5B5] mb-4 flex items-center">
-                <Home className="w-5 h-5 mr-2" />
-                Your Apartment
-              </h2>
-              {booking.apartment && (
-                <div className="p-4 bg-[#1E1F1E] rounded-lg border border-[#C5C5B5]/10">
-                  <p className="text-lg font-bold text-[#C5C5B5] mb-2">{booking.apartment.title}</p>
-                  <div className="flex items-center text-sm text-[#C5C5B5]/60">
-                    <MapPin className="w-4 h-4 mr-2" />
-                    Central Funchal, Madeira
-                  </div>
-                </div>
-              )}
+            <div className="bg-yellow-50 border-b border-yellow-200 p-6 text-center">
+              <Clock className="w-16 h-16 text-yellow-500 mx-auto mb-4 animate-pulse" />
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Processing Payment...
+              </h1>
+              <p className="text-gray-600">
+                Please wait while we confirm your payment
+              </p>
+              <p className="text-sm text-gray-500 mt-2">
+                This usually takes just a few seconds
+              </p>
             </div>
           )}
 
-          <div className="bg-[#C5C5B5]/5 rounded-2xl p-6 md:p-8 border border-[#C5C5B5]/10 mb-6">
-            <h2 className="text-xl font-bold text-[#C5C5B5] mb-4">Guest Information</h2>
-            <div className="space-y-3">
-              <div className="flex items-center">
-                <Users className="w-5 h-5 text-[#C5C5B5] mr-3" />
-                <div>
-                  <p className="text-sm text-[#C5C5B5]/60">Name</p>
-                  <p className="text-[#C5C5B5]">{booking.guest_name}</p>
+          <div className="p-8">
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                Booking Details
+              </h2>
+              <div className="bg-gray-50 rounded-lg p-6 space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <Calendar className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-500">
+                      Booking Reference
+                    </p>
+                    <p className="text-lg font-bold text-gray-900">
+                      {booking.booking_reference}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                    <MapPin className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-500">Location</p>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {booking.apartment.title}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {booking.apartment.building.name}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {booking.apartment.building.address}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <Calendar className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-500">Dates</p>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {new Date(booking.check_in_date).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}{' '}
+                      -{' '}
+                      {new Date(booking.check_out_date).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                    <Users className="w-5 h-5 text-orange-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-500">Guests</p>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {booking.guest_count} {booking.guest_count === 1 ? 'guest' : 'guests'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-200 pt-4 mt-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-lg font-medium text-gray-700">
+                      Total Amount
+                    </span>
+                    <span className="text-2xl font-bold text-gray-900">
+                      €{booking.total_amount.toFixed(2)}
+                    </span>
+                  </div>
                 </div>
               </div>
-              {booking.guest_email && (
-                <div className="flex items-center">
-                  <Mail className="w-5 h-5 text-[#C5C5B5] mr-3" />
-                  <div>
-                    <p className="text-sm text-[#C5C5B5]/60">Email</p>
-                    <p className="text-[#C5C5B5]">{booking.guest_email}</p>
-                  </div>
-                </div>
-              )}
-              {booking.guest_phone && (
-                <div className="flex items-center">
-                  <Phone className="w-5 h-5 text-[#C5C5B5] mr-3" />
-                  <div>
-                    <p className="text-sm text-[#C5C5B5]/60">Phone</p>
-                    <p className="text-[#C5C5B5]">{booking.guest_phone}</p>
-                  </div>
-                </div>
-              )}
             </div>
-          </div>
 
-          <div className="bg-blue-500/10 rounded-2xl p-6 border border-blue-500/20 mb-6">
-            <h3 className="text-lg font-bold text-blue-400 mb-2">What's Next?</h3>
-            <ul className="space-y-2 text-blue-400/80 text-sm">
-              <li>• A confirmation email has been sent to {booking.guest_email}</li>
-              <li>• You'll receive check-in instructions 48 hours before your arrival</li>
-              <li>• Door code and access details will be provided via email</li>
-              <li>• Our team is available 24/7 for any questions</li>
-            </ul>
-          </div>
+            {isPaymentConfirmed ? (
+              <div className="space-y-4">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                  <div className="flex items-start gap-3">
+                    <Mail className="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-1">
+                        Confirmation Email Sent
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        We've sent a confirmation email to{' '}
+                        <span className="font-medium">{booking.guest_email}</span> with
+                        all your booking details and check-in instructions.
+                      </p>
+                    </div>
+                  </div>
+                </div>
 
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Link
-              to="/"
-              className="flex-1 text-center px-6 py-3 bg-[#C5C5B5]/10 text-[#C5C5B5] rounded-lg hover:bg-[#C5C5B5]/20 transition-colors font-medium"
-            >
-              Return to Home
-            </Link>
-            <a
-              href={`mailto:hello@stayatbond.com?subject=Booking ${booking.booking_reference}`}
-              className="flex-1 text-center px-6 py-3 bg-[#C5C5B5] text-[#1E1F1E] rounded-lg hover:bg-white transition-colors font-bold"
-            >
-              Contact Us
-            </a>
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+                  <h3 className="font-semibold text-gray-900 mb-3">
+                    What's Next?
+                  </h3>
+                  <ul className="space-y-2 text-sm text-gray-600">
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-500 mt-0.5">✓</span>
+                      <span>
+                        Check your email for detailed check-in instructions
+                      </span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-500 mt-0.5">✓</span>
+                      <span>
+                        You'll receive your door access code 24 hours before check-in
+                      </span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-500 mt-0.5">✓</span>
+                      <span>
+                        Our team will be in touch if we need any additional information
+                      </span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                  <Link
+                    to="/"
+                    className="flex-1 px-6 py-3 bg-blue-600 text-white text-center rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  >
+                    Return to Homepage
+                  </Link>
+                  <Link
+                    to="/book/lookup"
+                    className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 text-center rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                  >
+                    View My Booking
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                  <h3 className="font-semibold text-gray-900 mb-2">
+                    Payment Processing
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Your payment is being processed. This page will automatically
+                    update once your payment is confirmed.
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    If this takes more than a few minutes, please contact us with your
+                    booking reference: <strong>{booking.booking_reference}</strong>
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <Link
+                    to="/"
+                    className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                  >
+                    Return to Homepage
+                  </Link>
+                </div>
+              </div>
+            )}
           </div>
         </div>
-      </div>
-    </>
-  );
-};
 
-export default BookingSuccessPage;
+        {!isPaymentConfirmed && (
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-500">
+              Need help?{' '}
+              <a
+                href="mailto:hello@stayatbond.com"
+                className="text-blue-600 hover:text-blue-700 font-medium"
+              >
+                Contact Support
+              </a>
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

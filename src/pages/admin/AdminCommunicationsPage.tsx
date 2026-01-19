@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Mail, Plus, Edit2, Trash2, Send, Clock, CheckCircle2, XCircle, Eye, X } from 'lucide-react';
+import { Mail, Plus, Edit2, Trash2, Send, Clock, CheckCircle2, XCircle, Eye, X, Webhook } from 'lucide-react';
+import WebhookHealthMonitor from '../../components/admin/WebhookHealthMonitor';
+import EmailQueueManager from '../../components/admin/EmailQueueManager';
 
 const AdminCommunicationsPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'templates' | 'scheduled' | 'history'>('templates');
+  const [activeTab, setActiveTab] = useState<'templates' | 'scheduled' | 'history' | 'webhooks' | 'queue'>('templates');
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
 
@@ -148,6 +150,28 @@ const AdminCommunicationsPage: React.FC = () => {
           >
             <CheckCircle2 className="w-4 h-4" />
             History ({mockHistory.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('webhooks')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition whitespace-nowrap ${
+              activeTab === 'webhooks'
+                ? 'bg-indigo-600 text-white'
+                : 'bg-gray-700 text-gray-200 hover:bg-gray-600'
+            }`}
+          >
+            <Webhook className="w-4 h-4" />
+            Webhooks
+          </button>
+          <button
+            onClick={() => setActiveTab('queue')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition whitespace-nowrap ${
+              activeTab === 'queue'
+                ? 'bg-indigo-600 text-white'
+                : 'bg-gray-700 text-gray-200 hover:bg-gray-600'
+            }`}
+          >
+            <Mail className="w-4 h-4" />
+            Email Queue
           </button>
         </div>
 
@@ -304,6 +328,20 @@ const AdminCommunicationsPage: React.FC = () => {
                 </tbody>
               </table>
             </div>
+          </div>
+        )}
+
+        {/* Webhooks Tab */}
+        {activeTab === 'webhooks' && (
+          <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+            <WebhookHealthMonitor />
+          </div>
+        )}
+
+        {/* Email Queue Tab */}
+        {activeTab === 'queue' && (
+          <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+            <EmailQueueManager />
           </div>
         )}
       </div>

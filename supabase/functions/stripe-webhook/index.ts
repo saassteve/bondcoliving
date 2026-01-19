@@ -79,9 +79,12 @@ Deno.serve(async (req: Request) => {
   const corsResponse = handleCors(req);
   if (corsResponse) return corsResponse;
 
+  let webhookLogId: string | null = null;
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
   try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY");
     const stripeWebhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
 
@@ -89,7 +92,6 @@ Deno.serve(async (req: Request) => {
       throw new Error("Stripe secret key not configured");
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const stripe = new Stripe(stripeSecretKey, { apiVersion: "2023-10-16" });
 
     const signature = req.headers.get("stripe-signature");
@@ -105,6 +107,7 @@ Deno.serve(async (req: Request) => {
         return errorResponse("Webhook signature verification failed", "SIGNATURE_FAILED", 400);
       }
     } else {
+      console.warn("No webhook secret configured - accepting unsigned webhook");
       try {
         event = JSON.parse(body);
       } catch (err) {
@@ -113,7 +116,20 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    console.log("Webhook event type:", event.type);
+    console.log("Webhook event type:", event.type, "Event ID:", event.id);
+
+    const { data: logData } = await supabase
+      .from("webhook_logs")
+      .insert({
+        event_id: event.id,
+        event_type: event.type,
+        payload: event as any,
+        processing_status: "processing",
+      })
+      .select()
+      .single();
+
+    webhookLogId = logData?.id || null;
 
     switch (event.type) {
       case "checkout.session.completed": {
@@ -220,9 +236,31 @@ Deno.serve(async (req: Request) => {
         console.log(`Unhandled event type: ${event.type}`);
     }
 
+    if (webhookLogId) {
+      await supabase
+        .from("webhook_logs")
+        .update({
+          processing_status: "success",
+          processed_at: new Date().toISOString(),
+        })
+        .eq("id", webhookLogId);
+    }
+
     return jsonResponse({ received: true });
   } catch (error) {
     console.error("Error processing webhook:", error);
+
+    if (webhookLogId) {
+      await supabase
+        .from("webhook_logs")
+        .update({
+          processing_status: "failed",
+          error_message: error instanceof Error ? error.message : "Unknown error",
+          processed_at: new Date().toISOString(),
+        })
+        .eq("id", webhookLogId);
+    }
+
     return errorResponse(error instanceof Error ? error.message : "Internal server error", "INTERNAL_ERROR", 500);
   }
 });
@@ -252,7 +290,10 @@ async function handleApartmentCheckout(
 
   const { data: booking, error: bookingError } = await supabase
     .from("bookings")
-    .update({ payment_status: "paid" })
+    .update({
+      payment_status: "paid",
+      status: "confirmed"
+    })
     .eq("id", bookingId)
     .select()
     .single();
