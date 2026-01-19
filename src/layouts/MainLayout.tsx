@@ -62,8 +62,8 @@ const MainLayout: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>Bond - Premium Digital Nomad Coliving in Central Funchal, Madeira</title>
-        <meta name="description" content="Premium coliving for digital nomads in central Funchal, Madeira. Private apartments with enterprise-grade WiFi, coworking space, all amenities included. 5 minutes to ocean & city center." />
+        <title>Bond - Premium Nomad Living in Central Funchal, Madeira</title>
+        <meta name="description" content="Premium nomad living in central Funchal, Madeira. Private serviced apartments with enterprise-grade WiFi, coworking space, all amenities included. 5 minutes to ocean & city center." />
       </Helmet>
 
       <div className="flex flex-col min-h-screen bg-[#1E1F1E] text-white selection:bg-[#C5C5B5] selection:text-[#1E1F1E]">
@@ -265,7 +265,7 @@ const MainLayout: React.FC = () => {
             <div className="border-t border-white/10 pt-12">
               <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
                 <p className="text-white/30 text-sm">
-                  © {new Date().getFullYear()} Bond Coliving.
+                  © {new Date().getFullYear()} Bond.
                 </p>
                 <div className="flex gap-6 text-sm text-white/30">
                   <Link to="/privacy" className="hover:text-white transition-colors">Privacy</Link>

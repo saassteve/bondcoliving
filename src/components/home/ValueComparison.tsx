@@ -82,7 +82,7 @@ const ValueComparison: React.FC = () => {
                       </div>
                       
                       <h3 className="text-2xl font-bold mb-2">Bond</h3>
-                      <p className="text-xs uppercase tracking-widest text-[#1E1F1E]/60 mb-10">Premium Coliving</p>
+                      <p className="text-xs uppercase tracking-widest text-[#1E1F1E]/60 mb-10">Premium Nomad Living</p>
                       
                       <div className="space-y-6 md:space-y-0">
                          {features.map((f, i) => (

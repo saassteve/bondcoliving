@@ -2,11 +2,11 @@ import React from 'react';
 import { Sparkles } from 'lucide-react';
 
 const MARQUEE_ITEMS = [
-  "Premium Coliving",
+  "Premium Nomad Living",
   "600Mbps+ Internet",
   "Central Funchal",
-  "Curated Community",
   "Private Apartments",
+  "Enterprise WiFi",
   "Coworking Space",
   "Weekly Cleaning",
   "Laundry Done For You",

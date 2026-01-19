@@ -46,8 +46,8 @@ const Intro: React.FC = () => {
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                    />
                    <div className="absolute bottom-0 left-0 p-8 bg-gradient-to-t from-black/80 to-transparent w-full">
-                      <h3 className="text-2xl font-bold text-white mb-1">Curated Community</h3>
-                      <p className="text-white/70">Connect with founders and creators.</p>
+                      <h3 className="text-2xl font-bold text-white mb-1">Organic Connection</h3>
+                      <p className="text-white/70">Meet like-minded nomads when you want.</p>
                    </div>
                 </div>
               </AnimatedSection>

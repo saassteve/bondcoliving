@@ -12,7 +12,7 @@ const Hero: React.FC = () => {
       <div className="absolute inset-0 z-0">
         <img
           src="https://ucarecdn.com/958a4400-0486-4ba2-8e75-484d692d7df9/foundersbond.png"
-          alt="Modern coliving space in central Funchal, Madeira"
+          alt="Premium nomad apartments in central Funchal, Madeira"
           className="w-full h-full object-cover"
           loading="eager"
         />
@@ -35,14 +35,14 @@ const Hero: React.FC = () => {
                 <span className="text-white italic">Belong.</span>
               </h1>
               <p className="text-lg md:text-xl text-[#C5C5B5]/80 max-w-md leading-relaxed border-l border-[#C5C5B5]/30 pl-4 mb-8">
-                Premium coliving across three buildings in central Funchal, Madeira.
+                Premium nomad living across three buildings in central Funchal, Madeira.
               </p>
             </AnimatedSection>
 
             {/* Benefit Pills */}
             <AnimatedSection animation="fadeInUp" delay={800}>
               <div className="flex flex-wrap gap-3">
-                {['Private Apartments', 'Coworking Included', 'Curated Community'].map((tag) => (
+                {['Private Apartments', 'Enterprise WiFi', 'Coworking Included'].map((tag) => (
                   <span key={tag} className="px-4 py-1.5 rounded-full border border-[#C5C5B5]/20 bg-[#C5C5B5]/5 backdrop-blur-md text-[#C5C5B5] text-xs uppercase tracking-wider">
                     {tag}
                   </span>
