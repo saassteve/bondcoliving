@@ -22,25 +22,18 @@ class AuthService {
   }
 
   private async checkSession() {
-    console.log('AuthService.checkSession() - Starting...');
-
     try {
       // CRITICAL: Always check Supabase session first, not localStorage cache
       // The cache can persist even when the Supabase session expires
       const { data: { session } } = await supabase.auth.getSession();
-      console.log('AuthService.checkSession() - Supabase session:', session ? 'Found' : 'Not found');
 
       if (!session?.user) {
         // No valid Supabase session - clear any cached data
-        console.log('AuthService.checkSession() - No active Supabase session, clearing cache');
         this.clearPersistedSession();
         this.currentUser = null;
         this.notifyListeners();
         return;
       }
-
-      console.log('AuthService.checkSession() - User authenticated:', session.user.email);
-      console.log('AuthService.checkSession() - User ID (auth.uid):', session.user.id);
 
       // Check localStorage cache to avoid re-querying admin_users table
       const storedSession = localStorage.getItem(this.STORAGE_KEY);
@@ -49,25 +42,20 @@ class AuthService {
           const sessionData = JSON.parse(storedSession);
           // If cached user matches the current Supabase session, use it
           if (sessionData.user?.email === session.user.email) {
-            console.log('AuthService.checkSession() - Using cached admin data for:', sessionData.user.email);
             this.currentUser = sessionData.user;
             this.notifyListeners();
             return;
           }
         } catch (error) {
-          console.error('AuthService.checkSession() - Error parsing stored session:', error);
           localStorage.removeItem(this.STORAGE_KEY);
         }
       }
 
       // No valid cache or cache doesn't match - verify admin status using secure function
-      console.log('AuthService.checkSession() - Calling verify_admin_user for:', session.user.id);
       const { data: adminData, error: adminError } = await supabase
         .rpc('verify_admin_user', { p_user_id: session.user.id });
 
       if (adminError) {
-        console.error('AuthService.checkSession() - Error calling verify_admin_user:', adminError);
-        console.error('AuthService.checkSession() - Error details:', JSON.stringify(adminError));
         this.clearPersistedSession();
         this.currentUser = null;
         this.notifyListeners();
@@ -78,18 +66,15 @@ class AuthService {
       const adminUser = adminData && adminData.length > 0 ? adminData[0] : null;
 
       if (adminUser) {
-        console.log('AuthService.checkSession() - Admin user verified:', adminUser.email, 'Role:', adminUser.role);
         this.currentUser = adminUser;
         this.persistSession(adminUser);
         this.notifyListeners();
       } else {
-        console.warn('AuthService.checkSession() - User is authenticated but not an admin');
         this.clearPersistedSession();
         this.currentUser = null;
         this.notifyListeners();
       }
     } catch (error) {
-      console.error('AuthService.checkSession() - Error:', error);
       this.clearPersistedSession();
       this.currentUser = null;
       this.notifyListeners();
@@ -110,8 +95,6 @@ class AuthService {
 
   async signIn(email: string, password: string): Promise<{ success: boolean; error?: string }> {
     try {
-      console.log('AuthService.signIn() - Attempting sign in for:', email);
-
       // First try to sign in with Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
@@ -119,25 +102,18 @@ class AuthService {
       });
 
       if (authError) {
-        console.error('AuthService.signIn() - Supabase auth error:', authError);
         return { success: false, error: 'Invalid credentials' };
       }
 
       if (!authData.user) {
-        console.error('AuthService.signIn() - No user returned from auth');
         return { success: false, error: 'Authentication failed' };
       }
 
-      console.log('AuthService.signIn() - Auth successful, user ID:', authData.user.id);
-
       // Check if this user is an admin using the secure verification function
-      console.log('AuthService.signIn() - Calling verify_admin_user for:', authData.user.id);
       const { data: adminData, error: adminError } = await supabase
         .rpc('verify_admin_user', { p_user_id: authData.user.id });
 
       if (adminError) {
-        console.error('AuthService.signIn() - Error calling verify_admin_user:', adminError);
-        console.error('AuthService.signIn() - Error details:', JSON.stringify(adminError));
         await supabase.auth.signOut();
         return { success: false, error: 'Failed to verify admin status' };
       }
@@ -146,12 +122,9 @@ class AuthService {
       const adminUser = adminData && adminData.length > 0 ? adminData[0] : null;
 
       if (!adminUser) {
-        console.warn('AuthService.signIn() - User is not an admin');
         await supabase.auth.signOut();
         return { success: false, error: 'Access denied - admin account required' };
       }
-
-      console.log('AuthService.signIn() - Admin verified:', adminUser.email, 'Role:', adminUser.role);
 
       const user = {
         id: adminUser.id,
@@ -164,7 +137,6 @@ class AuthService {
       this.notifyListeners();
       return { success: true };
     } catch (error) {
-      console.error('AuthService.signIn() - Unexpected error:', error);
       return { success: false, error: 'An unexpected error occurred' };
     }
   }
@@ -173,7 +145,7 @@ class AuthService {
     try {
       await supabase.auth.signOut();
     } catch (error) {
-      console.error('Sign out error:', error);
+      // Silent fail - clear session anyway
     }
     this.clearPersistedSession();
     this.currentUser = null;
@@ -251,7 +223,6 @@ export async function requestPasswordReset(email: string): Promise<{ success: bo
 
     return { success: true };
   } catch (error) {
-    console.error('Error requesting password reset:', error);
     return { success: false, error: 'Network error. Please try again.' };
   }
 }
@@ -281,7 +252,6 @@ export async function validateResetToken(token: string): Promise<{ valid: boolea
 
     return { valid: true };
   } catch (error) {
-    console.error('Error validating token:', error);
     return { valid: false, error: 'Network error. Please try again.' };
   }
 }
@@ -315,7 +285,6 @@ export async function resetPasswordWithToken(
 
     return { success: true };
   } catch (error) {
-    console.error('Error resetting password:', error);
     return { success: false, error: 'Network error. Please try again.' };
   }
 }

@@ -40,8 +40,7 @@ export async function validateInvitationCode(code: string) {
     .maybeSingle();
 
   if (error) {
-    console.error('Error validating invitation:', error);
-    return { valid: false, invitation: null, error: error.message };
+    return { valid: false, invitation: null, error: 'Unable to validate invitation code' };
   }
 
   if (!data) {
@@ -81,7 +80,6 @@ export async function registerGuestUser(
     const result = await response.json();
 
     if (!response.ok || !result.success) {
-      console.error('Error creating guest account:', result.error);
       return { success: false, error: result.error || 'Failed to create account' };
     }
 
@@ -92,13 +90,11 @@ export async function registerGuestUser(
     });
 
     if (signInError) {
-      console.error('Error signing in after registration:', signInError);
       return { success: false, error: 'Account created but failed to sign in. Please try logging in manually.' };
     }
 
     return { success: true, error: null };
   } catch (error) {
-    console.error('Error during registration:', error);
     return { success: false, error: 'An unexpected error occurred. Please try again.' };
   }
 }
@@ -115,7 +111,6 @@ export async function getCurrentGuestUser(): Promise<GuestUser | null> {
     .maybeSingle();
 
   if (error) {
-    console.error('Error fetching guest user:', error);
     return null;
   }
 
@@ -130,7 +125,6 @@ export async function getGuestProfile(guestUserId: string) {
     .maybeSingle();
 
   if (error) {
-    console.error('Error fetching guest profile:', error);
     return null;
   }
 
@@ -156,8 +150,7 @@ export async function updateGuestProfile(
     .eq('guest_user_id', guestUserId);
 
   if (error) {
-    console.error('Error updating guest profile:', error);
-    return { success: false, error: error.message };
+    return { success: false, error: 'Unable to update profile' };
   }
 
   return { success: true, error: null };
@@ -191,8 +184,7 @@ export async function signInGuest(email: string, password: string) {
 export async function signOutGuest() {
   const { error } = await supabase.auth.signOut();
   if (error) {
-    console.error('Error signing out:', error);
-    return { success: false, error: error.message };
+    return { success: false, error: 'Unable to sign out' };
   }
   return { success: true, error: null };
 }
@@ -232,7 +224,6 @@ export async function requestPasswordReset(email: string): Promise<{ success: bo
 
     return { success: true };
   } catch (error) {
-    console.error('Error requesting password reset:', error);
     return { success: false, error: 'Network error. Please try again.' };
   }
 }
@@ -262,7 +253,6 @@ export async function validateResetToken(token: string): Promise<{ valid: boolea
 
     return { valid: true };
   } catch (error) {
-    console.error('Error validating token:', error);
     return { valid: false, error: 'Network error. Please try again.' };
   }
 }
@@ -296,7 +286,6 @@ export async function resetPasswordWithToken(
 
     return { success: true };
   } catch (error) {
-    console.error('Error resetting password:', error);
     return { success: false, error: 'Network error. Please try again.' };
   }
 }

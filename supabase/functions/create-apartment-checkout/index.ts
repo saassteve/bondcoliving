@@ -4,6 +4,39 @@ import Stripe from "npm:stripe@14";
 import { corsHeaders, handleCors } from "../_shared/cors.ts";
 import { jsonResponse, errorResponse } from "../_shared/response.ts";
 
+function validateEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email) && email.length <= 255;
+}
+
+function sanitizeString(str: string, maxLength: number): string {
+  return str.trim().slice(0, maxLength).replace(/[<>]/g, '');
+}
+
+function validateDate(dateString: string): boolean {
+  const date = new Date(dateString);
+  return !isNaN(date.getTime()) && /^\d{4}-\d{2}-\d{2}$/.test(dateString);
+}
+
+function calculateSegmentPrice(apartment: any, checkIn: string, checkOut: string): number {
+  const checkInDate = new Date(checkIn);
+  const checkOutDate = new Date(checkOut);
+  const nights = Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24));
+
+  if (nights <= 0) {
+    throw new Error("Invalid date range");
+  }
+
+  const isShortTerm = apartment.accommodation_type === 'short_term';
+
+  if (isShortTerm) {
+    return (apartment.nightly_price || 0) * nights;
+  } else {
+    const months = Math.ceil(nights / 30);
+    return (apartment.price || 0) * months;
+  }
+}
+
 Deno.serve(async (req: Request) => {
   const corsResponse = handleCors(req);
   if (corsResponse) return corsResponse;
@@ -26,18 +59,74 @@ Deno.serve(async (req: Request) => {
       return errorResponse("Missing required fields", "MISSING_FIELDS", 400);
     }
 
-    const isSplitStay = segments.length > 1;
-    const totalAmount = segments.reduce((sum: number, seg: any) => sum + parseFloat(seg.segment_price), 0);
-    const firstSegment = segments[0];
-    const lastSegment = segments[segments.length - 1];
+    if (!validateEmail(guestEmail)) {
+      return errorResponse("Invalid email address", "INVALID_EMAIL", 400);
+    }
+
+    if (guestCount < 1 || guestCount > 10) {
+      return errorResponse("Guest count must be between 1 and 10", "INVALID_GUEST_COUNT", 400);
+    }
+
+    const sanitizedGuestName = sanitizeString(guestName, 255);
+    const sanitizedGuestPhone = guestPhone ? sanitizeString(guestPhone, 50) : null;
+    const sanitizedInstructions = specialInstructions ? sanitizeString(specialInstructions, 2000) : null;
+
+    if (sanitizedGuestName.length < 2) {
+      return errorResponse("Guest name must be at least 2 characters", "INVALID_NAME", 400);
+    }
+
+    // Validate all segments and dates
+    for (const seg of segments) {
+      if (!seg.apartment_id || !seg.check_in_date || !seg.check_out_date) {
+        return errorResponse("Invalid segment data", "INVALID_SEGMENT", 400);
+      }
+      if (!validateDate(seg.check_in_date) || !validateDate(seg.check_out_date)) {
+        return errorResponse("Invalid date format", "INVALID_DATE", 400);
+      }
+    }
+
+    // Recalculate prices server-side - NEVER trust client-provided prices
+    const validatedSegments = await Promise.all(
+      segments.map(async (seg: any, index: number) => {
+        const { data: apartment, error: aptError } = await supabase
+          .from("apartments")
+          .select("id, title, price, nightly_price, accommodation_type")
+          .eq("id", seg.apartment_id)
+          .maybeSingle();
+
+        if (aptError || !apartment) {
+          throw new Error(`Apartment not found: ${seg.apartment_id}`);
+        }
+
+        const serverCalculatedPrice = calculateSegmentPrice(
+          apartment,
+          seg.check_in_date,
+          seg.check_out_date
+        );
+
+        return {
+          apartment_id: apartment.id,
+          apartment_title: apartment.title,
+          check_in_date: seg.check_in_date,
+          check_out_date: seg.check_out_date,
+          segment_price: serverCalculatedPrice,
+          segment_order: index,
+        };
+      })
+    );
+
+    const isSplitStay = validatedSegments.length > 1;
+    const totalAmount = validatedSegments.reduce((sum, seg) => sum + seg.segment_price, 0);
+    const firstSegment = validatedSegments[0];
+    const lastSegment = validatedSegments[validatedSegments.length - 1];
 
     const { data: booking, error: bookingError } = await supabase
       .from("bookings")
       .insert({
         apartment_id: firstSegment.apartment_id,
-        guest_name: guestName,
+        guest_name: sanitizedGuestName,
         guest_email: guestEmail,
-        guest_phone: guestPhone || null,
+        guest_phone: sanitizedGuestPhone,
         check_in_date: firstSegment.check_in_date,
         check_out_date: lastSegment.check_out_date,
         booking_source: "direct",
@@ -47,25 +136,24 @@ Deno.serve(async (req: Request) => {
         payment_status: "pending",
         payment_required: true,
         is_split_stay: isSplitStay,
-        special_instructions: specialInstructions || null,
-        metadata: { split_stay: isSplitStay, segment_count: segments.length },
+        special_instructions: sanitizedInstructions,
+        metadata: { split_stay: isSplitStay, segment_count: validatedSegments.length },
       })
       .select()
       .single();
 
     if (bookingError || !booking) {
-      console.error("Booking creation error:", bookingError);
-      return errorResponse("Failed to create booking", "BOOKING_CREATE_FAILED", 500, { details: bookingError?.message });
+      return errorResponse("Failed to create booking", "BOOKING_CREATE_FAILED", 500);
     }
 
     if (isSplitStay) {
-      const segmentInserts = segments.map((seg: any, index: number) => ({
+      const segmentInserts = validatedSegments.map((seg) => ({
         parent_booking_id: booking.id,
         apartment_id: seg.apartment_id,
-        segment_order: index,
+        segment_order: seg.segment_order,
         check_in_date: seg.check_in_date,
         check_out_date: seg.check_out_date,
-        segment_price: parseFloat(seg.segment_price),
+        segment_price: seg.segment_price,
       }));
 
       const { error: segmentError } = await supabase
@@ -73,47 +161,22 @@ Deno.serve(async (req: Request) => {
         .insert(segmentInserts);
 
       if (segmentError) {
-        console.error("Segment creation error:", segmentError);
         await supabase.from("bookings").delete().eq("id", booking.id);
         return errorResponse("Failed to create booking segments", "SEGMENT_CREATE_FAILED", 500);
       }
     }
 
-    const amountInCents = Math.round(totalAmount * 100);
-
-    const lineItems = isSplitStay
-      ? await Promise.all(
-          segments.map(async (seg: any) => {
-            const { data: apartment } = await supabase
-              .from("apartments")
-              .select("title")
-              .eq("id", seg.apartment_id)
-              .single();
-
-            return {
-              price_data: {
-                currency: "eur",
-                product_data: {
-                  name: `${apartment?.title || "Apartment"} - ${seg.check_in_date} to ${seg.check_out_date}`,
-                  description: `Stay from ${seg.check_in_date} to ${seg.check_out_date}`,
-                },
-                unit_amount: Math.round(parseFloat(seg.segment_price) * 100),
-              },
-              quantity: 1,
-            };
-          })
-        )
-      : [{
-          price_data: {
-            currency: "eur",
-            product_data: {
-              name: `Apartment Stay - ${firstSegment.check_in_date} to ${lastSegment.check_out_date}`,
-              description: `${guestCount} guest${guestCount > 1 ? "s" : ""}`,
-            },
-            unit_amount: amountInCents,
-          },
-          quantity: 1,
-        }];
+    const lineItems = validatedSegments.map((seg) => ({
+      price_data: {
+        currency: "eur",
+        product_data: {
+          name: `${seg.apartment_title} - ${seg.check_in_date} to ${seg.check_out_date}`,
+          description: `Stay from ${seg.check_in_date} to ${seg.check_out_date}`,
+        },
+        unit_amount: Math.round(seg.segment_price * 100),
+      },
+      quantity: 1,
+    }));
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -125,7 +188,7 @@ Deno.serve(async (req: Request) => {
       metadata: {
         booking_id: booking.id,
         booking_reference: booking.booking_reference,
-        guest_name: guestName,
+        guest_name: sanitizedGuestName,
         is_split_stay: isSplitStay.toString(),
       },
     });
@@ -140,7 +203,7 @@ Deno.serve(async (req: Request) => {
 
     return jsonResponse({ url: session.url, booking_id: booking.id });
   } catch (error) {
-    console.error("Error creating checkout:", error);
-    return errorResponse(error instanceof Error ? error.message : "Internal server error", "INTERNAL_ERROR", 500);
+    console.error("Checkout error");
+    return errorResponse("Unable to process booking request", "INTERNAL_ERROR", 500);
   }
 });
