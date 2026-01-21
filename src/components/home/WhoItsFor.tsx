@@ -25,7 +25,11 @@ const WhoItsFor: React.FC = () => {
   return (
     <section className="py-32 bg-[#1E1F1E] relative overflow-hidden">
       {/* Subtle Background Texture */}
-      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-[0.05] pointer-events-none"></div>
+      <div className="absolute inset-0 opacity-[0.05] pointer-events-none"
+        style={{
+          backgroundImage: 'radial-gradient(circle, rgba(197,197,181,0.1) 1px, transparent 1px)',
+          backgroundSize: '20px 20px'
+        }}></div>
       
       {/* Decorative Gradient Blurs */}
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#C5C5B5]/5 rounded-full blur-[128px] pointer-events-none" />

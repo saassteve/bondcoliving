@@ -71,7 +71,12 @@ const Reviews: React.FC = () => {
     <section className="py-32 bg-[#1E1F1E] relative overflow-hidden">
       {/* Background Decorative Elements */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-gradient-to-r from-[#C5C5B5]/5 to-transparent rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03] pointer-events-none"></div>
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
+        style={{
+          backgroundImage: 'linear-gradient(45deg, rgba(197,197,181,0.1) 25%, transparent 25%, transparent 75%, rgba(197,197,181,0.1) 75%, rgba(197,197,181,0.1)), linear-gradient(45deg, rgba(197,197,181,0.1) 25%, transparent 25%, transparent 75%, rgba(197,197,181,0.1) 75%, rgba(197,197,181,0.1))',
+          backgroundSize: '20px 20px',
+          backgroundPosition: '0 0, 10px 10px'
+        }}></div>
 
       <div className="container relative z-10">
         <AnimatedSection animation="fadeInUp">

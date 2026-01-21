@@ -115,5 +115,50 @@ export const storageService = {
     if (!url) return false
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
     return url.includes(supabaseUrl) && url.includes('/storage/v1/object/public/images/')
+  },
+
+  validateImageUrl(url: string): { valid: boolean; error?: string } {
+    if (!url) {
+      return { valid: false, error: 'URL is required' }
+    }
+
+    // Check if it's a Supabase storage URL
+    if (this.isSupabaseUrl(url)) {
+      return { valid: true }
+    }
+
+    // Check if it's a local file path (starts with /)
+    if (url.startsWith('/')) {
+      return { valid: true }
+    }
+
+    // Block external CDN URLs
+    const externalDomains = [
+      'ucarecdn.com',
+      'pexels.com',
+      'pravatar.cc',
+      'transparenttextures.com',
+      'unsplash.com',
+      'imgur.com',
+      'cloudinary.com'
+    ]
+
+    const isExternal = externalDomains.some(domain => url.includes(domain))
+    if (isExternal) {
+      return {
+        valid: false,
+        error: 'External CDN URLs are not allowed. Please upload images to storage.'
+      }
+    }
+
+    // Block other external URLs (http/https that aren't Supabase)
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return {
+        valid: false,
+        error: 'External URLs are not allowed. Please upload images to storage.'
+      }
+    }
+
+    return { valid: true }
   }
 }

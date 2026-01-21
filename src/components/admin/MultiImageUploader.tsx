@@ -78,6 +78,14 @@ const MultiImageUploader: React.FC<MultiImageUploaderProps> = ({
     for (const file of filesToUpload) {
       try {
         const result = await storageService.uploadImage(file, folder);
+
+        // Validate the resulting URL
+        const validation = storageService.validateImageUrl(result.url);
+        if (!validation.valid) {
+          console.error('Invalid image URL:', validation.error);
+          continue;
+        }
+
         newUrls.push(result.url);
         completed++;
         setUploadProgress(Math.round((completed / filesToUpload.length) * 100));
@@ -103,13 +111,16 @@ const MultiImageUploader: React.FC<MultiImageUploaderProps> = ({
 
   const handleRemove = async (index: number) => {
     const url = images[index];
-    const path = storageService.getPathFromUrl(url);
 
-    if (path) {
-      try {
-        await storageService.deleteImage(path);
-      } catch (err) {
-        console.error('Failed to delete image from storage:', err);
+    // Only attempt to delete from storage if it's a Supabase storage URL
+    if (storageService.isSupabaseUrl(url)) {
+      const path = storageService.getPathFromUrl(url);
+      if (path) {
+        try {
+          await storageService.deleteImage(path);
+        } catch (err) {
+          console.warn('Failed to delete image from storage:', err);
+        }
       }
     }
 

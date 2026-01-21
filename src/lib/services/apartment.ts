@@ -1,5 +1,6 @@
 import { supabase } from './client'
 import { availabilityService } from './availability'
+import { storageService } from './storage'
 import type { Apartment, ApartmentFeature, ApartmentImage, Review, FeatureHighlight, SiteSetting, Building } from './types'
 
 export class ApartmentService {
@@ -187,6 +188,12 @@ export class ApartmentService {
   }
 
   static async addImage(image: Omit<ApartmentImage, 'id' | 'created_at'>): Promise<ApartmentImage> {
+    // Validate image URL
+    const validation = storageService.validateImageUrl(image.image_url)
+    if (!validation.valid) {
+      throw new Error(validation.error || 'Invalid image URL')
+    }
+
     const { data, error } = await supabase
       .from('apartment_images')
       .insert(image)

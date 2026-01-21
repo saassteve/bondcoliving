@@ -16,8 +16,8 @@ const phrases = [
 
 // 1. Define critical assets here to ensure they are loaded before the curtain lifts
 const CRITICAL_IMAGES = [
-  "https://ucarecdn.com/958a4400-0486-4ba2-8e75-484d692d7df9/foundersbond.png", // Hero Image
-  "https://ucarecdn.com/8a70b6b2-1930-403f-b333-8234cda9ac93/BondTextOnly.png", // Main nav logo
+  "/images/static/foundersbond.png", // Hero Image
+  "/images/static/bond_text_only.png", // Main nav logo
   bondLogo  // Bond logo for guest platform
 ];
 
@@ -160,7 +160,11 @@ const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
         />
       </div>
       
-      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-[0.05] pointer-events-none"></div>
+      <div className="absolute inset-0 opacity-[0.05] pointer-events-none"
+        style={{
+          backgroundImage: 'radial-gradient(circle, rgba(197,197,181,0.1) 1px, transparent 1px)',
+          backgroundSize: '20px 20px'
+        }}></div>
     </div>
   );
 };

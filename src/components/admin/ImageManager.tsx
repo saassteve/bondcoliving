@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Star, Trash2, GripVertical, Save, Upload, Loader2 } from 'lucide-react';
+import { X, Star, Trash2, GripVertical, Save, Upload, Loader2, Plus } from 'lucide-react';
 import { apartmentService, storageService, type ApartmentImage } from '../../lib/supabase';
 
 interface ImageManagerProps {
@@ -166,11 +166,19 @@ const ImageManager: React.FC<ImageManagerProps> = ({ apartmentId, onClose }) => 
     if (!window.confirm('Are you sure you want to delete this image?')) return;
 
     try {
-      const path = storageService.getPathFromUrl(imageUrl);
-      if (path) {
-        await storageService.deleteImage(path);
+      // Only attempt to delete from storage if it's a Supabase storage URL
+      if (storageService.isSupabaseUrl(imageUrl)) {
+        const path = storageService.getPathFromUrl(imageUrl);
+        if (path) {
+          try {
+            await storageService.deleteImage(path);
+          } catch (storageError) {
+            console.warn('Failed to delete from storage, continuing with database deletion:', storageError);
+          }
+        }
       }
 
+      // Always remove the database record
       await apartmentService.deleteImage(imageId);
       await fetchImages();
     } catch (error) {

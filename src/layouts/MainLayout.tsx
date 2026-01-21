@@ -88,9 +88,9 @@ const MainLayout: React.FC = () => {
             <div className="flex items-center justify-between">
               {/* Logo */}
               <Link to="/" className="relative z-50 flex items-center gap-2 group" onClick={closeMenu}>
-                <img 
-                  src="https://ucarecdn.com/8a70b6b2-1930-403f-b333-8234cda9ac93/BondTextOnly.png" 
-                  alt="Bond" 
+                <img
+                  src="/images/static/bond_text_only.png"
+                  alt="Bond"
                   className="h-6 md:h-7 w-auto opacity-90 group-hover:opacity-100 transition-opacity"
                 />
               </Link>
@@ -210,9 +210,9 @@ const MainLayout: React.FC = () => {
               {/* Column 1: Brand Statement */}
               <div className="md:col-span-5">
                 <div className="flex items-center gap-3 mb-6">
-                  <img 
-                    src="https://ucarecdn.com/8a70b6b2-1930-403f-b333-8234cda9ac93/BondTextOnly.png" 
-                    alt="Bond Logo" 
+                  <img
+                    src="/images/static/bond_text_only.png"
+                    alt="Bond Logo"
                     className="h-6 w-auto opacity-80"
                   />
                 </div>

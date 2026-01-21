@@ -11,7 +11,7 @@ const Hero: React.FC = () => {
       {/* Background Image & Overlays */}
       <div className="absolute inset-0 z-0">
         <img
-          src="https://ucarecdn.com/958a4400-0486-4ba2-8e75-484d692d7df9/foundersbond.png"
+          src="/images/static/foundersbond.png"
           alt="Premium nomad apartments in central Funchal, Madeira"
           className="w-full h-full object-cover"
           loading="eager"

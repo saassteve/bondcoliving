@@ -40,8 +40,8 @@ const Intro: React.FC = () => {
               {/* Large Image Tile */}
               <AnimatedSection animation="fadeInUp" delay={100} className="md:col-span-2">
                 <div className="relative aspect-[2/1] rounded-3xl overflow-hidden group">
-                   <img 
-                    src="https://ucarecdn.com/bf59726e-44a3-459e-91aa-3ae94ffbc465/friends_laughing_Madiera.png"
+                   <img
+                    src="/images/static/friends_laughing.png"
                     alt="Community"
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                    />
@@ -84,8 +84,8 @@ const Intro: React.FC = () => {
                     <div className="flex items-center gap-4">
                       <div className="flex -space-x-4">
                         {[1,2,3].map(i => (
-                          <div key={i} className="w-12 h-12 rounded-full border-2 border-[#C5C5B5] bg-gray-300 overflow-hidden">
-                            <img src={`https://i.pravatar.cc/100?img=${i+10}`} alt="User" />
+                          <div key={i} className="w-12 h-12 rounded-full border-2 border-[#C5C5B5] bg-gray-600 flex items-center justify-center text-white font-semibold">
+                            {String.fromCharCode(65 + i)}
                           </div>
                         ))}
                       </div>

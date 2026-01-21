@@ -70,6 +70,13 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
 
     try {
       const result = await storageService.uploadImage(file, folder);
+
+      // Validate the resulting URL
+      const validation = storageService.validateImageUrl(result.url);
+      if (!validation.valid) {
+        throw new Error(validation.error || 'Invalid image URL');
+      }
+
       onUploadComplete(result.url);
       setPreviewUrl(null);
     } catch (err) {
@@ -86,12 +93,15 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   const handleRemove = async () => {
     if (!currentImageUrl) return;
 
-    const path = storageService.getPathFromUrl(currentImageUrl);
-    if (path) {
-      try {
-        await storageService.deleteImage(path);
-      } catch (err) {
-        console.error('Failed to delete image from storage:', err);
+    // Only attempt to delete from storage if it's a Supabase storage URL
+    if (storageService.isSupabaseUrl(currentImageUrl)) {
+      const path = storageService.getPathFromUrl(currentImageUrl);
+      if (path) {
+        try {
+          await storageService.deleteImage(path);
+        } catch (err) {
+          console.warn('Failed to delete image from storage:', err);
+        }
       }
     }
 
