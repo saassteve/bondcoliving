@@ -60,7 +60,11 @@ export function calculateTotalPrice(
   if (isShortTerm) {
     return (apartment.nightly_price || 0) * nights;
   } else {
-    const months = Math.ceil(nights / 30);
-    return (apartment.price || 0) * months;
+    const monthlyPrice = apartment.price || 0;
+    const fullMonths = Math.floor(nights / 30);
+    const remainingDays = nights % 30;
+    const dailyRate = monthlyPrice / 30;
+
+    return (fullMonths * monthlyPrice) + (remainingDays * dailyRate);
   }
 }

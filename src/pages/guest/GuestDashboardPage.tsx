@@ -28,9 +28,9 @@ interface Booking {
   check_out_date: string;
   door_code: string | null;
   special_instructions: string | null;
-  apartments: {
+  apartment: {
     title: string;
-  };
+  } | null;
 }
 
 export default function GuestDashboardPage() {
@@ -71,7 +71,7 @@ export default function GuestDashboardPage() {
           .from('bookings')
           .select(`
             *,
-            apartments (
+            apartment:apartment_id (
               title
             )
           `)
@@ -302,7 +302,7 @@ export default function GuestDashboardPage() {
                 <div className="space-y-3">
                   <div>
                     <p className="text-sm text-[#1E1F1E]/70 mb-1">Apartment</p>
-                    <p className="font-semibold">{booking.apartments.title}</p>
+                    <p className="font-semibold">{booking.apartment?.title || 'N/A'}</p>
                   </div>
 
                   <div>

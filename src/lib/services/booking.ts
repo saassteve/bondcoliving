@@ -266,7 +266,13 @@ export class ApartmentBookingService {
 
     const start = new Date(startDate)
     const end = new Date(endDate)
-    const dailyRate = (monthlyPrice: number) => monthlyPrice / 30
+
+    const calculatePrice = (monthlyPrice: number, days: number): number => {
+      const fullMonths = Math.floor(days / 30)
+      const remainingDays = days % 30
+      const dailyRate = monthlyPrice / 30
+      return (fullMonths * monthlyPrice) + (remainingDays * dailyRate)
+    }
 
     const formatDate = (date: Date): string => {
       const year = date.getFullYear()
@@ -370,7 +376,7 @@ export class ApartmentBookingService {
           const segmentDays = Math.ceil((segmentEnd.getTime() - segmentStart.getTime()) / (1000 * 60 * 60 * 24))
 
           if (segmentDays >= 1) {
-            const segmentPrice = dailyRate(period.apartment.price) * segmentDays
+            const segmentPrice = calculatePrice(period.apartment.price, segmentDays)
             const newUsedIds = new Set(usedApartmentIds)
 
             segments.push({

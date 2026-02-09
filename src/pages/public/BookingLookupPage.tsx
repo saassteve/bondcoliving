@@ -19,8 +19,8 @@ interface BookingDetails {
     building: {
       name: string;
       address: string;
-    };
-  };
+    } | null;
+  } | null;
 }
 
 export default function BookingLookupPage() {
@@ -57,9 +57,9 @@ export default function BookingLookupPage() {
           status,
           payment_status,
           created_at,
-          apartment:apartments(
+          apartment:apartment_id(
             title,
-            building:buildings(
+            building:building_id(
               name,
               address
             )
@@ -67,7 +67,7 @@ export default function BookingLookupPage() {
         `)
         .eq('booking_reference', bookingReference.trim())
         .eq('guest_email', email.trim().toLowerCase())
-        .single();
+        .maybeSingle();
 
       if (searchError || !data) {
         setError('Booking not found. Please check your booking reference and email address.');
@@ -252,14 +252,18 @@ export default function BookingLookupPage() {
                   <div className="flex-1">
                     <p className="text-sm font-medium text-gray-500">Location</p>
                     <p className="text-lg font-semibold text-gray-900">
-                      {booking.apartment.title}
+                      {booking.apartment?.title || 'N/A'}
                     </p>
-                    <p className="text-sm text-gray-600">
-                      {booking.apartment.building.name}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {booking.apartment.building.address}
-                    </p>
+                    {booking.apartment?.building && (
+                      <>
+                        <p className="text-sm text-gray-600">
+                          {booking.apartment.building.name}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {booking.apartment.building.address}
+                        </p>
+                      </>
+                    )}
                   </div>
                 </div>
 
