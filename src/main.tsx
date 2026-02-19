@@ -53,6 +53,7 @@ import AdminCommunicationsPage from './pages/admin/AdminCommunicationsPage';
 import AdminForgotPasswordPage from './pages/admin/AdminForgotPasswordPage';
 import AdminResetPasswordPage from './pages/admin/AdminResetPasswordPage';
 import AdminImageMigrationPage from './pages/admin/AdminImageMigrationPage';
+import AdminApiKeysPage from './pages/admin/AdminApiKeysPage';
 
 // Guest Pages
 import GuestRegisterPage from './pages/guest/GuestRegisterPage';
@@ -135,6 +136,7 @@ const App = () => {
             <Route path="communications" element={<ProtectedRoute><AdminCommunicationsPage /></ProtectedRoute>} />
             <Route path="promotions" element={<ProtectedRoute><AdminPromotionsPage /></ProtectedRoute>} />
             <Route path="image-migration" element={<ProtectedRoute><AdminImageMigrationPage /></ProtectedRoute>} />
+            <Route path="api-keys" element={<ProtectedRoute><AdminApiKeysPage /></ProtectedRoute>} />
             <Route path="account" element={<ProtectedRoute><AdminAccountPage /></ProtectedRoute>} />
             {/* Admin catch-all */}
             <Route path="*" element={<Navigate to="/admin" replace />} />

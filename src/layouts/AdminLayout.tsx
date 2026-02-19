@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { Menu, X, Home, Building, Coffee, LogOut, LayoutDashboard, Settings, Calendar, CalendarCheck, Megaphone, UserCheck, Bell, PartyPopper, MapPin, Wrench, MessageSquare, Mail, ChevronDown, ChevronRight, Image } from 'lucide-react';
+import { Menu, X, Home, Building, Coffee, LogOut, LayoutDashboard, Settings, Calendar, CalendarCheck, Megaphone, UserCheck, Bell, PartyPopper, MapPin, Wrench, MessageSquare, Mail, ChevronDown, ChevronRight, Image, Key } from 'lucide-react';
 import { authService, useAuth } from '../lib/auth';
 import NotificationBell from '../components/admin/NotificationBell';
 
@@ -73,6 +73,7 @@ const AdminLayout: React.FC = () => {
         { name: 'Promotions', path: '/admin/promotions', icon: Megaphone },
       ]
     },
+    { name: 'API Keys', path: '/admin/api-keys', icon: Key },
     { name: 'Account', path: '/admin/account', icon: Settings },
   ];
 
