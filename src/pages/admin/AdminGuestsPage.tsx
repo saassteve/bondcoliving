@@ -3,6 +3,10 @@ import { supabase } from '../../lib/supabase';
 import { generateInvitationCode } from '../../lib/guestAuth';
 import { checkAdminPermissions, safeDelete } from '../../lib/adminPermissions';
 import { Users, Plus, Mail, Copy, Check, Calendar, Trash2, X } from 'lucide-react';
+import Pagination from '../../components/admin/Pagination';
+
+const GUESTS_PAGE_SIZE = 25;
+const INVITATIONS_PAGE_SIZE = 25;
 
 interface GuestUser {
   id: string;
@@ -28,6 +32,8 @@ interface Invitation {
 
 export default function AdminGuestsPage() {
   const [activeTab, setActiveTab] = useState<'guests' | 'invitations'>('guests');
+  const [guestsPage, setGuestsPage] = useState(1);
+  const [invitationsPage, setInvitationsPage] = useState(1);
   const [guests, setGuests] = useState<GuestUser[]>([]);
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -122,9 +128,6 @@ export default function AdminGuestsPage() {
       });
 
       if (insertError) {
-        console.error('Error creating invitation:', insertError);
-
-        // Check if it's a permission error
         if (insertError.code === '42501' || insertError.message.includes('permission')) {
           setError('Admin access required. Please ensure you are logged in as an admin.');
         } else {
@@ -134,8 +137,30 @@ export default function AdminGuestsPage() {
         return;
       }
 
+      // Send invitation email (non-fatal if it fails)
+      const registrationUrl = `${window.location.origin}/guest/register?code=${code}`;
+      try {
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const { data: { session } } = await supabase.auth.getSession();
+        await fetch(`${supabaseUrl}/functions/v1/send-guest-invitation-email`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({
+            invitationCode: code,
+            recipientEmail: inviteForm.email,
+            recipientName: inviteForm.full_name,
+            registrationUrl,
+          }),
+        });
+      } catch {
+        // Email failure is non-fatal — the invitation record was still created
+      }
+
       // Success!
-      setSuccess(`Invitation created successfully for ${inviteForm.full_name}`);
+      setSuccess(`Invitation created and email sent to ${inviteForm.full_name}`);
       setShowInviteModal(false);
       setInviteForm({
         email: '',
@@ -296,7 +321,7 @@ export default function AdminGuestsPage() {
                 </tr>
               </thead>
               <tbody className="bg-gray-800 divide-y divide-gray-700">
-                {guests.map((guest) => (
+                {guests.slice((guestsPage - 1) * GUESTS_PAGE_SIZE, guestsPage * GUESTS_PAGE_SIZE).map((guest) => (
                   <tr key={guest.id} className="hover:bg-gray-750">
                     <td className="px-4 sm:px-6 py-4">
                       <div>
@@ -342,6 +367,12 @@ export default function AdminGuestsPage() {
               </tbody>
             </table>
           </div>
+          <Pagination
+            currentPage={guestsPage}
+            totalItems={guests.length}
+            pageSize={GUESTS_PAGE_SIZE}
+            onPageChange={setGuestsPage}
+          />
         </div>
       ) : (
         <div className="bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-gray-700">
@@ -358,7 +389,7 @@ export default function AdminGuestsPage() {
                 </tr>
               </thead>
               <tbody className="bg-gray-800 divide-y divide-gray-700">
-                {invitations.map((invitation) => (
+                {invitations.slice((invitationsPage - 1) * INVITATIONS_PAGE_SIZE, invitationsPage * INVITATIONS_PAGE_SIZE).map((invitation) => (
                   <tr key={invitation.id} className="hover:bg-gray-750">
                     <td className="px-4 sm:px-6 py-4">
                       <div>
@@ -423,6 +454,12 @@ export default function AdminGuestsPage() {
               </tbody>
             </table>
           </div>
+          <Pagination
+            currentPage={invitationsPage}
+            totalItems={invitations.length}
+            pageSize={INVITATIONS_PAGE_SIZE}
+            onPageChange={setInvitationsPage}
+          />
         </div>
       )}
 

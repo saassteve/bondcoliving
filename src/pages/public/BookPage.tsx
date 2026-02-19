@@ -37,27 +37,52 @@ interface BookingData {
   specialInstructions: string;
 }
 
+const SESSION_KEY = 'bond_booking_state';
+
+const getPersistedState = (): { step: BookingStep; data: BookingData } | null => {
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
 const BookPage: React.FC = () => {
-  const [currentStep, setCurrentStep] = useState<BookingStep>('stay-type');
+  const persisted = getPersistedState();
+
+  const [currentStep, setCurrentStep] = useState<BookingStep>(persisted?.step || 'stay-type');
   const [bookingSettings, setBookingSettings] = useState<BookingSettings | null>(null);
-  const [selectedApartment, setSelectedApartment] = useState<Apartment | null>(null);
+  const [selectedApartment, setSelectedApartment] = useState<Apartment | null>(
+    persisted?.data.selectedSegments[0]?.apartment || null
+  );
   const [loading, setLoading] = useState(true);
-  const [bookingData, setBookingData] = useState<BookingData>({
-    stayType: null,
-    checkInDate: null,
-    checkOutDate: null,
-    selectedSegments: [],
-    guestName: '',
-    guestEmail: '',
-    guestPhone: '',
-    guestCount: 1,
-    specialInstructions: '',
-  });
+  const [bookingData, setBookingData] = useState<BookingData>(
+    persisted?.data || {
+      stayType: null,
+      checkInDate: null,
+      checkOutDate: null,
+      selectedSegments: [],
+      guestName: '',
+      guestEmail: '',
+      guestPhone: '',
+      guestCount: 1,
+      specialInstructions: '',
+    }
+  );
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify({ step: currentStep, data: bookingData }));
+    } catch {
+      // sessionStorage may not be available
+    }
+  }, [currentStep, bookingData]);
 
   const loadData = async () => {
     try {
@@ -376,6 +401,7 @@ const BookPage: React.FC = () => {
                                 segments,
                               });
 
+                              try { sessionStorage.removeItem(SESSION_KEY); } catch { /* ignore */ }
                               window.location.href = url;
                             } catch (error) {
                               console.error('Error creating checkout:', error);

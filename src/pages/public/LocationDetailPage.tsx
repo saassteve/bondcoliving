@@ -18,6 +18,7 @@ import { buildingService, apartmentService } from '../../lib/services';
 import type { Building, Apartment } from '../../lib/services/types';
 import BentoGallery from '../../components/location/BentoGallery';
 import AnimatedSection from '../../components/AnimatedSection';
+import { supabase } from '../../lib/supabase';
 
 const LocationDetailPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -26,6 +27,8 @@ const LocationDetailPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState('');
   const [notifySubmitted, setNotifySubmitted] = useState(false);
+  const [notifyLoading, setNotifyLoading] = useState(false);
+  const [notifyError, setNotifyError] = useState('');
 
   useEffect(() => {
     const loadData = async () => {
@@ -52,8 +55,23 @@ const LocationDetailPage: React.FC = () => {
     loadData();
   }, [slug]);
 
-  const handleNotifySubmit = (e: React.FormEvent) => {
+  const handleNotifySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!slug) return;
+    setNotifyLoading(true);
+    setNotifyError('');
+
+    const { error } = await supabase
+      .from('location_notify_signups')
+      .insert({ email, building_slug: slug });
+
+    setNotifyLoading(false);
+
+    if (error && error.code !== '23505') {
+      setNotifyError('Something went wrong. Please try again.');
+      return;
+    }
+
     setNotifySubmitted(true);
     setEmail('');
   };
@@ -231,21 +249,28 @@ const LocationDetailPage: React.FC = () => {
                         <span className="text-green-300">Thanks! We'll notify you when this location opens.</span>
                       </div>
                     ) : (
-                      <form onSubmit={handleNotifySubmit} className="flex gap-3">
-                        <input
-                          type="email"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          placeholder="Enter your email"
-                          required
-                          className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-[#C5C5B5]/40 focus:outline-none focus:border-amber-500/50"
-                        />
-                        <button
-                          type="submit"
-                          className="px-6 py-3 bg-amber-500 text-black font-bold rounded-xl hover:bg-amber-400 transition-colors"
-                        >
-                          Notify Me
-                        </button>
+                      <form onSubmit={handleNotifySubmit} className="space-y-3">
+                        <div className="flex gap-3">
+                          <input
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="Enter your email"
+                            required
+                            disabled={notifyLoading}
+                            className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-[#C5C5B5]/40 focus:outline-none focus:border-amber-500/50 disabled:opacity-60"
+                          />
+                          <button
+                            type="submit"
+                            disabled={notifyLoading}
+                            className="px-6 py-3 bg-amber-500 text-black font-bold rounded-xl hover:bg-amber-400 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                          >
+                            {notifyLoading ? 'Saving...' : 'Notify Me'}
+                          </button>
+                        </div>
+                        {notifyError && (
+                          <p className="text-sm text-red-400">{notifyError}</p>
+                        )}
                       </form>
                     )}
                   </div>

@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Edit, Trash2, Mail, Phone, Eye, Filter, Download } from 'lucide-react';
 import { type Booking } from '../../lib/supabase';
+import Pagination from './Pagination';
+
+const PAGE_SIZE = 25;
 
 interface BookingListProps {
   bookings: Booking[];
@@ -34,6 +37,7 @@ const BookingList: React.FC<BookingListProps> = ({
   formatDate,
   stats
 }) => {
+  const [currentPage, setCurrentPage] = useState(1);
   const statusBadgeClass = (status: string) => {
     switch(status) {
       case 'pending_payment':
@@ -68,19 +72,25 @@ const BookingList: React.FC<BookingListProps> = ({
     ? bookings
     : bookings.filter(booking => booking.status === filter))
     .sort((a, b) => {
-      // Primary sort: Check-in date (earliest first)
       const dateComparison = new Date(a.check_in_date).getTime() - new Date(b.check_in_date).getTime();
       if (dateComparison !== 0) return dateComparison;
-
-      // Secondary sort: Status priority (checked_in > confirmed > checked_out > cancelled)
       const statusPriority = { 'checked_in': 1, 'confirmed': 2, 'checked_out': 3, 'cancelled': 4 };
       const aPriority = statusPriority[a.status as keyof typeof statusPriority] || 5;
       const bPriority = statusPriority[b.status as keyof typeof statusPriority] || 5;
       if (aPriority !== bPriority) return aPriority - bPriority;
-
-      // Tertiary sort: Guest name alphabetically
       return a.guest_name.localeCompare(b.guest_name);
     });
+
+  const totalFiltered = filteredBookings.length;
+  const paginatedBookings = filteredBookings.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
+
+  const handleFilterChange = (newFilter: string) => {
+    onFilterChange(newFilter);
+    setCurrentPage(1);
+  };
 
   return (
     <>
@@ -92,7 +102,7 @@ const BookingList: React.FC<BookingListProps> = ({
             <div className="text-sm font-medium text-slate-300">Filter by status:</div>
             <div className="flex flex-wrap gap-2">
               <button
-                onClick={() => onFilterChange('all')}
+                onClick={() => handleFilterChange('all')}
                 className={`px-3 py-1 text-sm rounded-full ${
                   filter === 'all'
                     ? 'bg-indigo-600 text-white'
@@ -102,7 +112,7 @@ const BookingList: React.FC<BookingListProps> = ({
                 All
               </button>
               <button
-                onClick={() => onFilterChange('pending_payment')}
+                onClick={() => handleFilterChange('pending_payment')}
                 className={`px-3 py-1 text-sm rounded-full ${
                   filter === 'pending_payment'
                     ? 'bg-yellow-600 text-white'
@@ -112,7 +122,7 @@ const BookingList: React.FC<BookingListProps> = ({
                 Pending Payment
               </button>
               <button
-                onClick={() => onFilterChange('confirmed')}
+                onClick={() => handleFilterChange('confirmed')}
                 className={`px-3 py-1 text-sm rounded-full ${
                   filter === 'confirmed'
                     ? 'bg-blue-600 text-white'
@@ -122,27 +132,27 @@ const BookingList: React.FC<BookingListProps> = ({
                 Confirmed
               </button>
               <button
-                onClick={() => onFilterChange('checked_in')}
+                onClick={() => handleFilterChange('checked_in')}
                 className={`px-3 py-1 text-sm rounded-full ${
-                  filter === 'checked_in' 
-                    ? 'bg-green-600 text-white' 
+                  filter === 'checked_in'
+                    ? 'bg-green-600 text-white'
                     : 'bg-green-900/50 text-green-300 hover:bg-green-200'
                 }`}
               >
                 Checked In
               </button>
               <button
-                onClick={() => onFilterChange('checked_out')}
+                onClick={() => handleFilterChange('checked_out')}
                 className={`px-3 py-1 text-sm rounded-full ${
-                  filter === 'checked_out' 
-                    ? 'bg-gray-600 text-white' 
+                  filter === 'checked_out'
+                    ? 'bg-gray-600 text-white'
                     : 'bg-gray-700 text-gray-800 hover:bg-gray-200'
                 }`}
               >
                 Checked Out
               </button>
               <button
-                onClick={() => onFilterChange('cancelled')}
+                onClick={() => handleFilterChange('cancelled')}
                 className={`px-3 py-1 text-sm rounded-full ${
                   filter === 'cancelled'
                     ? 'bg-red-600 text-white'
@@ -191,7 +201,7 @@ const BookingList: React.FC<BookingListProps> = ({
               </tr>
             </thead>
             <tbody className="bg-slate-900 divide-y divide-slate-700">
-              {filteredBookings.map((booking) => (
+              {paginatedBookings.map((booking) => (
                 <tr key={booking.id} className="hover:bg-slate-700">
                   <td className="px-4 py-3 whitespace-nowrap">
                     <div className="text-sm font-medium text-white">{booking.guest_name}</div>
@@ -255,7 +265,7 @@ const BookingList: React.FC<BookingListProps> = ({
                 </tr>
               ))}
 
-              {filteredBookings.length === 0 && (
+              {paginatedBookings.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
                     No bookings found
@@ -265,6 +275,12 @@ const BookingList: React.FC<BookingListProps> = ({
             </tbody>
           </table>
         </div>
+        <Pagination
+          currentPage={currentPage}
+          totalItems={totalFiltered}
+          pageSize={PAGE_SIZE}
+          onPageChange={setCurrentPage}
+        />
       </div>
     </>
   );

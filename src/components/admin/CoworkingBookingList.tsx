@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Edit, Trash } from 'lucide-react';
 import { type CoworkingBooking } from '../../lib/supabase';
 import { getStatusBadgeClass, formatDate } from '../../lib/statusUtils';
+import Pagination from './Pagination';
+
+const PAGE_SIZE = 25;
 
 interface Props {
   bookings: CoworkingBooking[];
@@ -18,9 +21,22 @@ const CoworkingBookingList: React.FC<Props> = ({
   onEdit,
   onDelete,
 }) => {
+  const [currentPage, setCurrentPage] = useState(1);
+
   const filteredBookings = filter === 'all'
     ? bookings
     : bookings.filter(booking => booking.booking_status === filter || booking.payment_status === filter);
+
+  const totalFiltered = filteredBookings.length;
+  const paginatedBookings = filteredBookings.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
+
+  const handleFilterChange = (newFilter: string) => {
+    onFilterChange(newFilter);
+    setCurrentPage(1);
+  };
 
   return (
     <>
@@ -37,7 +53,7 @@ const CoworkingBookingList: React.FC<Props> = ({
             ].map((btn) => (
               <button
                 key={btn.value}
-                onClick={() => onFilterChange(btn.value)}
+                onClick={() => handleFilterChange(btn.value)}
                 className={`px-3 py-1 text-sm rounded-full ${
                   filter === btn.value
                     ? btn.className
@@ -66,14 +82,14 @@ const CoworkingBookingList: React.FC<Props> = ({
               </tr>
             </thead>
             <tbody className="bg-slate-900 divide-y divide-slate-700">
-              {filteredBookings.length === 0 ? (
+              {paginatedBookings.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-4 py-8 text-center text-slate-400">
                     No bookings found
                   </td>
                 </tr>
               ) : (
-                filteredBookings.map((booking) => (
+                paginatedBookings.map((booking) => (
                   <tr key={booking.id}>
                     <td className="px-4 py-3 whitespace-nowrap">
                       <div className="text-sm font-mono text-slate-100">{booking.booking_reference}</div>
@@ -115,6 +131,12 @@ const CoworkingBookingList: React.FC<Props> = ({
             </tbody>
           </table>
         </div>
+        <Pagination
+          currentPage={currentPage}
+          totalItems={totalFiltered}
+          pageSize={PAGE_SIZE}
+          onPageChange={setCurrentPage}
+        />
       </div>
     </>
   );

@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { useSearchParams, Link } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Calendar, Users, MapPin, Filter } from 'lucide-react';
 import { apartmentService, availabilityService, type Apartment } from '../../lib/supabase';
+import { supabase } from '../../lib/supabase';
 import { getIconComponent } from '../../lib/iconUtils';
 
 const SearchResultsPage: React.FC = () => {
@@ -33,37 +34,53 @@ const SearchResultsPage: React.FC = () => {
       setLoading(true);
       const apartments = await apartmentService.getAll();
 
-      const apartmentsWithData = await Promise.all(
-        apartments.map(async (apartment) => {
-          try {
-            const [images, features, nextAvailableDate] = await Promise.all([
-              apartmentService.getImages(apartment.id),
-              apartmentService.getFeatures(apartment.id),
-              availabilityService.getNextAvailableDate(apartment.id)
-            ]);
+      if (apartments.length === 0) {
+        setApartments([]);
+        return;
+      }
 
-            const featuredImage = images.find(img => img.is_featured);
+      const apartmentIds = apartments.map(a => a.id);
 
-            return {
-              ...apartment,
-              image_url: featuredImage?.image_url || apartment.image_url,
-              features,
-              available_from: nextAvailableDate || apartment.available_from
-            };
-          } catch (error) {
-            console.error(`Error fetching data for apartment ${apartment.id}:`, error);
-            return {
-              ...apartment,
-              features: []
-            };
-          }
-        })
-      );
+      const [imagesResult, featuresResult] = await Promise.all([
+        supabase
+          .from('apartment_images')
+          .select('*')
+          .in('apartment_id', apartmentIds)
+          .order('sort_order', { ascending: true }),
+        supabase
+          .from('apartment_features')
+          .select('*')
+          .in('apartment_id', apartmentIds)
+          .order('sort_order', { ascending: true }),
+      ]);
+
+      const imagesByApartment = (imagesResult.data || []).reduce<Record<string, typeof imagesResult.data>>((acc, img) => {
+        if (!acc[img.apartment_id]) acc[img.apartment_id] = [];
+        acc[img.apartment_id]!.push(img);
+        return acc;
+      }, {});
+
+      const featuresByApartment = (featuresResult.data || []).reduce<Record<string, typeof featuresResult.data>>((acc, feat) => {
+        if (!acc[feat.apartment_id]) acc[feat.apartment_id] = [];
+        acc[feat.apartment_id]!.push(feat);
+        return acc;
+      }, {});
+
+      const apartmentsWithData = apartments.map((apartment) => {
+        const images = imagesByApartment[apartment.id] || [];
+        const features = featuresByApartment[apartment.id] || [];
+        const featuredImage = images.find((img: any) => img.is_featured);
+
+        return {
+          ...apartment,
+          image_url: featuredImage?.image_url || apartment.image_url,
+          features,
+        };
+      });
 
       setApartments(apartmentsWithData);
     } catch (err) {
       setError('Failed to load apartments');
-      console.error('Error fetching apartments:', err);
     } finally {
       setLoading(false);
     }

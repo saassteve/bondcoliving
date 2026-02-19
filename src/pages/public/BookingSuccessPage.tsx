@@ -38,18 +38,34 @@ export default function ApartmentBookingSuccessPage() {
       return;
     }
 
-    loadBooking();
+    let stopped = false;
+    let pollInterval: ReturnType<typeof setInterval>;
 
-    const pollInterval = setInterval(() => {
-      setPollCount((prev) => prev + 1);
+    const startPolling = () => {
       loadBooking();
-    }, 3000);
 
-    setTimeout(() => {
+      pollInterval = setInterval(() => {
+        if (stopped) return;
+        setPollCount((prev) => prev + 1);
+        loadBooking();
+      }, 3000);
+
+      const stopTimeout = setTimeout(() => {
+        clearInterval(pollInterval);
+        stopped = true;
+        setLoading(false);
+      }, 60000);
+
+      return stopTimeout;
+    };
+
+    const stopTimeout = startPolling();
+
+    return () => {
+      stopped = true;
       clearInterval(pollInterval);
-    }, 60000);
-
-    return () => clearInterval(pollInterval);
+      clearTimeout(stopTimeout);
+    };
   }, [bookingId]);
 
   async function loadBooking() {

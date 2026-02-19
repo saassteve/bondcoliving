@@ -1,19 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link, useSearchParams } from 'react-router-dom';
-import { CheckCircle, Calendar, Mail, ArrowRight } from 'lucide-react';
+import { CheckCircle, Calendar, Mail, ArrowRight, AlertCircle } from 'lucide-react';
 import { coworkingBookingService, type CoworkingBooking } from '../../lib/supabase';
 
 const CoworkingBookingSuccessPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const [booking, setBooking] = useState<CoworkingBooking | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const bookingId = searchParams.get('booking_id');
     if (bookingId) {
       fetchBooking(bookingId);
     } else {
+      setError('No booking ID provided');
       setLoading(false);
     }
   }, []);
@@ -21,9 +23,13 @@ const CoworkingBookingSuccessPage: React.FC = () => {
   const fetchBooking = async (bookingId: string) => {
     try {
       const data = await coworkingBookingService.getById(bookingId);
-      setBooking(data);
-    } catch (error) {
-      console.error('Error fetching booking:', error);
+      if (!data) {
+        setError('Booking not found');
+      } else {
+        setBooking(data);
+      }
+    } catch {
+      setError('Failed to load booking details');
     } finally {
       setLoading(false);
     }
@@ -40,7 +46,22 @@ const CoworkingBookingSuccessPage: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#1E1F1E] flex items-center justify-center">
-        <div className="text-[#C5C5B5]">Loading...</div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#C5C5B5]" role="status" aria-label="Loading" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#1E1F1E] flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-[#C5C5B5]/5 border border-[#C5C5B5]/10 rounded-2xl p-8 text-center">
+          <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-[#C5C5B5] mb-2">Something went wrong</h1>
+          <p className="text-[#C5C5B5]/70 mb-6">{error}</p>
+          <Link to="/" className="inline-flex items-center px-6 py-3 bg-[#C5C5B5] text-[#1E1F1E] rounded-full font-semibold hover:bg-white transition-colors">
+            Return to Home
+          </Link>
+        </div>
       </div>
     );
   }

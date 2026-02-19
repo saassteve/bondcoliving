@@ -35,28 +35,28 @@ export class ApartmentService {
 
     if (error) throw error
 
-    const apartmentsWithSlugs = await Promise.all((data || []).map(async (apartment) => {
-      let actualStatus = apartment.status
+    const apartments = data || []
+    if (apartments.length === 0) return []
 
-      try {
-        const today = new Date().toISOString().split('T')[0]
-        const isAvailable = await availabilityService.checkAvailability(apartment.id, today, today)
+    const today = new Date().toISOString().split('T')[0]
 
-        if (!isAvailable && apartment.status === 'available') {
-          actualStatus = 'occupied'
-        }
-      } catch (error) {
-        console.warn('Could not check availability for apartment:', apartment.id)
-      }
+    const { data: bookedDates } = await supabase
+      .from('apartment_availability')
+      .select('apartment_id')
+      .gte('date', today)
+      .lte('date', today)
+      .in('status', ['booked', 'blocked'])
+      .in('apartment_id', apartments.map(a => a.id))
 
-      return {
-        ...apartment,
-        status: actualStatus,
-        slug: this.generateSlug(apartment.title)
-      }
+    const bookedApartmentIds = new Set((bookedDates || []).map(d => d.apartment_id))
+
+    return apartments.map((apartment) => ({
+      ...apartment,
+      status: bookedApartmentIds.has(apartment.id) && apartment.status === 'available'
+        ? 'occupied'
+        : apartment.status,
+      slug: this.generateSlug(apartment.title)
     }))
-
-    return apartmentsWithSlugs
   }
 
   static async getById(id: string): Promise<Apartment | null> {

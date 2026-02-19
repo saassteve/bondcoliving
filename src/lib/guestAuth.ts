@@ -191,11 +191,9 @@ export async function signOutGuest() {
 
 export function generateInvitationCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let code = '';
-  for (let i = 0; i < 8; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return code;
+  const randomValues = new Uint32Array(8);
+  crypto.getRandomValues(randomValues);
+  return Array.from(randomValues, (val) => chars[val % chars.length]).join('');
 }
 
 import {
