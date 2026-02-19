@@ -19,7 +19,6 @@ import GuestLayout from './layouts/GuestLayout';
 // Public Pages
 import HomePage from './pages/public/HomePage';
 import AboutPage from './pages/public/AboutPage';
-import ApplicationFormPage from './pages/public/ApplicationFormPage';
 import ThankYouPage from './pages/public/ThankYouPage';
 import CoworkingPage from './pages/public/CoworkingPage';
 import CoworkingBookingPage from './pages/public/CoworkingBookingPage';

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Calendar, Clock } from 'lucide-react';
 import { availabilityService, type ApartmentAvailability } from '../lib/supabase';
+import { getDaysInMonth, getFirstDayOfMonth, navigateToPreviousMonth, navigateToNextMonth, formatDateString, getTodayString, getMonthStartDate, getMonthEndDate } from '../lib/calendarUtils';
 
 interface CalendarAvailabilityProps {
   apartmentId: string;
@@ -25,8 +26,8 @@ const CalendarAvailability: React.FC<CalendarAvailabilityProps> = ({
       setLoading(true);
       setError(null);
       
-      const startDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).toISOString().split('T')[0];
-      const endDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).toISOString().split('T')[0];
+      const startDate = getMonthStartDate(currentMonth);
+      const endDate = getMonthEndDate(currentMonth);
       
       const data = await availabilityService.getCalendar(apartmentId, startDate, endDate);
       setAvailability(data);
@@ -38,13 +39,8 @@ const CalendarAvailability: React.FC<CalendarAvailabilityProps> = ({
     }
   };
 
-  const previousMonth = () => {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
-  };
-
-  const nextMonth = () => {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
-  };
+  const previousMonth = () => setCurrentMonth(navigateToPreviousMonth(currentMonth));
+  const nextMonth = () => setCurrentMonth(navigateToNextMonth(currentMonth));
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -75,10 +71,9 @@ const CalendarAvailability: React.FC<CalendarAvailabilityProps> = ({
   const renderCalendar = () => {
     const year = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const today = new Date();
-    const todayString = today.toISOString().split('T')[0];
+    const firstDay = getFirstDayOfMonth(year, month);
+    const daysInMonth = getDaysInMonth(year, month);
+    const todayString = getTodayString();
     
     const days = [];
     
@@ -89,7 +84,7 @@ const CalendarAvailability: React.FC<CalendarAvailabilityProps> = ({
     
     // Days of the month
     for (let day = 1; day <= daysInMonth; day++) {
-      const date = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const date = formatDateString(year, month, day);
       const dayAvailability = availability.find(a => a.date === date);
       const status = dayAvailability?.status || 'available';
       const isPast = date < todayString;

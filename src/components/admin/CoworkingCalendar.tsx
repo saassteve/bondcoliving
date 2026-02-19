@@ -2,6 +2,7 @@ import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { type CoworkingBooking } from '../../lib/supabase';
 import { getStatusBadgeClass } from '../../lib/statusUtils';
+import { getDaysInMonth, getFirstDayOfMonth } from '../../lib/calendarUtils';
 
 interface Props {
   bookings: CoworkingBooking[];
@@ -18,8 +19,8 @@ const CoworkingCalendar: React.FC<Props> = ({
 }) => {
   const year = currentMonth.getFullYear();
   const month = currentMonth.getMonth();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const firstDayOfMonth = new Date(year, month, 1).getDay();
+  const daysInMonth = getDaysInMonth(year, month);
+  const firstDayOfMonth = getFirstDayOfMonth(year, month);
 
   const monthBookings = bookings.filter(booking => {
     const bookingDate = new Date(booking.start_date);

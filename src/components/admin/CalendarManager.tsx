@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Calendar, ExternalLink, Info } from 'lucide-react';
 import { availabilityService, type ApartmentAvailability } from '../../lib/supabase';
 import { useNavigate } from 'react-router-dom';
+import { getDaysInMonth, getFirstDayOfMonth, navigateToPreviousMonth, navigateToNextMonth, formatDateString, getTodayString, getMonthStartDate, getMonthEndDate } from '../../lib/calendarUtils';
 
 interface CalendarManagerProps {
   apartmentId: string;
@@ -24,8 +25,8 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ apartmentId, apartmen
   const fetchData = async () => {
     try {
       setLoading(true);
-      const startDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).toISOString().split('T')[0];
-      const endDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).toISOString().split('T')[0];
+      const startDate = getMonthStartDate(currentMonth);
+      const endDate = getMonthEndDate(currentMonth);
 
       const availabilityData = await availabilityService.getCalendar(apartmentId, startDate, endDate);
       setAvailability(availabilityData);
@@ -78,8 +79,8 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ apartmentId, apartmen
   const renderCalendar = () => {
     const year = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const firstDay = getFirstDayOfMonth(year, month);
+    const daysInMonth = getDaysInMonth(year, month);
 
     const days = [];
 
@@ -90,11 +91,11 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ apartmentId, apartmen
 
     // Days of the month
     for (let day = 1; day <= daysInMonth; day++) {
-      const date = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const date = formatDateString(year, month, day);
       const dayAvailability = availability.find(a => a.date === date);
       const status = dayAvailability?.status || 'available';
       const isSelected = selectedDates.includes(date);
-      const todayString = new Date().toISOString().split('T')[0];
+      const todayString = getTodayString();
       const isPast = date < todayString;
 
       days.push(
@@ -119,12 +120,12 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ apartmentId, apartmen
   };
 
   const previousMonth = () => {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
+    setCurrentMonth(navigateToPreviousMonth(currentMonth));
     setSelectedDates([]);
   };
 
   const nextMonth = () => {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
+    setCurrentMonth(navigateToNextMonth(currentMonth));
     setSelectedDates([]);
   };
 

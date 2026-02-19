@@ -197,94 +197,15 @@ export function useAuth(): AuthState {
   return { user, loading };
 }
 
-export async function requestPasswordReset(email: string): Promise<{ success: boolean; error?: string }> {
-  try {
-    const response = await fetch(
-      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-password-reset-email`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({
-          action: 'request',
-          email,
-          userType: 'admin',
-        }),
-      }
-    );
+import {
+  requestPasswordReset as _requestPasswordReset,
+  validateResetToken as _validateResetToken,
+  resetPasswordWithToken as _resetPasswordWithToken,
+} from './passwordReset';
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      return { success: false, error: data.error || 'Failed to send reset email' };
-    }
-
-    return { success: true };
-  } catch (error) {
-    return { success: false, error: 'Network error. Please try again.' };
-  }
+export function requestPasswordReset(email: string) {
+  return _requestPasswordReset(email, 'admin');
 }
 
-export async function validateResetToken(token: string): Promise<{ valid: boolean; error?: string }> {
-  try {
-    const response = await fetch(
-      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-password-reset-email`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({
-          action: 'validate',
-          token,
-        }),
-      }
-    );
-
-    const data = await response.json();
-
-    if (!response.ok || !data.valid) {
-      return { valid: false, error: data.error || 'Invalid token' };
-    }
-
-    return { valid: true };
-  } catch (error) {
-    return { valid: false, error: 'Network error. Please try again.' };
-  }
-}
-
-export async function resetPasswordWithToken(
-  token: string,
-  newPassword: string
-): Promise<{ success: boolean; error?: string }> {
-  try {
-    const response = await fetch(
-      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-password-reset-email`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({
-          action: 'reset',
-          token,
-          newPassword,
-        }),
-      }
-    );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return { success: false, error: data.error || 'Failed to reset password' };
-    }
-
-    return { success: true };
-  } catch (error) {
-    return { success: false, error: 'Network error. Please try again.' };
-  }
-}
+export const validateResetToken = _validateResetToken;
+export const resetPasswordWithToken = _resetPasswordWithToken;

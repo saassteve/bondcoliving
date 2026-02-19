@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { bookingService, type Booking, type Apartment } from '../../lib/supabase';
+import { getDaysInMonth, getFirstDayOfMonth, navigateToPreviousMonth, navigateToNextMonth, formatDateString, getTodayString } from '../../lib/calendarUtils';
 
 interface BookingCalendarProps {
   apartments: Apartment[];
@@ -40,13 +41,8 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
     }
   };
 
-  const previousMonth = () => {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
-  };
-
-  const nextMonth = () => {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
-  };
+  const previousMonth = () => setCurrentMonth(navigateToPreviousMonth(currentMonth));
+  const nextMonth = () => setCurrentMonth(navigateToNextMonth(currentMonth));
 
   const statusBadgeClass = (status: string) => {
     switch(status) {
@@ -66,10 +62,9 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
   const renderCalendar = () => {
     const year = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const today = new Date();
-    const todayString = today.toISOString().split('T')[0];
+    const firstDay = getFirstDayOfMonth(year, month);
+    const daysInMonth = getDaysInMonth(year, month);
+    const todayString = getTodayString();
 
     const days = [];
 
@@ -80,7 +75,7 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
 
     // Days of the month
     for (let day = 1; day <= daysInMonth; day++) {
-      const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const dateString = formatDateString(year, month, day);
       const isToday = dateString === todayString;
       const isPast = dateString < todayString;
 
