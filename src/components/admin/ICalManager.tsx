@@ -12,6 +12,7 @@ const ICalManager: React.FC = () => {
     apartment_id: '',
     feed_name: '',
     ical_url: '',
+    timezone: 'Atlantic/Madeira',
     is_active: true
   });
   const [error, setError] = useState<string | null>(null);
@@ -75,6 +76,7 @@ const ICalManager: React.FC = () => {
         apartment_id: '',
         feed_name: '',
         ical_url: '',
+        timezone: 'Atlantic/Madeira',
         is_active: true
       });
       setShowAddForm(false);
@@ -110,7 +112,7 @@ const ICalManager: React.FC = () => {
     try {
       const result = await icalService.syncFeed(feedId);
       if (result.success) {
-        setSuccess(`Sync completed: ${result.results?.[0]?.datesBooked || 0} dates updated`);
+        setSuccess(`Sync completed: ${result.results?.[0]?.datesSynced || 0} dates updated`);
         fetchData();
       } else {
         setError(result.message);
@@ -131,7 +133,7 @@ const ICalManager: React.FC = () => {
     try {
       const result = await icalService.syncAllFeeds(apartmentId);
       if (result.success) {
-        const totalDates = result.results?.reduce((sum, r) => sum + (r.datesBooked || 0), 0) || 0;
+        const totalDates = result.results?.reduce((sum, r) => sum + (r.datesSynced || 0), 0) || 0;
         setSuccess(`Sync completed: ${totalDates} dates updated across ${result.results?.length || 0} feeds`);
         fetchData();
       } else {
@@ -277,6 +279,27 @@ const ICalManager: React.FC = () => {
             </p>
           </div>
 
+          <div>
+            <label className="admin-label block text-sm mb-2">Property Timezone</label>
+            <select
+              value={formData.timezone}
+              onChange={(e) => setFormData({ ...formData, timezone: e.target.value })}
+              className="admin-select w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="Atlantic/Madeira">Atlantic/Madeira (Funchal)</option>
+              <option value="Europe/Lisbon">Europe/Lisbon</option>
+              <option value="Europe/London">Europe/London</option>
+              <option value="Europe/Paris">Europe/Paris</option>
+              <option value="Europe/Berlin">Europe/Berlin</option>
+              <option value="America/New_York">America/New York</option>
+              <option value="America/Los_Angeles">America/Los Angeles</option>
+              <option value="UTC">UTC</option>
+            </select>
+            <p className="admin-text-muted text-sm mt-1">
+              Timezone for interpreting dates from this feed
+            </p>
+          </div>
+
           <div className="flex gap-4">
             <button type="submit" className="admin-btn-primary px-6 py-2 rounded-lg">
               Add Feed
@@ -340,6 +363,8 @@ const ICalManager: React.FC = () => {
                           <ExternalLink className="w-3 h-3 mr-1" />
                           View iCal URL
                         </a>
+                        <span>•</span>
+                        <span>{feed.timezone || 'Atlantic/Madeira'}</span>
                         <span>•</span>
                         <span>Last sync: {formatDate(feed.last_sync)}</span>
                       </div>

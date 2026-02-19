@@ -1,5 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { corsHeaders, handleCors } from "../_shared/cors.ts";
+import { handleCors } from "../_shared/cors.ts";
 import { jsonResponse, errorResponse } from "../_shared/response.ts";
 
 interface ICalEvent {
@@ -19,8 +19,6 @@ interface Feed {
   is_active: boolean;
   timezone?: string | null;
 }
-
-const DEFAULT_TZ = "Europe/London";
 
 function unfoldICS(text: string): string[] {
   const raw = text.split(/\r?\n/);
@@ -120,6 +118,12 @@ Deno.serve(async (req: Request) => {
       return errorResponse("Missing authorization header", "UNAUTHORIZED", 401);
     }
 
+    const serviceHeaders = {
+      Authorization: `Bearer ${supabaseServiceKey}`,
+      apikey: anonKey,
+      "Content-Type": "application/json",
+    };
+
     let feedsToSync: Feed[] = [];
 
     if (feedId) {
@@ -137,17 +141,17 @@ Deno.serve(async (req: Request) => {
     }
 
     if (!feedsToSync?.length) {
-      return jsonResponse({ message: "No active feeds found to sync" }, 404);
+      return jsonResponse({ message: "No active feeds found to sync", results: [] }, 200);
     }
 
-    const results: any[] = [];
+    const results: Record<string, unknown>[] = [];
 
     for (const feed of feedsToSync) {
-      const tz = feed.timezone || DEFAULT_TZ;
+      const tz = feed.timezone || "Atlantic/Madeira";
 
       try {
         const icalResponse = await fetch(feed.ical_url, {
-          headers: { "Cache-Control": "no-cache" }
+          headers: { "Cache-Control": "no-cache", "User-Agent": "Bond-Coliving-iCal-Sync/1.0" },
         });
 
         if (!icalResponse.ok) {
@@ -155,19 +159,19 @@ Deno.serve(async (req: Request) => {
             feedId: feed.id,
             feedName: feed.feed_name,
             success: false,
-            error: `Fetch failed: ${icalResponse.status}`
+            error: `Fetch failed: ${icalResponse.status} ${icalResponse.statusText}`,
           });
           continue;
         }
 
         const icalData = await icalResponse.text();
 
-        if (!icalData || icalData.length < 50) {
+        if (!icalData || !icalData.includes("BEGIN:VCALENDAR")) {
           results.push({
             feedId: feed.id,
             feedName: feed.feed_name,
             success: false,
-            error: "ICS body suspiciously small"
+            error: "Response is not a valid iCal feed (missing BEGIN:VCALENDAR)",
           });
           continue;
         }
@@ -176,17 +180,11 @@ Deno.serve(async (req: Request) => {
 
         await fetch(
           `${supabaseUrl}/rest/v1/apartment_ical_events?apartment_id=eq.${feed.apartment_id}&feed_name=eq.${encodeURIComponent(feed.feed_name)}`,
-          {
-            method: "DELETE",
-            headers: {
-              Authorization: `Bearer ${supabaseServiceKey}`,
-              apikey: anonKey
-            }
-          }
+          { method: "DELETE", headers: serviceHeaders }
         );
 
         if (events.length > 0) {
-          const rows = events.map(ev => ({
+          const rows = events.map((ev) => ({
             apartment_id: feed.apartment_id,
             feed_name: feed.feed_name,
             uid: ev.uid,
@@ -198,7 +196,7 @@ Deno.serve(async (req: Request) => {
             dtstart_tzid: ev.dtstart.tzid || null,
             dtend_raw: ev.dtend.raw,
             dtend_is_date: ev.dtend.isDate,
-            dtend_tzid: ev.dtend.tzid || null
+            dtend_tzid: ev.dtend.tzid || null,
           }));
 
           const batchSize = 100;
@@ -206,13 +204,8 @@ Deno.serve(async (req: Request) => {
             const batch = rows.slice(i, i + batchSize);
             const ins = await fetch(`${supabaseUrl}/rest/v1/apartment_ical_events`, {
               method: "POST",
-              headers: {
-                Authorization: `Bearer ${supabaseServiceKey}`,
-                apikey: anonKey,
-                "Content-Type": "application/json",
-                Prefer: "resolution=merge-duplicates"
-              },
-              body: JSON.stringify(batch)
+              headers: { ...serviceHeaders, Prefer: "resolution=merge-duplicates" },
+              body: JSON.stringify(batch),
             });
 
             if (!ins.ok) {
@@ -226,16 +219,12 @@ Deno.serve(async (req: Request) => {
           `${supabaseUrl}/rest/v1/rpc/sync_availability_from_ical`,
           {
             method: "POST",
-            headers: {
-              Authorization: `Bearer ${supabaseServiceKey}`,
-              apikey: anonKey,
-              "Content-Type": "application/json"
-            },
+            headers: serviceHeaders,
             body: JSON.stringify({
               p_apartment_id: feed.apartment_id,
               p_feed_name: feed.feed_name,
-              p_property_tz: tz
-            })
+              p_property_tz: tz,
+            }),
           }
         );
 
@@ -247,44 +236,37 @@ Deno.serve(async (req: Request) => {
         const rpcResult = await rpcResponse.json();
         const syncStats = Array.isArray(rpcResult) ? rpcResult[0] : rpcResult;
 
-        await fetch(
-          `${supabaseUrl}/rest/v1/apartment_ical_feeds?id=eq.${feed.id}`,
-          {
-            method: "PATCH",
-            headers: {
-              Authorization: `Bearer ${supabaseServiceKey}`,
-              apikey: anonKey,
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ last_sync: new Date().toISOString() })
-          }
-        );
+        await fetch(`${supabaseUrl}/rest/v1/apartment_ical_feeds?id=eq.${feed.id}`, {
+          method: "PATCH",
+          headers: serviceHeaders,
+          body: JSON.stringify({ last_sync: new Date().toISOString() }),
+        });
 
         results.push({
           feedId: feed.id,
           feedName: feed.feed_name,
           success: true,
           eventsParsed: events.length,
-          datesBlocked: syncStats?.dates_synced || 0,
+          datesSynced: syncStats?.dates_synced || 0,
           dateRangeStart: syncStats?.date_range_start || null,
           dateRangeEnd: syncStats?.date_range_end || null,
-          timezoneUsed: tz
+          timezoneUsed: tz,
         });
-
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
         results.push({
           feedId: feed.id,
           feedName: feed.feed_name,
           success: false,
-          error: error.message || String(error)
+          error: message,
         });
       }
     }
 
     return jsonResponse({ message: "Sync completed", results });
-
-  } catch (error: any) {
-    console.error("Error in sync-ical function:", error);
-    return errorResponse(error.message || "Internal server error", "INTERNAL_ERROR", 500);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("Error in sync-ical function:", message);
+    return errorResponse(message || "Internal server error", "INTERNAL_ERROR", 500);
   }
 });
