@@ -88,7 +88,7 @@ const AboutPage: React.FC = () => {
                 <div className="relative aspect-[3/4] rounded-[2rem] overflow-hidden shadow-2xl group">
                   <div className="absolute inset-0 border border-white/10 rounded-[2rem] z-20 pointer-events-none" />
                   <img 
-                    src="/Find your Why (5).png" 
+                    src="/find-your-why.png" 
                     alt="Steve and Rui Founders"
                     className="w-full h-full object-cover transition-transform duration-[1.5s] group-hover:scale-105 grayscale hover:grayscale-0"
                   />

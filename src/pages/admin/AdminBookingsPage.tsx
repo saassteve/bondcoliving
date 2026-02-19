@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Plus, Download, ChevronLeft, ChevronRight, Check } from 'lucide-react';
-import { bookingService, apartmentService, availabilityService, apartmentBookingService, type Booking, type Apartment } from '../../lib/supabase';
+import { Plus, Download, Check } from 'lucide-react';
+import { bookingService, apartmentService, apartmentBookingService, type Booking, type Apartment } from '../../lib/supabase';
 import { supabase } from '../../lib/supabase';
 import { generateInvitationCode } from '../../lib/guestAuth';
 import BookingForm from '../../components/admin/BookingForm';
@@ -12,57 +12,38 @@ import BookingDetailsModal from '../../components/admin/BookingDetailsModal';
 
 const AdminBookingsPage: React.FC = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
-  const [blockouts, setBlockouts] = useState<any[]>([]);
   const [apartments, setApartments] = useState<Apartment[]>([]);
   const [currentView, setCurrentView] = useState<'list' | 'calendar' | 'timeline'>('timeline');
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
-  const [filter, setFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const [timelineStartDate, setTimelineStartDate] = useState(new Date());
-  const [timelineDays, setTimelineDays] = useState(30);
-  const [stats, setStats] = useState({
-    total: 0,
-    pendingPayment: 0,
-    confirmed: 0,
-    checkedIn: 0,
-    checkedOut: 0,
-    cancelled: 0,
+  const [timelineStartDate, setTimelineStartDate] = useState(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
   });
+  const [timelineMode, setTimelineMode] = useState<'month' | 'fixed'>('month');
+  const [fixedDays, setFixedDays] = useState(30);
+  const timelineDays = timelineMode === 'month'
+    ? new Date(timelineStartDate.getFullYear(), timelineStartDate.getMonth() + 1, 0).getDate()
+    : fixedDays;
   const [guestInviteSuccess, setGuestInviteSuccess] = useState<string | null>(null);
   const [guestInviteError, setGuestInviteError] = useState<string | null>(null);
 
-  const filteredBookings = bookings.filter(booking => {
-    if (filter === 'all') return true;
-    return booking.status === filter;
-  });
+  const stats = {
+    total: bookings.length,
+    pendingPayment: bookings.filter(b => b.status === 'pending_payment').length,
+    confirmed: bookings.filter(b => b.status === 'confirmed').length,
+    checkedIn: bookings.filter(b => b.status === 'checked_in').length,
+    checkedOut: bookings.filter(b => b.status === 'checked_out').length,
+    cancelled: bookings.filter(b => b.status === 'cancelled').length,
+  };
 
   useEffect(() => {
-    initializeTimelineView();
+    fetchData();
   }, []);
-
-  // Update stats whenever bookings or blockouts change
-  useEffect(() => {
-    updateStats();
-  }, [bookings, blockouts]);
-
-  const initializeTimelineView = async () => {
-    await fetchData();
-  };
-
-  const updateStats = () => {
-    setStats({
-      total: bookings.length,
-      pendingPayment: bookings.filter(b => b.status === 'pending_payment').length,
-      confirmed: bookings.filter(b => b.status === 'confirmed').length,
-      checkedIn: bookings.filter(b => b.status === 'checked_in').length,
-      checkedOut: bookings.filter(b => b.status === 'checked_out').length,
-      cancelled: bookings.filter(b => b.status === 'cancelled').length,
-    });
-  };
 
   const fetchData = async () => {
     try {
@@ -260,8 +241,8 @@ const AdminBookingsPage: React.FC = () => {
 
   const exportBookings = () => {
     const csvContent = [
-      ['Guest Name', 'Email', 'Phone', 'Apartment', 'Check-in', 'Check-out', 'Source', 'Reference', 'Status', 'Amount'],
-      ...filteredBookings.map(booking => [
+      ['Guest Name', 'Email', 'Phone', 'Apartment', 'Check-in', 'Check-out', 'Source', 'Reference', 'Status', 'Payment', 'Amount'],
+      ...bookings.map(booking => [
         booking.guest_name,
         booking.guest_email || '',
         booking.guest_phone || '',
@@ -271,9 +252,10 @@ const AdminBookingsPage: React.FC = () => {
         booking.booking_source,
         booking.booking_reference || '',
         booking.status,
+        booking.payment_status || '',
         booking.total_amount || ''
       ])
-    ].map(row => row.join(',')).join('\n');
+    ].map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
@@ -284,32 +266,46 @@ const AdminBookingsPage: React.FC = () => {
     window.URL.revokeObjectURL(url);
   };
 
-  const getTimelineDates = () => {
-    const dates = [];
-    for (let i = 0; i < timelineDays; i++) {
-      const date = new Date(timelineStartDate);
-      date.setDate(date.getDate() + i);
-      dates.push(date);
-    }
-    return dates;
-  };
-
   const previousTimelinePeriod = () => {
-    const newDate = new Date(timelineStartDate);
-    newDate.setDate(1);
-    newDate.setMonth(newDate.getMonth() - 1);
-    setTimelineStartDate(newDate);
+    if (timelineMode === 'month') {
+      const newDate = new Date(timelineStartDate.getFullYear(), timelineStartDate.getMonth() - 1, 1);
+      setTimelineStartDate(newDate);
+    } else {
+      const newDate = new Date(timelineStartDate);
+      newDate.setDate(newDate.getDate() - fixedDays);
+      setTimelineStartDate(newDate);
+    }
   };
 
   const nextTimelinePeriod = () => {
-    const newDate = new Date(timelineStartDate);
-    newDate.setDate(1);
-    newDate.setMonth(newDate.getMonth() + 1);
-    setTimelineStartDate(newDate);
+    if (timelineMode === 'month') {
+      const newDate = new Date(timelineStartDate.getFullYear(), timelineStartDate.getMonth() + 1, 1);
+      setTimelineStartDate(newDate);
+    } else {
+      const newDate = new Date(timelineStartDate);
+      newDate.setDate(newDate.getDate() + fixedDays);
+      setTimelineStartDate(newDate);
+    }
   };
 
   const goToToday = () => {
-    setTimelineStartDate(new Date());
+    if (timelineMode === 'month') {
+      const now = new Date();
+      setTimelineStartDate(new Date(now.getFullYear(), now.getMonth(), 1));
+    } else {
+      setTimelineStartDate(new Date());
+    }
+  };
+
+  const handleTimelineDaysChange = (value: string) => {
+    if (value === 'month') {
+      setTimelineMode('month');
+      const d = timelineStartDate;
+      setTimelineStartDate(new Date(d.getFullYear(), d.getMonth(), 1));
+    } else {
+      setTimelineMode('fixed');
+      setFixedDays(parseInt(value));
+    }
   };
 
   const goToNextBooking = () => {
@@ -466,8 +462,10 @@ const AdminBookingsPage: React.FC = () => {
             formatDate={formatDate}
             timelineStartDate={timelineStartDate}
             timelineDays={timelineDays}
+            timelineMode={timelineMode}
+            fixedDays={fixedDays}
             onTimelineStartDateChange={setTimelineStartDate}
-            onTimelineDaysChange={setTimelineDays}
+            onTimelineDaysChange={handleTimelineDaysChange}
             onGoToToday={goToToday}
             onGoToNextBooking={goToNextBooking}
             onPreviousPeriod={previousTimelinePeriod}
@@ -486,15 +484,12 @@ const AdminBookingsPage: React.FC = () => {
         ) : (
           <BookingList
             bookings={bookings}
-            filter={filter}
-            onFilterChange={setFilter}
+            apartments={apartments}
             onEdit={handleEdit}
             onDelete={handleDelete}
             onView={setSelectedBooking}
-            onExport={exportBookings}
             getApartmentTitle={getApartmentTitle}
             formatDate={formatDate}
-            stats={stats}
           />
         )}
 

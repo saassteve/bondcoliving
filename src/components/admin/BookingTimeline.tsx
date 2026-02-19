@@ -10,8 +10,10 @@ interface BookingTimelineProps {
   formatDate: (dateString: string) => string;
   timelineStartDate: Date;
   timelineDays: number;
+  timelineMode: 'month' | 'fixed';
+  fixedDays: number;
   onTimelineStartDateChange: (date: Date) => void;
-  onTimelineDaysChange: (days: number) => void;
+  onTimelineDaysChange: (value: string) => void;
   onGoToToday: () => void;
   onGoToNextBooking: () => void;
   onPreviousPeriod: () => void;
@@ -26,6 +28,8 @@ const BookingTimeline: React.FC<BookingTimelineProps> = ({
   formatDate,
   timelineStartDate,
   timelineDays,
+  timelineMode,
+  fixedDays,
   onTimelineStartDateChange,
   onTimelineDaysChange,
   onGoToToday,
@@ -120,14 +124,10 @@ const BookingTimeline: React.FC<BookingTimelineProps> = ({
               </button>
             </div>
             <span className="text-sm font-semibold text-white">
-              {timelineStartDate.toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric'
-              })} - {new Date(timelineStartDate.getTime() + (timelineDays - 1) * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric'
-              })}
+              {timelineMode === 'month'
+                ? timelineStartDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+                : `${timelineStartDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${new Date(timelineStartDate.getTime() + (timelineDays - 1) * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+              }
             </span>
           </div>
 
@@ -146,14 +146,15 @@ const BookingTimeline: React.FC<BookingTimelineProps> = ({
               Next Booking
             </button>
             <select
-              value={timelineDays}
-              onChange={(e) => onTimelineDaysChange(parseInt(e.target.value))}
+              value={timelineMode === 'month' ? 'month' : String(fixedDays)}
+              onChange={(e) => onTimelineDaysChange(e.target.value)}
               className="px-2 py-1.5 text-sm bg-slate-700 text-white border border-slate-600 rounded"
             >
-              <option value={14}>14 days</option>
-              <option value={30}>30 days</option>
-              <option value={60}>60 days</option>
-              <option value={90}>90 days</option>
+              <option value="month">Month</option>
+              <option value="14">14 days</option>
+              <option value="30">30 days</option>
+              <option value="60">60 days</option>
+              <option value="90">90 days</option>
             </select>
           </div>
         </div>
