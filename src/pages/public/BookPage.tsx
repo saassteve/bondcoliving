@@ -88,8 +88,7 @@ const BookPage: React.FC = () => {
     try {
       const settings = await apartmentBookingService.getBookingSettings();
       setBookingSettings(settings);
-    } catch (error) {
-      console.error('Error loading data:', error);
+    } catch {
     } finally {
       setLoading(false);
     }
@@ -403,8 +402,7 @@ const BookPage: React.FC = () => {
 
                               try { sessionStorage.removeItem(SESSION_KEY); } catch { /* ignore */ }
                               window.location.href = url;
-                            } catch (error) {
-                              console.error('Error creating checkout:', error);
+                            } catch {
                               alert('Failed to create checkout session. Please try again.');
                               setIsProcessing(false);
                             }

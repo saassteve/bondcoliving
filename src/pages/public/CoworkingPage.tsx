@@ -34,15 +34,13 @@ const CoworkingPage: React.FC = () => {
           try {
             const availability = await coworkingPassService.checkAvailability(pass.id, today);
             availabilityMap[pass.id] = availability;
-          } catch (error) {
-            console.error(`Error checking availability for pass ${pass.id}:`, error);
+          } catch {
           }
         })
       );
 
       setPassAvailability(availabilityMap);
-    } catch (error) {
-      console.error('Error fetching passes:', error);
+    } catch {
     } finally {
       setLoading(false);
     }
@@ -52,8 +50,7 @@ const CoworkingPage: React.FC = () => {
     try {
       const data = await coworkingImageService.getActive();
       setImages(data);
-    } catch (error) {
-      console.error('Error fetching images:', error);
+    } catch {
     }
   };
 

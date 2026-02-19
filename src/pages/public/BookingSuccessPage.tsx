@@ -107,8 +107,7 @@ export default function ApartmentBookingSuccessPage() {
       if (data.payment_status === 'paid') {
         setLoading(false);
       }
-    } catch (err) {
-      console.error('Error loading booking:', err);
+    } catch {
       setError('Failed to load booking details');
       setLoading(false);
     }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Plus, Edit, Trash2, Images, Settings, Calendar } from 'lucide-react';
+import { Plus, Edit, Trash2, Images, Settings, Calendar, CheckCircle, AlertCircle } from 'lucide-react';
 import { supabase, ApartmentService, apartmentService } from '../../lib/supabase';
 import ApartmentForm from '../../components/admin/ApartmentForm';
 import ImageManager from '../../components/admin/ImageManager';
@@ -23,6 +23,8 @@ interface Apartment {
   updated_at: string;
 }
 
+type ApartmentFormData = Omit<Apartment, 'id' | 'created_at' | 'updated_at' | 'sort_order'> & { sort_order?: number };
+
 interface ApartmentFeature {
   id: string;
   apartment_id: string;
@@ -42,10 +44,16 @@ const AdminRoomsPage: React.FC = () => {
   const [showCalendarManager, setShowCalendarManager] = useState<{ id: string; title: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   useEffect(() => {
     fetchData();
   }, []);
+
+  const showFeedback = (type: 'success' | 'error', message: string) => {
+    setFeedback({ type, message });
+    setTimeout(() => setFeedback(null), 4000);
+  };
 
   const fetchData = async () => {
     try {
@@ -53,7 +61,6 @@ const AdminRoomsPage: React.FC = () => {
       setError(null);
       await Promise.all([fetchApartments(), fetchFeatures()]);
     } catch (err) {
-      console.error('Error fetching data:', err);
       setError('Failed to load apartments data');
     } finally {
       setLoading(false);
@@ -61,37 +68,24 @@ const AdminRoomsPage: React.FC = () => {
   };
 
   const fetchApartments = async () => {
-    try {
-      const data = await apartmentService.getAll();
-      setApartments(data);
-      
-      // If we're editing an apartment that no longer exists, reset the form
-      if (editingApartment && !data.find(apt => apt.id === editingApartment.id)) {
-        console.warn('Editing apartment no longer exists, resetting form');
-        resetForm();
-      }
-    } catch (error) {
-      console.error('Error fetching apartments:', error);
-      throw error;
+    const data = await apartmentService.getAll();
+    setApartments(data);
+    if (editingApartment && !data.find(apt => apt.id === editingApartment.id)) {
+      resetForm();
     }
   };
 
   const fetchFeatures = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('apartment_features')
-        .select('*')
-        .order('sort_order', { ascending: true });
+    const { data, error } = await supabase
+      .from('apartment_features')
+      .select('*')
+      .order('sort_order', { ascending: true });
 
-      if (error) throw error;
-      setFeatures(data || []);
-    } catch (error) {
-      console.error('Error fetching features:', error);
-      throw error;
-    }
+    if (error) throw error;
+    setFeatures(data || []);
   };
 
-  const handleSubmit = async (formData: any) => {
+  const handleSubmit = async (formData: ApartmentFormData) => {
     setIsSubmitting(true);
     try {
       const apartmentData = {
@@ -128,21 +122,15 @@ const AdminRoomsPage: React.FC = () => {
       }
 
       resetForm();
-      
-      // Show success message
-      const action = editingApartment ? 'updated' : 'created';
-      alert(`Apartment ${action} successfully!`);
+      showFeedback('success', `Apartment ${editingApartment ? 'updated' : 'created'} successfully!`);
     } catch (error) {
-      console.error('Error saving apartment:', error);
       const action = editingApartment ? 'update' : 'create';
-      
-      // Handle specific error cases
       if (error instanceof Error && (error.message.includes('not found') || error.message.includes('Invalid apartment ID'))) {
-        alert(`Apartment not found. It may have been deleted by another user. Refreshing the list...`);
+        showFeedback('error', 'Apartment not found. It may have been deleted. Refreshing the list...');
         await fetchData();
         resetForm();
       } else {
-        alert(`Failed to ${action} apartment: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        showFeedback('error', `Failed to ${action} apartment: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     } finally {
       setIsSubmitting(false);
@@ -160,9 +148,9 @@ const AdminRoomsPage: React.FC = () => {
     try {
       await apartmentService.delete(id);
       await fetchApartments();
+      showFeedback('success', 'Apartment deleted successfully.');
     } catch (error) {
-      console.error('Error deleting apartment:', error);
-      alert('Failed to delete apartment');
+      showFeedback('error', 'Failed to delete apartment.');
     }
   };
 
@@ -252,6 +240,12 @@ const AdminRoomsPage: React.FC = () => {
       </Helmet>
       
       <div className="space-y-6">
+        {feedback && (
+          <div className={`flex items-center gap-3 p-4 rounded-lg border ${feedback.type === 'success' ? 'bg-green-900/20 border-green-700 text-green-300' : 'bg-red-900/20 border-red-700 text-red-300'}`}>
+            {feedback.type === 'success' ? <CheckCircle className="w-4 h-4 shrink-0" /> : <AlertCircle className="w-4 h-4 shrink-0" />}
+            <span className="text-sm">{feedback.message}</span>
+          </div>
+        )}
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold text-white">Manage Apartments</h1>

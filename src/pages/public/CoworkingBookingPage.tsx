@@ -78,8 +78,7 @@ const CoworkingBookingPage: React.FC = () => {
       } else if (data.length > 0) {
         setSelectedPassId(data[0].id);
       }
-    } catch (error) {
-      console.error('Error fetching passes:', error);
+    } catch {
     } finally {
       setLoading(false);
     }
@@ -123,8 +122,7 @@ const CoworkingBookingPage: React.FC = () => {
 
       setAvailabilityMessage('');
       return true;
-    } catch (error) {
-      console.error('Error checking availability:', error);
+    } catch {
       setAvailabilityMessage('Unable to check availability. Please try again.');
       return false;
     } finally {
@@ -204,7 +202,6 @@ const CoworkingBookingPage: React.FC = () => {
       else throw new Error('No checkout URL returned');
       
     } catch (error) {
-      console.error('Error creating checkout:', error);
       setErrors({
         general: error instanceof Error ? error.message : 'Failed to create booking. Please try again.',
       });

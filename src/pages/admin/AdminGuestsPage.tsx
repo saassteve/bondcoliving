@@ -61,8 +61,6 @@ export default function AdminGuestsPage() {
   const checkAdminPermissionsStatus = async () => {
     const result = await checkAdminPermissions();
 
-    console.log('Admin permission check:', result);
-
     if (result.warning) {
       setPermissionWarning(result.warning);
     } else {

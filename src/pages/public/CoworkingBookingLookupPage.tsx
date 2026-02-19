@@ -32,8 +32,7 @@ const CoworkingBookingLookupPage: React.FC = () => {
       }
 
       setBooking(foundBooking);
-    } catch (err) {
-      console.error('Error looking up booking:', err);
+    } catch {
       setError('Failed to look up booking. Please try again.');
     } finally {
       setLoading(false);
@@ -92,8 +91,7 @@ const CoworkingBookingLookupPage: React.FC = () => {
 
       setResendSuccess(true);
       setTimeout(() => setResendSuccess(false), 5000);
-    } catch (err) {
-      console.error('Error resending email:', err);
+    } catch {
       setError('Failed to resend email. Please try again or contact support.');
     } finally {
       setResending(false);

@@ -46,8 +46,7 @@ const LocationsPage: React.FC = () => {
         });
 
         setBuildings(buildingsWithData);
-      } catch (error) {
-        console.error('Error loading locations:', error);
+      } catch {
       } finally {
         setLoading(false);
       }

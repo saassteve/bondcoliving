@@ -136,6 +136,8 @@ const MainLayout: React.FC = () => {
                   className="md:hidden relative z-50 p-2 rounded-full bg-black/20 backdrop-blur-md text-white hover:bg-white/20 transition-colors"
                   onClick={toggleMenu}
                   aria-label="Toggle menu"
+                  aria-expanded={isMenuOpen}
+                  aria-controls="mobile-menu"
                 >
                   {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
                 </button>
@@ -145,7 +147,10 @@ const MainLayout: React.FC = () => {
         </header>
 
         {/* --- MOBILE MENU OVERLAY --- */}
-        <div 
+        <div
+          id="mobile-menu"
+          role="dialog"
+          aria-label="Navigation menu"
           className={`fixed inset-0 z-40 bg-[#1E1F1E] transition-transform duration-500 ease-[cubic-bezier(0.76,0,0.24,1)] ${
             isMenuOpen ? 'translate-y-0' : '-translate-y-full'
           }`}

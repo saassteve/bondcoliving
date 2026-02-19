@@ -3,6 +3,8 @@ import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { Building, Coffee, Calendar, Clock, DollarSign, TrendingUp, TrendingDown, Activity, AlertTriangle, CheckCircle2, Wrench } from 'lucide-react';
 import { apartmentService, reviewService, featureHighlightService, bookingService, analyticsService, operationsService, type Booking } from '../../lib/services';
+import type { DashboardStats, RevenueTrend, RevenueBySource } from '../../lib/services/analytics';
+import type { CleaningSchedule, MaintenanceRequest } from '../../lib/services/operations';
 import SimpleLineChart from '../../components/admin/SimpleLineChart';
 import SimpleBarChart from '../../components/admin/SimpleBarChart';
 
@@ -18,11 +20,11 @@ const AdminDashboardPage: React.FC = () => {
     upcomingCheckIns: 0,
     monthlyRevenue: 0,
   });
-  const [analyticsStats, setAnalyticsStats] = useState<any>(null);
-  const [revenueTrends, setRevenueTrends] = useState<any[]>([]);
-  const [revenueBySource, setRevenueBySource] = useState<any[]>([]);
-  const [upcomingCleanings, setUpcomingCleanings] = useState<any[]>([]);
-  const [urgentMaintenance, setUrgentMaintenance] = useState<any[]>([]);
+  const [analyticsStats, setAnalyticsStats] = useState<DashboardStats | null>(null);
+  const [revenueTrends, setRevenueTrends] = useState<RevenueTrend[]>([]);
+  const [revenueBySource, setRevenueBySource] = useState<RevenueBySource[]>([]);
+  const [upcomingCleanings, setUpcomingCleanings] = useState<CleaningSchedule[]>([]);
+  const [urgentMaintenance, setUrgentMaintenance] = useState<MaintenanceRequest[]>([]);
   const [recentBookings, setRecentBookings] = useState<Booking[]>([]);
   const [upcomingBookings, setUpcomingBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -108,8 +110,7 @@ const AdminDashboardPage: React.FC = () => {
         .slice(0, 10);
       setUpcomingBookings(upcoming);
 
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+    } catch {
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Plus, Calendar, Wrench, CheckCircle2, AlertTriangle, Edit2, Trash2, X } from 'lucide-react';
+import { Plus, Calendar, Wrench, CheckCircle2, AlertTriangle, Edit2, Trash2, CheckCircle, AlertCircle } from 'lucide-react';
 import { operationsService, apartmentService } from '../../lib/services';
 import type { CleaningSchedule, MaintenanceRequest, Task } from '../../lib/services/operations';
 
@@ -11,10 +11,9 @@ const AdminOperationsPage: React.FC = () => {
   const [cleanings, setCleanings] = useState<CleaningSchedule[]>([]);
   const [maintenance, setMaintenance] = useState<MaintenanceRequest[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [apartments, setApartments] = useState<any[]>([]);
+  const [apartments, setApartments] = useState<{ id: string; title: string }[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const [editingItem, setEditingItem] = useState<any>(null);
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -33,11 +32,15 @@ const AdminOperationsPage: React.FC = () => {
       setCleanings(cleans);
       setMaintenance(maint);
       setTasks(tsks);
-    } catch (error) {
-      console.error('Error fetching operations data:', error);
+    } catch {
     } finally {
       setLoading(false);
     }
+  };
+
+  const showFeedback = (type: 'success' | 'error', message: string) => {
+    setFeedback({ type, message });
+    setTimeout(() => setFeedback(null), 4000);
   };
 
   const handleDelete = async (type: TabType, id: string) => {
@@ -52,25 +55,23 @@ const AdminOperationsPage: React.FC = () => {
         await operationsService.deleteTask(id);
       }
       await fetchData();
-    } catch (error) {
-      console.error('Error deleting item:', error);
-      alert('Failed to delete item');
+    } catch {
+      showFeedback('error', 'Failed to delete item.');
     }
   };
 
   const handleStatusUpdate = async (type: TabType, id: string, newStatus: string) => {
     try {
       if (type === 'cleanings') {
-        await operationsService.updateCleaningSchedule(id, { status: newStatus as any });
+        await operationsService.updateCleaningSchedule(id, { status: newStatus as CleaningSchedule['status'] });
       } else if (type === 'maintenance') {
-        await operationsService.updateMaintenanceRequest(id, { status: newStatus as any });
+        await operationsService.updateMaintenanceRequest(id, { status: newStatus as MaintenanceRequest['status'] });
       } else if (type === 'tasks') {
-        await operationsService.updateTask(id, { status: newStatus as any });
+        await operationsService.updateTask(id, { status: newStatus as Task['status'] });
       }
       await fetchData();
-    } catch (error) {
-      console.error('Error updating status:', error);
-      alert('Failed to update status');
+    } catch {
+      showFeedback('error', 'Failed to update status.');
     }
   };
 
@@ -126,19 +127,17 @@ const AdminOperationsPage: React.FC = () => {
       </Helmet>
 
       <div className="p-4 sm:p-8">
+        {feedback && (
+          <div className={`flex items-center gap-3 p-4 rounded-lg border mb-4 ${feedback.type === 'success' ? 'bg-green-900/20 border-green-700 text-green-300' : 'bg-red-900/20 border-red-700 text-red-300'}`}>
+            {feedback.type === 'success' ? <CheckCircle className="w-4 h-4 shrink-0" /> : <AlertCircle className="w-4 h-4 shrink-0" />}
+            <span className="text-sm">{feedback.message}</span>
+          </div>
+        )}
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">Operations Management</h1>
             <p className="text-gray-300 text-sm sm:text-base">Manage cleaning schedules, maintenance, and tasks</p>
           </div>
-          <button
-            onClick={() => setShowModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
-          >
-            <Plus className="w-5 h-5" />
-            <span className="hidden sm:inline">New {activeTab === 'cleanings' ? 'Cleaning' : activeTab === 'maintenance' ? 'Request' : 'Task'}</span>
-            <span className="sm:hidden">New</span>
-          </button>
         </div>
 
         {/* Tabs */}
@@ -389,31 +388,6 @@ const AdminOperationsPage: React.FC = () => {
         )}
       </div>
 
-      {/* Note: Modal form for creating new items would go here */}
-      {/* For brevity, using a simple implementation note */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
-          <div className="bg-gray-800 rounded-xl p-6 max-w-lg w-full border border-gray-700">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-white">
-                Coming Soon: Create New {activeTab === 'cleanings' ? 'Cleaning' : activeTab === 'maintenance' ? 'Maintenance Request' : 'Task'}
-              </h3>
-              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-white">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <p className="text-gray-300 mb-6">
-              The form to create new {activeTab} items will be implemented here with all necessary fields and validation.
-            </p>
-            <button
-              onClick={() => setShowModal(false)}
-              className="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
     </>
   );
 };

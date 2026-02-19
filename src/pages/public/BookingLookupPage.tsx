@@ -75,8 +75,7 @@ export default function BookingLookupPage() {
       }
 
       setBooking(data);
-    } catch (err) {
-      console.error('Error searching for booking:', err);
+    } catch {
       setError('An error occurred while searching for your booking. Please try again.');
     } finally {
       setLoading(false);

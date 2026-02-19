@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Settings, Image, Key, Mail } from 'lucide-react';
+import { Settings, Image, Key, Mail, CheckCircle, AlertCircle } from 'lucide-react';
 import { coworkingBookingService, coworkingPassService, type CoworkingBooking, type CoworkingPass } from '../../lib/supabase';
 import { supabase } from '../../lib/supabase';
 import PassAvailabilityManager from '../../components/admin/PassAvailabilityManager';
@@ -35,13 +35,19 @@ const AdminCoworkingPage: React.FC = () => {
   const [editingBooking, setEditingBooking] = useState<CoworkingBooking | null>(null);
   const [managingPass, setManagingPass] = useState<string | null>(null);
   const [editingPass, setEditingPass] = useState<CoworkingPass | null>(null);
-  const [revenue, setRevenue] = useState<any>(null);
+  const [revenue, setRevenue] = useState<{ total: number; by_pass_type: Record<string, number>; count: number } | null>(null);
   const [sendingEmail, setSendingEmail] = useState<string | null>(null);
   const [passCodes, setPassCodes] = useState<PassCode[]>([]);
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   useEffect(() => {
     fetchData();
   }, []);
+
+  const showFeedback = (type: 'success' | 'error', message: string) => {
+    setFeedback({ type, message });
+    setTimeout(() => setFeedback(null), 4000);
+  };
 
   const fetchData = async () => {
     try {
@@ -56,8 +62,7 @@ const AdminCoworkingPage: React.FC = () => {
       setPasses(passesData);
       setRevenue(revenueData);
       setPassCodes(codesData);
-    } catch (error) {
-      console.error('Error fetching data:', error);
+    } catch {
     } finally {
       setLoading(false);
     }
@@ -69,10 +74,7 @@ const AdminCoworkingPage: React.FC = () => {
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Error fetching pass codes:', error);
-      return [];
-    }
+    if (error) return [];
     return data || [];
   };
 
@@ -92,9 +94,8 @@ const AdminCoworkingPage: React.FC = () => {
       });
       await fetchData();
       setEditingBooking(null);
-    } catch (error) {
-      console.error('Error updating booking:', error);
-      alert('Failed to update booking');
+    } catch {
+      showFeedback('error', 'Failed to update booking.');
     }
   };
 
@@ -108,24 +109,17 @@ const AdminCoworkingPage: React.FC = () => {
         body: { emailType: 'access_code', bookingId: editingBooking.id, resendEmail: true }
       });
 
-      if (error) {
-        console.error('Edge function error:', error);
-        alert('Failed to send access code email.');
-        return;
-      }
-
-      if (data?.error) {
-        alert(`Failed to send: ${data.error}`);
+      if (error || data?.error) {
+        showFeedback('error', 'Failed to send access code email.');
         return;
       }
 
       if (data?.success) {
-        alert('Access code email sent successfully!');
+        showFeedback('success', 'Access code email sent successfully!');
         await fetchData();
       }
-    } catch (error) {
-      console.error('Error sending access code email:', error);
-      alert('Failed to send access code email.');
+    } catch {
+      showFeedback('error', 'Failed to send access code email.');
     } finally {
       setSendingEmail(null);
     }
@@ -137,9 +131,8 @@ const AdminCoworkingPage: React.FC = () => {
     try {
       await coworkingBookingService.delete(id);
       await fetchData();
-    } catch (error) {
-      console.error('Error deleting booking:', error);
-      alert('Failed to delete booking');
+    } catch {
+      showFeedback('error', 'Failed to delete booking.');
     }
   };
 
@@ -154,12 +147,11 @@ const AdminCoworkingPage: React.FC = () => {
 
       if (error) throw error;
 
-      alert('Pass updated successfully!');
+      showFeedback('success', 'Pass updated successfully!');
       setEditingPass(null);
       await fetchData();
-    } catch (error) {
-      console.error('Error updating pass:', error);
-      alert('Failed to update pass');
+    } catch {
+      showFeedback('error', 'Failed to update pass.');
     }
   };
 
@@ -201,6 +193,12 @@ const AdminCoworkingPage: React.FC = () => {
       </Helmet>
 
       <div>
+        {feedback && (
+          <div className={`flex items-center gap-3 p-4 rounded-lg border mb-4 ${feedback.type === 'success' ? 'bg-green-900/20 border-green-700 text-green-300' : 'bg-red-900/20 border-red-700 text-red-300'}`}>
+            {feedback.type === 'success' ? <CheckCircle className="w-4 h-4 shrink-0" /> : <AlertCircle className="w-4 h-4 shrink-0" />}
+            <span className="text-sm">{feedback.message}</span>
+          </div>
+        )}
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <h1 className="text-2xl font-bold">Coworking Management</h1>
 

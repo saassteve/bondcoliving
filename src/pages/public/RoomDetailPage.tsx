@@ -67,8 +67,7 @@ const RoomDetailPage: React.FC = () => {
         } else {
           setError('Apartment not found');
         }
-      } catch (err) {
-        console.error('Error fetching apartment:', err);
+      } catch {
         setError('Failed to load apartment details');
       } finally {
         setLoading(false);

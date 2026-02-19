@@ -69,7 +69,7 @@ const SearchResultsPage: React.FC = () => {
       const apartmentsWithData = apartments.map((apartment) => {
         const images = imagesByApartment[apartment.id] || [];
         const features = featuresByApartment[apartment.id] || [];
-        const featuredImage = images.find((img: any) => img.is_featured);
+        const featuredImage = images?.find((img) => img?.is_featured);
 
         return {
           ...apartment,

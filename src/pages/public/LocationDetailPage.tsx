@@ -45,8 +45,7 @@ const LocationDetailPage: React.FC = () => {
           );
           setApartments(buildingApartments);
         }
-      } catch (error) {
-        console.error('Error loading location data:', error);
+      } catch {
       } finally {
         setLoading(false);
       }

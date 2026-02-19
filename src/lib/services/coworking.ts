@@ -14,7 +14,6 @@ export class CoworkingPassService {
     const { data, error } = await supabase.rpc('get_admin_coworking_passes')
 
     if (error) {
-      console.error('Error fetching passes via RPC, falling back to direct query:', error)
       const { data: fallbackData, error: fallbackError } = await supabase
         .from('coworking_passes')
         .select('*')
@@ -24,7 +23,6 @@ export class CoworkingPassService {
     }
 
     if (data?.error) {
-      console.error('RPC returned error:', data.error)
       const { data: fallbackData, error: fallbackError } = await supabase
         .from('coworking_passes')
         .select('*')
@@ -59,8 +57,7 @@ export class CoworkingPassService {
             ...pass,
             _availability: availability
           }
-        } catch (error) {
-          console.error(`Error checking availability for pass ${pass.id}:`, error)
+        } catch {
           return pass
         }
       })
@@ -236,7 +233,6 @@ export class CoworkingBookingService {
     const { data, error } = await supabase.rpc('get_admin_coworking_bookings')
 
     if (error) {
-      console.error('Error fetching bookings via RPC, falling back to direct query:', error)
       const { data: fallbackData, error: fallbackError } = await supabase
         .from('coworking_bookings')
         .select(`*, pass:coworking_passes(*)`)
@@ -246,7 +242,6 @@ export class CoworkingBookingService {
     }
 
     if (data?.error) {
-      console.error('RPC returned error:', data.error)
       const { data: fallbackData, error: fallbackError } = await supabase
         .from('coworking_bookings')
         .select(`*, pass:coworking_passes(*)`)
@@ -393,12 +388,10 @@ export class CoworkingBookingService {
     const { data, error } = await supabase.rpc('get_admin_coworking_stats')
 
     if (error) {
-      console.error('Error fetching stats via RPC, falling back to direct query:', error)
       return this.getRevenueFallback(startDate, endDate)
     }
 
     if (data?.error) {
-      console.error('RPC returned error:', data.error)
       return this.getRevenueFallback(startDate, endDate)
     }
 

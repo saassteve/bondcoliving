@@ -160,8 +160,7 @@ export class BookingService {
       if (dates.length > 0) {
         await availabilityService.setBulkAvailability(apartmentId, dates, status)
       }
-    } catch (error) {
-      console.error('Error updating availability for booking:', error)
+    } catch {
     }
   }
 
@@ -209,8 +208,7 @@ export class BookingService {
         try {
           const aptAvailability = await availabilityService.getCalendar(apartment.id, startDate, endDate)
           availability[apartment.id] = aptAvailability
-        } catch (error) {
-          console.error(`Error fetching availability for apartment ${apartment.id}:`, error)
+        } catch {
           availability[apartment.id] = []
         }
       })
