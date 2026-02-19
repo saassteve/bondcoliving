@@ -73,9 +73,9 @@ import GuestForgotPasswordPage from './pages/guest/GuestForgotPasswordPage';
 import GuestResetPasswordPage from './pages/guest/GuestResetPasswordPage';
 
 const App = () => {
-  // Check if preloader has already been shown in this session
+  const isAdminOrGuestPath = window.location.pathname.startsWith('/admin') || window.location.pathname.startsWith('/guest');
   const hasShownPreloader = sessionStorage.getItem('preloaderShown');
-  const [isLoading, setIsLoading] = useState(!hasShownPreloader);
+  const [isLoading, setIsLoading] = useState(!hasShownPreloader && !isAdminOrGuestPath);
 
   const handleLoadingComplete = () => {
     sessionStorage.setItem('preloaderShown', 'true');
