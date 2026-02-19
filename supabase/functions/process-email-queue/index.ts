@@ -42,7 +42,7 @@ async function getEmailContent(supabase: any, email: any): Promise<{ subject: st
   } else {
     const { data: booking } = await supabase
       .from("bookings")
-      .select("*, apartment:apartments(*)")
+      .select("*, apartment:apartment_id(*)")
       .eq("id", booking_id)
       .single();
 
@@ -132,7 +132,7 @@ function getCoworkingEmailTemplate(type: string, booking: any, recipientName?: s
 }
 
 function getApartmentEmailTemplate(type: string, booking: any, recipientName?: string) {
-  const apartmentName = booking?.apartment?.name || "Apartment";
+  const apartmentName = booking?.apartment?.title || "Apartment";
   const checkIn = formatDate(booking?.check_in_date);
   const checkOut = formatDate(booking?.check_out_date);
   const reference = booking?.booking_reference || "N/A";

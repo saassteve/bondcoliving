@@ -322,13 +322,14 @@ async function handleApartmentCheckout(
     await queueEmail(supabase, "admin_notification", adminEmail, "Admin", bookingId, "apartment", 5);
     console.log("Queued apartment confirmation and admin emails");
   } catch (queueError) {
-    console.error("Failed to queue apartment emails, trying direct send:", queueError);
-    try {
-      await sendEmailDirect(supabaseUrl, supabaseServiceKey, "send-apartment-email", { emailType: "booking_confirmation", bookingId });
-      await sendEmailDirect(supabaseUrl, supabaseServiceKey, "send-apartment-email", { emailType: "admin_notification", bookingId, recipientEmail: adminEmail, recipientName: "Admin" });
-    } catch (emailError) {
-      console.error("Failed to send apartment emails directly:", emailError);
-    }
+    console.error("Failed to queue apartment emails:", queueError);
+  }
+
+  try {
+    await sendEmailDirect(supabaseUrl, supabaseServiceKey, "process-email-queue", {});
+    console.log("Triggered email queue processing");
+  } catch (processError) {
+    console.error("Failed to trigger email queue processing:", processError);
   }
 }
 
@@ -399,13 +400,14 @@ async function handleCoworkingCheckout(
     await queueEmail(supabase, "admin_notification", adminEmail, "Admin", bookingId, "coworking", 5);
     console.log("Queued confirmation and admin emails");
   } catch (queueError) {
-    console.error("Failed to queue emails, trying direct send:", queueError);
-    try {
-      await sendEmailDirect(supabaseUrl, supabaseServiceKey, "send-coworking-email", { emailType: "booking_confirmation", bookingId });
-      await sendEmailDirect(supabaseUrl, supabaseServiceKey, "send-coworking-email", { emailType: "admin_notification", bookingId, recipientEmail: adminEmail, recipientName: "Admin" });
-    } catch (emailError) {
-      console.error("Failed to send emails directly:", emailError);
-    }
+    console.error("Failed to queue emails:", queueError);
+  }
+
+  try {
+    await sendEmailDirect(supabaseUrl, supabaseServiceKey, "process-email-queue", {});
+    console.log("Triggered email queue processing");
+  } catch (processError) {
+    console.error("Failed to trigger email queue processing:", processError);
   }
 }
 
