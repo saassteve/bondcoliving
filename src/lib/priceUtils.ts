@@ -12,23 +12,21 @@ export function getApartmentPrice(apartment: Apartment): PriceDisplay {
 
   if (isShortTerm) {
     const nightlyPrice = apartment.nightly_price || 0;
-    const minNights = apartment.minimum_stay_nights || 2;
 
     return {
       amount: nightlyPrice,
       period: 'night',
       formatted: `€${nightlyPrice}`,
-      subtitle: `Minimum ${minNights} night${minNights > 1 ? 's' : ''}`
+      subtitle: 'Per night, all inclusive'
     };
   } else {
     const monthlyPrice = apartment.price || 0;
-    const minMonths = apartment.minimum_stay_months || 1;
 
     return {
       amount: monthlyPrice,
       period: 'month',
       formatted: `€${monthlyPrice}`,
-      subtitle: minMonths > 1 ? `Minimum ${minMonths} months` : 'Flexible monthly contracts'
+      subtitle: 'Per month, all inclusive'
     };
   }
 }

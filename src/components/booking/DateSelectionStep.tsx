@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Calendar, AlertCircle, ArrowRight } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -61,7 +61,7 @@ const DateSelectionStep: React.FC<DateSelectionStepProps> = ({
     if (date) {
       const days = calculateDaysDifference(checkInDate, date);
       if (days < minimumStayDays) {
-        setError(`Minimum stay is ${minimumStayDays} days`);
+        setError(`Please select a check-out date at least ${minimumStayDays} days from check-in`);
         return;
       }
     }
@@ -78,7 +78,7 @@ const DateSelectionStep: React.FC<DateSelectionStepProps> = ({
 
     const days = calculateDaysDifference(checkInDate, checkOutDate);
     if (days < minimumStayDays) {
-      setError(`Minimum stay is ${minimumStayDays} days`);
+      setError(`Please select a check-out date at least ${minimumStayDays} days from check-in`);
       return;
     }
 
@@ -96,7 +96,7 @@ const DateSelectionStep: React.FC<DateSelectionStepProps> = ({
     <div>
       <h2 className="text-2xl font-bold text-[#C5C5B5] mb-2">Select Your Dates</h2>
       <p className="text-[#C5C5B5]/60 mb-8">
-        Choose your check-in and check-out dates. We require a minimum stay of {minimumStayDays} days to ensure the best coliving experience.
+        Choose your check-in and check-out dates to get started.
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -155,12 +155,6 @@ const DateSelectionStep: React.FC<DateSelectionStepProps> = ({
                 </span>
               )}
             </div>
-            {stayDuration >= minimumStayDays && (
-              <div className="mt-4 flex items-center text-sm text-green-400">
-                <AlertCircle className="w-4 h-4 mr-2" />
-                Meets minimum stay requirement
-              </div>
-            )}
           </div>
         </div>
       )}

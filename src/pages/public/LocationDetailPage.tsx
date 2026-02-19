@@ -8,7 +8,6 @@ import {
   Coffee,
   Building2,
   Users,
-  Clock,
   CalendarDays,
   Bell,
   ArrowRight,
@@ -99,7 +98,6 @@ const LocationDetailPage: React.FC = () => {
   }
 
   const isComingSoon = building.status === 'coming_soon';
-  const isShortTerm = building.stay_type === 'short_term';
 
   const getGalleryImages = (): string[] => {
     if (building.gallery_images && building.gallery_images.length > 0) {
@@ -125,7 +123,7 @@ const LocationDetailPage: React.FC = () => {
     { icon: Wifi, label: 'High-speed WiFi', description: '500 Mbps symmetric fiber' },
     { icon: Coffee, label: building.has_on_site_coworking ? 'Coworking on-site' : 'Coworking access', description: building.has_on_site_coworking ? 'Dedicated workspace in building' : 'Full access at Bond - Carreira' },
     { icon: Users, label: 'Community events', description: 'Weekly dinners and social gatherings' },
-    { icon: Clock, label: isShortTerm ? 'Flexible short stays' : 'Monthly contracts', description: isShortTerm ? 'From 2 nights' : 'Minimum 1 month' },
+    { icon: CalendarDays, label: 'Flexible stays', description: 'Book for as long as you need' },
   ];
 
   return (
@@ -171,15 +169,6 @@ const LocationDetailPage: React.FC = () => {
               </div>
 
               <div className="flex gap-3">
-                <span
-                  className={`px-4 py-2 rounded-full text-sm font-medium ${
-                    isShortTerm
-                      ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
-                      : 'bg-green-500/20 text-green-300 border border-green-500/30'
-                  }`}
-                >
-                  {isShortTerm ? 'Short Stays' : 'Monthly Stays'}
-                </span>
                 {building.has_on_site_coworking && (
                   <span className="px-4 py-2 bg-[#C5C5B5]/10 text-[#C5C5B5] text-sm font-medium rounded-full border border-[#C5C5B5]/20">
                     Coworking Hub

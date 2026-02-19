@@ -71,7 +71,7 @@ const Hero: React.FC = () => {
                     </div>
                     <div>
                       <h3 className="text-lg md:text-xl font-bold text-white group-hover:text-[#1E1F1E] mb-1">Apartments</h3>
-                      <p className="text-xs md:text-sm text-white/60 group-hover:text-[#1E1F1E]/80">Short & long-term stays available</p>
+                      <p className="text-xs md:text-sm text-white/60 group-hover:text-[#1E1F1E]/80">Private apartments in central Funchal</p>
                     </div>
                   </button>
 

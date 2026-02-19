@@ -198,12 +198,6 @@ const CalendarAvailability: React.FC<CalendarAvailabilityProps> = ({
             </div>
           </div>
 
-          {/* Minimum Stay Notice */}
-          <div className="mt-4 p-3 bg-[#C5C5B5]/10 rounded-lg border border-[#C5C5B5]/20">
-            <p className="text-[#C5C5B5]/80 text-sm">
-              <strong>Minimum stay:</strong> 1 month. Contact us for availability and booking.
-            </p>
-          </div>
         </>
       )}
     </div>

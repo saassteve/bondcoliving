@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Building2, MapPin, Wifi, ArrowRight, Clock, CalendarDays } from 'lucide-react';
+import { Building2, MapPin, Wifi, ArrowRight, CalendarDays } from 'lucide-react';
 import { buildingService } from '../../lib/services';
 import type { Building } from '../../lib/services/types';
 import AnimatedSection from '../AnimatedSection';
@@ -44,7 +44,6 @@ const BuildingsOverview: React.FC = () => {
         <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
           {buildings.map((building, index) => {
             const isComingSoon = building.status === 'coming_soon';
-            const isShortTerm = building.stay_type === 'short_term';
 
             return (
               <AnimatedSection
@@ -61,18 +60,13 @@ const BuildingsOverview: React.FC = () => {
                       <Building2 className="w-6 h-6 text-[#C5C5B5]" />
                     </div>
                     <div className="flex gap-2">
-                      <span
-                        className={`px-3 py-1 text-xs font-medium rounded-full ${
-                          isShortTerm
-                            ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
-                            : 'bg-green-500/20 text-green-300 border border-green-500/30'
-                        }`}
-                      >
-                        {isShortTerm ? 'Short Stays' : 'Monthly'}
-                      </span>
-                      {isComingSoon && (
+                      {isComingSoon ? (
                         <span className="px-3 py-1 bg-amber-500/20 text-amber-300 text-xs font-medium rounded-full border border-amber-500/30">
                           Coming Soon
+                        </span>
+                      ) : (
+                        <span className="px-3 py-1 bg-green-500/20 text-green-300 text-xs font-medium rounded-full border border-green-500/30">
+                          Available
                         </span>
                       )}
                     </div>
@@ -99,11 +93,6 @@ const BuildingsOverview: React.FC = () => {
                         <>
                           <Wifi className="w-4 h-4" />
                           <span>Coworking on-site</span>
-                        </>
-                      ) : isShortTerm ? (
-                        <>
-                          <Clock className="w-4 h-4" />
-                          <span>From 2 nights</span>
                         </>
                       ) : (
                         <>

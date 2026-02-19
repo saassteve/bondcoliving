@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ArrowRight, ArrowLeft, Home, Calendar, AlertCircle, Loader, Users, Maximize2, ArrowRightCircle, CheckCircle, Info } from 'lucide-react';
 import { apartmentService, availabilityService, apartmentBookingService, type Apartment } from '../../lib/supabase';
 import { getIconComponent } from '../../lib/iconUtils';
+import { calculateTotalPrice } from '../../lib/priceUtils';
 import OptimizedImage from '../OptimizedImage';
 
 interface ApartmentSelectionStepProps {
@@ -140,13 +141,8 @@ const ApartmentSelectionStep: React.FC<ApartmentSelectionStepProps> = ({
     }
   };
 
-  const calculateDailyRate = (monthlyPrice: number) => monthlyPrice / 30;
-
   const calculatePrice = (apartment: Apartment, startDate: string, endDate: string) => {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-    return Math.round(calculateDailyRate(apartment.price) * days * 100) / 100;
+    return Math.round(calculateTotalPrice(apartment, new Date(startDate), new Date(endDate)) * 100) / 100;
   };
 
   const handleContinue = () => {

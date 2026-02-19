@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Clock, CalendarDays, Building2 } from 'lucide-react';
+import { ArrowRight, Building2 } from 'lucide-react';
 import { buildingService, apartmentService } from '../../lib/services';
 import type { Building, Apartment } from '../../lib/services/types';
 import AnimatedSection from '../AnimatedSection';
@@ -80,7 +80,6 @@ const ExploreSpaces: React.FC = () => {
         <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
           {buildings.map((building, index) => {
             const isComingSoon = building.status === 'coming_soon';
-            const isShortTerm = building.stay_type === 'short_term';
             const imageUrl = building.hero_image_url || building.image_url || building.firstApartmentImage || placeholderImages[building.slug] || placeholderImages.carreira;
 
             return (
@@ -102,18 +101,13 @@ const ExploreSpaces: React.FC = () => {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
                     <div className="absolute top-4 left-4 flex gap-2">
-                      <span
-                        className={`px-3 py-1 text-xs font-medium rounded-full backdrop-blur-md ${
-                          isShortTerm
-                            ? 'bg-blue-500/30 text-blue-200 border border-blue-400/30'
-                            : 'bg-green-500/30 text-green-200 border border-green-400/30'
-                        }`}
-                      >
-                        {isShortTerm ? 'Short Stays' : 'Monthly'}
-                      </span>
-                      {isComingSoon && (
+                      {isComingSoon ? (
                         <span className="px-3 py-1 bg-amber-500/30 text-amber-200 text-xs font-medium rounded-full backdrop-blur-md border border-amber-400/30">
                           Coming Soon
+                        </span>
+                      ) : (
+                        <span className="px-3 py-1 bg-green-500/30 text-green-200 text-xs font-medium rounded-full backdrop-blur-md border border-green-400/30">
+                          Available
                         </span>
                       )}
                     </div>
@@ -132,17 +126,6 @@ const ExploreSpaces: React.FC = () => {
 
                   <div className="p-5">
                     <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-2 text-[#C5C5B5]/60 text-sm">
-                        {isShortTerm ? (
-                          <Clock className="w-4 h-4" />
-                        ) : (
-                          <CalendarDays className="w-4 h-4" />
-                        )}
-                        <span>
-                          {isShortTerm ? 'From 2 nights' : 'Min. 1 month'}
-                        </span>
-                      </div>
-
                       {!isComingSoon && (
                         <div className="flex items-center gap-2 text-sm">
                           <Building2 className="w-4 h-4 text-[#C5C5B5]/60" />
