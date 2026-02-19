@@ -7,7 +7,7 @@ const Hero: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="relative h-screen min-h-[100svh] flex flex-col justify-center md:justify-end pb-12 md:pb-24 overflow-hidden -mt-32 md:-mt-24">
+    <section className="relative h-screen min-h-[100svh] flex flex-col justify-center pb-12 overflow-hidden -mt-32 md:-mt-24">
       {/* Background Image & Overlays */}
       <div className="absolute inset-0 z-0">
         <img
@@ -24,8 +24,8 @@ const Hero: React.FC = () => {
         <div className="absolute inset-0 bg-gradient-to-t from-[#1E1F1E] via-[#1E1F1E]/50 to-transparent opacity-90"></div>
       </div>
 
-      <div className="container relative z-20">
-        <div className="grid lg:grid-cols-12 gap-8 items-end">
+      <div className="container relative z-20 pt-32 md:pt-24">
+        <div className="grid lg:grid-cols-12 gap-8 items-center">
           
           {/* Left: Typography */}
           <div className="lg:col-span-7">
