@@ -415,7 +415,11 @@ const CoworkingBookingPage: React.FC = () => {
                       <div>
                         <p className="font-bold text-lg">{selectedPass?.name || 'Select a plan'}</p>
                         <p className="text-[#1E1F1E]/60 text-sm">
-                          {selectedPass?.duration_days === 1 ? '1 Day Access' : `${selectedPass?.duration_days} Days Access`}
+                          {selectedPass?.visit_count
+                            ? `${selectedPass.visit_count} visits · valid ${selectedPass.expiry_months} months`
+                            : selectedPass?.duration_days === 1
+                              ? '1 Day Access'
+                              : 'Unlimited · 30 days'}
                         </p>
                       </div>
                       <span className="font-bold text-xl">

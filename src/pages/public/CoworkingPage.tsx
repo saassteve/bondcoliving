@@ -55,10 +55,19 @@ const CoworkingPage: React.FC = () => {
   };
 
   const getDurationLabel = (pass: CoworkingPass) => {
+    if (pass.visit_count) return `/ ${pass.visit_count} visits`;
     if (pass.duration_days === 1) return '/ day';
-    if (pass.duration_days === 7) return '/ week';
-    if (pass.duration_days === 30) return '/ month';
+    if (pass.duration_days <= 31) return '/ month';
     return `for ${pass.duration_days} days`;
+  };
+
+  const getPassSubtitle = (pass: CoworkingPass) => {
+    if (pass.visit_count && pass.expiry_months) {
+      return `${pass.visit_count} visits · expires in ${pass.expiry_months} months`;
+    }
+    if (pass.duration_days === 30 || pass.duration_days === 31) return 'Unlimited visits · 30 days';
+    if (pass.duration_days > 31) return 'Unlimited visits · 30 days';
+    return null;
   };
 
   return (
@@ -215,7 +224,7 @@ const CoworkingPage: React.FC = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
               {passes.map((pass, index) => {
-                const isHighlight = pass.slug.includes('monthly'); // Heuristic for highlighting
+                const isHighlight = pass.slug === 'monthly-unlimited' || pass.slug === '14-visit-pack';
                 const availability = passAvailability[pass.id];
                 const isAvailable = !availability || availability.available;
 
@@ -247,6 +256,9 @@ const CoworkingPage: React.FC = () => {
                             <span className="text-4xl font-bold text-[#C5C5B5]">€{pass.price}</span>
                             <span className="text-white/40 text-sm">{getDurationLabel(pass)}</span>
                           </div>
+                          {getPassSubtitle(pass) && (
+                            <p className="text-white/40 text-xs mt-1">{getPassSubtitle(pass)}</p>
+                          )}
                         </div>
 
                         <ul className="space-y-4 mb-8 flex-1">

@@ -206,6 +206,8 @@ export interface CoworkingPass {
   available_from?: string
   available_until?: string
   is_date_restricted: boolean
+  visit_count?: number | null
+  expiry_months?: number | null
   created_at?: string
   updated_at?: string
 }
