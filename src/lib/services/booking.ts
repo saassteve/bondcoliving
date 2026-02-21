@@ -257,8 +257,7 @@ export class ApartmentBookingService {
     endDate: string,
     maxSegments: number = 3
   ): Promise<Array<Array<{ apartment: Apartment; checkIn: string; checkOut: string; price: number }>>> {
-    const apartments = await apartmentService.getAll()
-    const activeApartments = apartments.filter(apt => apt.status === 'available')
+    const activeApartments = await apartmentService.getAllForBooking()
 
     if (activeApartments.length === 0) return []
 

@@ -73,7 +73,7 @@ const ApartmentSelectionStep: React.FC<ApartmentSelectionStepProps> = ({
     try {
       setLoading(true);
 
-      const apartments = await apartmentService.getAll();
+      const apartments = await apartmentService.getAllForBooking();
       const activeApartments = apartments.filter(apt => apt.status === 'available');
 
       const availabilityChecks = await Promise.all(

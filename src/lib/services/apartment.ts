@@ -24,6 +24,24 @@ export class ApartmentService {
     return data
   }
 
+  static async getAllForBooking(): Promise<Apartment[]> {
+    const { data, error } = await supabase
+      .from('apartments')
+      .select(`
+        *,
+        building:buildings(*)
+      `)
+      .eq('status', 'available')
+      .order('sort_order', { ascending: true })
+
+    if (error) throw error
+
+    return (data || []).map((apartment) => ({
+      ...apartment,
+      slug: this.generateSlug(apartment.title)
+    }))
+  }
+
   static async getAll(): Promise<Apartment[]> {
     const { data, error } = await supabase
       .from('apartments')
