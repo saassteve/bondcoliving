@@ -31,31 +31,29 @@ export class AvailabilityService {
 
   static async checkAvailability(apartmentId: string, startDate: string, endDate: string): Promise<boolean> {
     const { data, error } = await supabase
-      .from('apartment_availability')
-      .select('status')
-      .eq('apartment_id', apartmentId)
-      .gte('date', startDate)
-      .lt('date', endDate)
-      .in('status', ['booked', 'blocked'])
+      .rpc('check_apartment_available_for_dates', {
+        p_apartment_id: apartmentId,
+        p_check_in: startDate,
+        p_check_out: endDate,
+        p_exclude_booking_id: null
+      })
 
     if (error) throw error
 
-    const unavailableDates = data || []
-    return unavailableDates.length === 0
+    return data === true
   }
 
   static async getUnavailableDates(apartmentId: string, startDate: string, endDate: string): Promise<Set<string>> {
     const { data, error } = await supabase
-      .from('apartment_availability')
-      .select('date')
-      .eq('apartment_id', apartmentId)
-      .gte('date', startDate)
-      .lt('date', endDate)
-      .in('status', ['booked', 'blocked'])
+      .rpc('get_unavailable_dates_for_apartment', {
+        p_apartment_id: apartmentId,
+        p_start_date: startDate,
+        p_end_date: endDate
+      })
 
     if (error) throw error
 
-    return new Set((data || []).map(row => row.date))
+    return new Set((data || []).map((row: { unavailable_date: string }) => row.unavailable_date))
   }
 
   static async getNextAvailableDate(apartmentId: string): Promise<string | null> {
