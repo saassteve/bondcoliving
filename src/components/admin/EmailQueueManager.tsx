@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, RefreshCw, AlertTriangle, CheckCircle, Clock, Play, XCircle } from 'lucide-react';
+import { Mail, RefreshCw, AlertTriangle, CheckCircle, Clock, Play, XCircle, Send } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import type { EmailQueueItem, EmailQueueStats } from '../../lib/services/types';
 
@@ -57,9 +57,9 @@ const EmailQueueManager: React.FC<Props> = ({ onClose }) => {
       if (error) throw error;
 
       if (data.processed > 0 || data.failed > 0) {
-        setSuccess(`Processed ${data.processed} emails, ${data.failed} failed`);
+        setSuccess(`Sent ${data.processed} email${data.processed !== 1 ? 's' : ''}${data.failed > 0 ? `, ${data.failed} failed` : ''}`);
       } else {
-        setSuccess('No pending emails to process');
+        setSuccess('No pending emails in queue');
       }
 
       await fetchData();
@@ -102,7 +102,7 @@ const EmailQueueManager: React.FC<Props> = ({ onClose }) => {
       if (error) throw error;
 
       await fetchData();
-      setSuccess('Email queued for retry');
+      setSuccess('Email queued for retry — click "Process Queue" to send now');
     } catch (err) {
       console.error('Error retrying email:', err);
       setError('Failed to retry email');
@@ -163,7 +163,7 @@ const EmailQueueManager: React.FC<Props> = ({ onClose }) => {
     <div className="bg-gray-800 rounded-lg p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-3">
-          <Mail className="w-6 h-6 text-indigo-400" />
+          <Mail className="w-6 h-6 text-blue-400" />
           <h2 className="text-xl font-bold text-white">Email Queue</h2>
         </div>
         <div className="flex items-center space-x-3">
@@ -171,16 +171,19 @@ const EmailQueueManager: React.FC<Props> = ({ onClose }) => {
             onClick={fetchData}
             disabled={loading}
             className="p-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-300 transition-colors"
+            title="Refresh"
           >
             <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
           </button>
           <button
             onClick={processQueue}
             disabled={processing}
-            className="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors disabled:opacity-50"
+            className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50"
           >
-            <Play className={`w-4 h-4 mr-2 ${processing ? 'animate-pulse' : ''}`} />
-            {processing ? 'Processing...' : 'Process Queue'}
+            {processing
+              ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+              : <Send className="w-4 h-4 mr-2" />}
+            {processing ? 'Sending...' : 'Process Queue'}
           </button>
           {onClose && (
             <button
@@ -230,19 +233,27 @@ const EmailQueueManager: React.FC<Props> = ({ onClose }) => {
         </div>
       )}
 
-      <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-4 mb-6">
-        <div className="flex items-start space-x-3">
-          <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="text-red-400 font-medium">Email Domain Not Verified</p>
-            <p className="text-red-400/80 text-sm mt-1">
-              The domain <code className="bg-red-900/50 px-1 rounded">stayatbond.com</code> needs to be verified in Resend.
-              Go to <a href="https://resend.com/domains" target="_blank" rel="noopener noreferrer" className="underline">resend.com/domains</a> to add and verify the domain.
-              Until verified, emails cannot be sent to customers.
-            </p>
+      {stats && stats.pending > 0 && (
+        <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4 mb-6">
+          <div className="flex items-start justify-between">
+            <div className="flex items-start space-x-3">
+              <AlertTriangle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-yellow-400 font-medium">{stats.pending} email{stats.pending !== 1 ? 's' : ''} waiting to be sent</p>
+                <p className="text-yellow-400/70 text-sm mt-1">Click "Process Queue" to send them now.</p>
+              </div>
+            </div>
+            <button
+              onClick={processQueue}
+              disabled={processing}
+              className="inline-flex items-center px-3 py-1.5 bg-yellow-600 hover:bg-yellow-500 text-white text-sm rounded-lg transition-colors disabled:opacity-50 flex-shrink-0"
+            >
+              <Send className="w-3 h-3 mr-1.5" />
+              Send Now
+            </button>
           </div>
         </div>
-      </div>
+      )}
 
       <div className="overflow-x-auto">
         <table className="w-full">
@@ -297,13 +308,13 @@ const EmailQueueManager: React.FC<Props> = ({ onClose }) => {
                       {(email.status === 'failed' || email.status === 'cancelled') && (
                         <button
                           onClick={() => retryEmail(email.id)}
-                          className="p-1 rounded bg-gray-700 hover:bg-gray-600 text-gray-300"
+                          className="p-1 rounded bg-gray-700 hover:bg-blue-600 text-gray-300"
                           title="Retry"
                         >
                           <RefreshCw className="w-4 h-4" />
                         </button>
                       )}
-                      {email.status === 'pending' && (
+                      {(email.status === 'pending' || email.status === 'processing') && (
                         <button
                           onClick={() => cancelEmail(email.id)}
                           className="p-1 rounded bg-gray-700 hover:bg-red-600 text-gray-300"
